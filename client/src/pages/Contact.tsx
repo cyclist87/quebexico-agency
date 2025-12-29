@@ -7,14 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Clock, Video, MapPin } from "lucide-react";
+import { Mail, Clock, Video } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const bookingLinks = {
-  discovery: "https://tidycal.com/lachance/15-minute-meeting",
-  expert: "https://tidycal.com/lachance/1h-expert-consult",
-  inPerson: "https://tidycal.com/lachance/1h-in-person-meeting",
-};
 
 export default function Contact() {
   const { mutate, isPending } = useCreateMessage();
@@ -50,7 +45,7 @@ export default function Contact() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <Card className="text-center">
               <CardHeader>
                 <div className="mx-auto p-3 rounded-full bg-primary/10 text-primary w-fit mb-2">
@@ -60,7 +55,7 @@ export default function Contact() {
                 <CardDescription>{t.booking.discovery.desc}</CardDescription>
               </CardHeader>
               <CardContent>
-                <a href={bookingLinks.discovery} target="_blank" rel="noopener noreferrer">
+                <a href="/book/discovery">
                   <Button variant="outline" className="w-full" data-testid="button-book-discovery">
                     {t.booking.discovery.cta}
                   </Button>
@@ -77,26 +72,9 @@ export default function Contact() {
                 <CardDescription>{t.booking.expert.desc}</CardDescription>
               </CardHeader>
               <CardContent>
-                <a href={bookingLinks.expert} target="_blank" rel="noopener noreferrer">
+                <a href="/book/expert">
                   <Button className="w-full" data-testid="button-book-expert">
                     {t.booking.expert.cta}
-                  </Button>
-                </a>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <div className="mx-auto p-3 rounded-full bg-primary/10 text-primary w-fit mb-2">
-                  <MapPin className="w-6 h-6" />
-                </div>
-                <CardTitle>{t.booking.inPerson.title}</CardTitle>
-                <CardDescription>{t.booking.inPerson.desc}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <a href={bookingLinks.inPerson} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="w-full" data-testid="button-book-inperson">
-                    {t.booking.inPerson.cta}
                   </Button>
                 </a>
               </CardContent>

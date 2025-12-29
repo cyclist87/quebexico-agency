@@ -57,7 +57,7 @@ export const translations = {
       navLinks: ["Accueil", "Approche", "Services", "Contact"],
       legal: "Légal",
       legalLinks: ["Mentions Légales", "Politique de Confidentialité", "CGV", "Cookies"],
-      newsletter: "Newsletter",
+      newsletter: "Liste de diffusion",
       newsletterDesc: "Abonnez-vous pour recevoir nos dernières actualités.",
       emailPlaceholder: "votre@email.com",
       copyright: "Tous droits réservés.",

@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "wouter";
+
+const legalRoutes = ["/legal", "/privacy", "/terms", "/cookies"];
+const navRoutes = ["/", "/#about", "/#services", "/contact"];
 
 export function Footer() {
   const { mutate, isPending } = useCreateSubscriber();
@@ -65,11 +69,11 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-4">{t.footer.navigation}</h3>
             <ul className="space-y-3">
-              {t.footer.navLinks.map((item) => (
+              {t.footer.navLinks.map((item, index) => (
                 <li key={item}>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={navRoutes[index]} className="text-muted-foreground hover:text-primary transition-colors">
                     {item}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -79,11 +83,11 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-4">{t.footer.legal}</h3>
             <ul className="space-y-3">
-              {t.footer.legalLinks.map((item) => (
+              {t.footer.legalLinks.map((item, index) => (
                 <li key={item}>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={legalRoutes[index]} className="text-muted-foreground hover:text-primary transition-colors">
                     {item}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

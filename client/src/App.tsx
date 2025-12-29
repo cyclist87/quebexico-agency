@@ -8,6 +8,12 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import Home from "@/pages/Home";
 import Contact from "@/pages/Contact";
+import BookDiscovery from "@/pages/BookDiscovery";
+import BookExpert from "@/pages/BookExpert";
+import Legal from "@/pages/Legal";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import Cookies from "@/pages/Cookies";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,6 +21,12 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/contact" component={Contact} />
+      <Route path="/book/discovery" component={BookDiscovery} />
+      <Route path="/book/expert" component={BookExpert} />
+      <Route path="/legal" component={Legal} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/cookies" component={Cookies} />
       <Route component={NotFound} />
     </Switch>
   );
