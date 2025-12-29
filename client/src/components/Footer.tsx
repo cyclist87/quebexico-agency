@@ -28,9 +28,12 @@ export function Footer() {
           
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <h2 className="font-display font-bold text-3xl mb-4 tracking-tighter">
-              QUEBEXICO
-            </h2>
+            <div className="mb-4">
+              <h2 className="font-display font-bold text-3xl tracking-tighter">
+                QUEBEXICO
+              </h2>
+              <span className="text-xs text-white/50 tracking-wide">Agence créative</span>
+            </div>
             <p className="text-muted-foreground mb-6">
               Nous résolvons des problèmes complexes avec des solutions créatives simples.
             </p>

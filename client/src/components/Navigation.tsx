@@ -34,8 +34,11 @@ export function Navigation() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link href="/" className="font-display font-bold text-2xl tracking-tighter hover:opacity-80 transition-opacity flex items-center gap-2">
-            <span className="text-primary text-3xl">Q</span>UEBEXICO
+          <Link href="/" className="hover:opacity-80 transition-opacity flex flex-col">
+            <span className="font-display font-bold text-2xl tracking-tighter flex items-center gap-2">
+              <span className="text-primary text-3xl">Q</span>UEBEXICO
+            </span>
+            <span className="text-xs text-muted-foreground tracking-wide">Agence créative</span>
           </Link>
 
           {/* Desktop Nav */}
