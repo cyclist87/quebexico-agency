@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Calendar, Sparkles } from "lucide-react";
+import { ArrowRight, Target, Palette, Globe, Rocket, Quote } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
@@ -44,7 +44,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10"
           >
             {t.hero.subtitle}
           </motion.p>
@@ -69,7 +69,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* About/Approach Section */}
       <section id="about" className="py-24 bg-secondary/30">
         <div className="container-padding max-w-7xl mx-auto">
           <motion.div {...fadeIn} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -83,14 +83,16 @@ export default function Home() {
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
                 {t.about.p2}
               </p>
-              <ul className="space-y-4">
-                {t.about.list.map((item) => (
-                  <li key={item} className="flex items-center gap-3 font-medium">
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                    {item}
-                  </li>
+              <div className="flex items-center gap-4">
+                {t.about.list.map((item, index) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <span className="font-display font-bold text-xl text-primary">{item}</span>
+                    {index < t.about.list.length - 1 && (
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl transform rotate-3 scale-105" />
@@ -114,36 +116,26 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <ServiceCard 
-              icon={Lightbulb}
+              icon={Target}
               title={t.services.strategy.title}
               description={t.services.strategy.desc}
             />
             <ServiceCard 
-              icon={PenTool}
-              title={t.services.design.title}
-              description={t.services.design.desc}
-            />
-            <ServiceCard 
-              icon={Monitor}
-              title={t.services.development.title}
-              description={t.services.development.desc}
-            />
-            <ServiceCard 
-              icon={Layout}
-              title={t.services.marketing.title}
-              description={t.services.marketing.desc}
-            />
-            <ServiceCard 
-              icon={Calendar}
-              title={t.services.events.title}
-              description={t.services.events.desc}
-            />
-            <ServiceCard 
-              icon={Sparkles}
+              icon={Palette}
               title={t.services.branding.title}
               description={t.services.branding.desc}
+            />
+            <ServiceCard 
+              icon={Globe}
+              title={t.services.digital.title}
+              description={t.services.digital.desc}
+            />
+            <ServiceCard 
+              icon={Rocket}
+              title={t.services.activation.title}
+              description={t.services.activation.desc}
             />
           </div>
         </div>

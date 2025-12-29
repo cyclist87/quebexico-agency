@@ -3,55 +3,47 @@ export type Language = 'fr' | 'en' | 'es';
 export const translations = {
   fr: {
     nav: {
-      about: "À Propos",
+      about: "Approche",
       services: "Services",
-      demoReel: "Démo Reel",
+      demoReel: "Réalisations",
       blog: "Blogue",
       contact: "Contactez-nous",
     },
     hero: {
-      title1: "Des problèmes ?",
-      title2: "Agence Créative.",
-      subtitle: "Experts en résolutions de problèmes. Nous transformons vos défis en opportunités digitales.",
+      title1: "Stratégie.",
+      title2: "Création. Impact.",
+      subtitle: "De la stratégie à l'exécution créative, nous construisons des marques qui génèrent de l'impact.",
       cta: "Démarrer un projet",
       discover: "Découvrir nos services",
     },
     about: {
-      title: "Que faisons nous ?",
-      p1: "Chez QUEBEXICO, nous ne sommes pas juste des designers ou des développeurs. Nous sommes des architectes de solutions.",
-      p2: "Notre approche est simple : analyser, concevoir, délivrer. Que vous ayez besoin d'une refonte complète de votre identité de marque, d'une application complexe ou d'une stratégie marketing percutante, nous avons l'équipe pour relever le défi.",
-      list: ["Stratégie Digitale", "Design Thinking", "Développement Agile"],
+      title: "Notre Approche",
+      p1: "Chez QUEBEXICO, chaque projet suit un parcours stratégique. Nous ne créons pas pour créer — nous construisons avec intention.",
+      p2: "Notre méthode intégrée assure une cohérence totale, de la vision initiale jusqu'à l'exécution finale. Un système, une équipe, un objectif : votre croissance.",
+      list: ["Stratégie", "Création", "Impact"],
     },
     services: {
       title: "Nos Services",
-      subtitle: "Une gamme complète de services pour propulser votre entreprise vers le succès.",
+      subtitle: "Un système intégré pour construire des marques fortes.",
       strategy: {
-        title: "Stratégie",
-        desc: "Analyse de marché, positionnement de marque et conseil stratégique pour maximiser votre impact.",
-      },
-      design: {
-        title: "Design",
-        desc: "Direction artistique, UI/UX design, logos et identité visuelle qui marquent les esprits.",
-      },
-      development: {
-        title: "Développement",
-        desc: "Sites web performants, applications mobiles et solutions e-commerce sur mesure.",
-      },
-      marketing: {
-        title: "Marketing",
-        desc: "SEO, gestion des réseaux sociaux et campagnes publicitaires ciblées.",
-      },
-      events: {
-        title: "Événements",
-        desc: "Organisation et production d'événements corporatifs, lancements de produits et conférences.",
+        title: "Stratégie & Positionnement",
+        desc: "Vision, positionnement de marque, stratégie de croissance.",
       },
       branding: {
-        title: "Image de marque",
-        desc: "Gestion et développement de votre identité de marque pour une présence cohérente et mémorable.",
+        title: "Branding & Image de marque",
+        desc: "Identité visuelle, direction artistique, systèmes de marque.",
+      },
+      digital: {
+        title: "Expériences digitales",
+        desc: "Sites web, UX/UI, produits et plateformes digitales.",
+      },
+      activation: {
+        title: "Activation & Croissance",
+        desc: "Marketing créatif, campagnes, lancements, événements, communautés.",
       },
     },
     demoReel: {
-      title: "Démo Reel",
+      title: "Réalisations",
       subtitle: "Découvrez un aperçu de notre travail et de notre expertise créative.",
     },
     quote: {
@@ -59,10 +51,10 @@ export const translations = {
       author: "Winston Churchill",
     },
     footer: {
-      tagline: "Agence créative",
-      description: "Nous résolvons des problèmes complexes avec des solutions créatives simples.",
+      tagline: "Agence créative stratégique",
+      description: "De la stratégie à l'exécution créative, nous construisons des marques qui génèrent de l'impact.",
       navigation: "Navigation",
-      navLinks: ["Accueil", "À Propos", "Services", "Contact"],
+      navLinks: ["Accueil", "Approche", "Services", "Contact"],
       legal: "Légal",
       legalLinks: ["Mentions Légales", "Politique de Confidentialité", "CGV", "Cookies"],
       newsletter: "Newsletter",
@@ -82,55 +74,47 @@ export const translations = {
   },
   en: {
     nav: {
-      about: "About",
+      about: "Approach",
       services: "Services",
-      demoReel: "Demo Reel",
+      demoReel: "Work",
       blog: "Blog",
       contact: "Contact Us",
     },
     hero: {
-      title1: "Got problems?",
-      title2: "Creative Agency.",
-      subtitle: "Problem-solving experts. We transform your challenges into digital opportunities.",
+      title1: "Strategy.",
+      title2: "Creation. Impact.",
+      subtitle: "From strategy to creative execution, we build brands that generate impact.",
       cta: "Start a project",
       discover: "Discover our services",
     },
     about: {
-      title: "What do we do?",
-      p1: "At QUEBEXICO, we are not just designers or developers. We are solution architects.",
-      p2: "Our approach is simple: analyze, design, deliver. Whether you need a complete brand identity overhaul, a complex application, or a powerful marketing strategy, we have the team to meet the challenge.",
-      list: ["Digital Strategy", "Design Thinking", "Agile Development"],
+      title: "Our Approach",
+      p1: "At QUEBEXICO, every project follows a strategic path. We don't create for the sake of creating — we build with intention.",
+      p2: "Our integrated method ensures total consistency, from initial vision to final execution. One system, one team, one goal: your growth.",
+      list: ["Strategy", "Creation", "Impact"],
     },
     services: {
       title: "Our Services",
-      subtitle: "A complete range of services to propel your business to success.",
+      subtitle: "An integrated system to build strong brands.",
       strategy: {
-        title: "Strategy",
-        desc: "Market analysis, brand positioning, and strategic consulting to maximize your impact.",
-      },
-      design: {
-        title: "Design",
-        desc: "Art direction, UI/UX design, logos, and visual identity that leave a mark.",
-      },
-      development: {
-        title: "Development",
-        desc: "High-performance websites, mobile apps, and custom e-commerce solutions.",
-      },
-      marketing: {
-        title: "Marketing",
-        desc: "SEO, social media management, and targeted advertising campaigns.",
-      },
-      events: {
-        title: "Events",
-        desc: "Organization and production of corporate events, product launches, and conferences.",
+        title: "Strategy & Positioning",
+        desc: "Vision, brand positioning, growth strategy.",
       },
       branding: {
-        title: "Brand Management",
-        desc: "Management and development of your brand identity for a consistent and memorable presence.",
+        title: "Branding & Identity",
+        desc: "Visual identity, art direction, brand systems.",
+      },
+      digital: {
+        title: "Digital Experiences",
+        desc: "Websites, UX/UI, digital products and platforms.",
+      },
+      activation: {
+        title: "Activation & Growth",
+        desc: "Creative marketing, campaigns, launches, events, communities.",
       },
     },
     demoReel: {
-      title: "Demo Reel",
+      title: "Work",
       subtitle: "Discover a glimpse of our work and creative expertise.",
     },
     quote: {
@@ -138,10 +122,10 @@ export const translations = {
       author: "Winston Churchill",
     },
     footer: {
-      tagline: "Creative Agency",
-      description: "We solve complex problems with simple creative solutions.",
+      tagline: "Strategic Creative Agency",
+      description: "From strategy to creative execution, we build brands that generate impact.",
       navigation: "Navigation",
-      navLinks: ["Home", "About", "Services", "Contact"],
+      navLinks: ["Home", "Approach", "Services", "Contact"],
       legal: "Legal",
       legalLinks: ["Legal Notice", "Privacy Policy", "Terms", "Cookies"],
       newsletter: "Newsletter",
@@ -161,55 +145,47 @@ export const translations = {
   },
   es: {
     nav: {
-      about: "Acerca de",
+      about: "Enfoque",
       services: "Servicios",
-      demoReel: "Demo Reel",
+      demoReel: "Proyectos",
       blog: "Blog",
       contact: "Contáctenos",
     },
     hero: {
-      title1: "¿Problemas?",
-      title2: "Agencia Creativa.",
-      subtitle: "Expertos en resolución de problemas. Transformamos tus desafíos en oportunidades digitales.",
+      title1: "Estrategia.",
+      title2: "Creación. Impacto.",
+      subtitle: "De la estrategia a la ejecución creativa, construimos marcas que generan impacto.",
       cta: "Iniciar un proyecto",
       discover: "Descubrir nuestros servicios",
     },
     about: {
-      title: "¿Qué hacemos?",
-      p1: "En QUEBEXICO, no somos solo diseñadores o desarrolladores. Somos arquitectos de soluciones.",
-      p2: "Nuestro enfoque es simple: analizar, diseñar, entregar. Ya sea que necesites una renovación completa de tu identidad de marca, una aplicación compleja o una estrategia de marketing impactante, tenemos el equipo para enfrentar el desafío.",
-      list: ["Estrategia Digital", "Design Thinking", "Desarrollo Ágil"],
+      title: "Nuestro Enfoque",
+      p1: "En QUEBEXICO, cada proyecto sigue un camino estratégico. No creamos por crear — construimos con intención.",
+      p2: "Nuestro método integrado asegura coherencia total, desde la visión inicial hasta la ejecución final. Un sistema, un equipo, un objetivo: tu crecimiento.",
+      list: ["Estrategia", "Creación", "Impacto"],
     },
     services: {
       title: "Nuestros Servicios",
-      subtitle: "Una gama completa de servicios para impulsar tu empresa hacia el éxito.",
+      subtitle: "Un sistema integrado para construir marcas fuertes.",
       strategy: {
-        title: "Estrategia",
-        desc: "Análisis de mercado, posicionamiento de marca y consultoría estratégica para maximizar tu impacto.",
-      },
-      design: {
-        title: "Diseño",
-        desc: "Dirección artística, diseño UI/UX, logotipos e identidad visual que dejan huella.",
-      },
-      development: {
-        title: "Desarrollo",
-        desc: "Sitios web de alto rendimiento, aplicaciones móviles y soluciones de comercio electrónico personalizadas.",
-      },
-      marketing: {
-        title: "Marketing",
-        desc: "SEO, gestión de redes sociales y campañas publicitarias dirigidas.",
-      },
-      events: {
-        title: "Eventos",
-        desc: "Organización y producción de eventos corporativos, lanzamientos de productos y conferencias.",
+        title: "Estrategia & Posicionamiento",
+        desc: "Visión, posicionamiento de marca, estrategia de crecimiento.",
       },
       branding: {
-        title: "Gestión de Marca",
-        desc: "Gestión y desarrollo de tu identidad de marca para una presencia coherente y memorable.",
+        title: "Branding & Identidad",
+        desc: "Identidad visual, dirección artística, sistemas de marca.",
+      },
+      digital: {
+        title: "Experiencias Digitales",
+        desc: "Sitios web, UX/UI, productos y plataformas digitales.",
+      },
+      activation: {
+        title: "Activación & Crecimiento",
+        desc: "Marketing creativo, campañas, lanzamientos, eventos, comunidades.",
       },
     },
     demoReel: {
-      title: "Demo Reel",
+      title: "Proyectos",
       subtitle: "Descubre un vistazo de nuestro trabajo y experiencia creativa.",
     },
     quote: {
@@ -217,10 +193,10 @@ export const translations = {
       author: "Winston Churchill",
     },
     footer: {
-      tagline: "Agencia Creativa",
-      description: "Resolvemos problemas complejos con soluciones creativas simples.",
+      tagline: "Agencia Creativa Estratégica",
+      description: "De la estrategia a la ejecución creativa, construimos marcas que generan impacto.",
       navigation: "Navegación",
-      navLinks: ["Inicio", "Acerca de", "Servicios", "Contacto"],
+      navLinks: ["Inicio", "Enfoque", "Servicios", "Contacto"],
       legal: "Legal",
       legalLinks: ["Aviso Legal", "Política de Privacidad", "Términos", "Cookies"],
       newsletter: "Boletín",
