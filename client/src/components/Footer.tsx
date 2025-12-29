@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Linkedin, Send } from "lucide-react";
+import { Instagram, Linkedin, Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSubscriberSchema } from "@shared/schema";
@@ -35,11 +35,24 @@ export function Footer() {
               Nous résolvons des problèmes complexes avec des solutions créatives simples.
             </p>
             <div className="flex gap-4">
-              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="p-2 bg-background/5 rounded-full hover:bg-primary hover:text-white transition-colors">
-                  <Icon className="w-5 h-5" />
-                </a>
-              ))}
+              <a 
+                href="https://www.linkedin.com/company/quebexico/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-background/5 rounded-full hover:bg-primary hover:text-white transition-colors"
+                data-testid="link-linkedin"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+              <a 
+                href="https://www.instagram.com/quebexico.co" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-background/5 rounded-full hover:bg-primary hover:text-white transition-colors"
+                data-testid="link-instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
@@ -47,7 +60,7 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-4">Navigation</h3>
             <ul className="space-y-3">
-              {['Accueil', 'À Propos', 'Services', 'Portfolio', 'Contact'].map((item) => (
+              {['Accueil', 'À Propos', 'Services', 'Contact'].map((item) => (
                 <li key={item}>
                   <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                     {item}

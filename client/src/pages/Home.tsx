@@ -1,17 +1,8 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, ChevronRight, Quote } from "lucide-react";
+import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Play } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
-import { useProjects } from "@/hooks/use-projects";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -21,8 +12,6 @@ const fadeIn = {
 };
 
 export default function Home() {
-  const { data: projects, isLoading } = useProjects();
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -147,48 +136,31 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Portfolio Section */}
-      <section id="portfolio" className="py-24 bg-foreground text-background">
+      {/* Demo Reel Section */}
+      <section id="demoreel" className="py-24 bg-foreground text-background">
         <div className="container-padding max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-16">
-            <div>
-              <h2 className="font-display text-4xl font-bold mb-4">Portfolio</h2>
-              <p className="text-white/60">Nos dernières réalisations.</p>
-            </div>
-            <Button variant="outline" className="hidden sm:flex border-white/20 hover:bg-white/10 text-white">
-              Voir tout le portfolio
-            </Button>
+          <div className="text-center mb-12">
+            <h2 className="font-display text-4xl font-bold mb-4">Démo Reel</h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Découvrez un aperçu de notre travail et de notre expertise créative.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {isLoading ? (
-              // Loading skeletons
-              [1, 2, 3].map((n) => (
-                <div key={n} className="h-80 bg-white/5 rounded-2xl animate-pulse" />
-              ))
-            ) : (
-              projects?.map((project) => (
-                <motion.div 
-                  key={project.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="group relative overflow-hidden rounded-2xl cursor-pointer"
-                >
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                    <span className="text-primary font-medium text-sm mb-2">{project.category}</span>
-                    <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
-                    <p className="text-white/80 line-clamp-2">{project.description}</p>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl"
+          >
+            <iframe
+              src="https://www.youtube.com/embed/judToWBm8bU"
+              title="Quebexico Demo Reel"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+              data-testid="video-demoreel"
+            />
+          </motion.div>
         </div>
       </section>
 
