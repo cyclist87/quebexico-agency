@@ -12,10 +12,6 @@ export default function Legal() {
           text: "QUEBEXICO est une agence créative stratégique basée au Québec, Canada. Pour toute question, contactez-nous à salut@quebexico.co"
         },
         {
-          title: "Hébergement",
-          text: "Ce site est hébergé par Replit, Inc. 548 Market St, San Francisco, CA 94104, États-Unis."
-        },
-        {
           title: "Propriété intellectuelle",
           text: "L'ensemble du contenu de ce site (textes, images, vidéos, logos) est protégé par le droit d'auteur. Toute reproduction sans autorisation préalable est interdite."
         },
@@ -33,10 +29,6 @@ export default function Legal() {
           text: "QUEBEXICO is a strategic creative agency based in Quebec, Canada. For any questions, contact us at salut@quebexico.co"
         },
         {
-          title: "Hosting",
-          text: "This site is hosted by Replit, Inc. 548 Market St, San Francisco, CA 94104, USA."
-        },
-        {
           title: "Intellectual Property",
           text: "All content on this site (texts, images, videos, logos) is protected by copyright. Any reproduction without prior authorization is prohibited."
         },
@@ -52,10 +44,6 @@ export default function Legal() {
         {
           title: "Editor del sitio",
           text: "QUEBEXICO es una agencia creativa estratégica con sede en Quebec, Canadá. Para cualquier pregunta, contáctenos en salut@quebexico.co"
-        },
-        {
-          title: "Alojamiento",
-          text: "Este sitio está alojado por Replit, Inc. 548 Market St, San Francisco, CA 94104, EE.UU."
         },
         {
           title: "Propiedad intelectual",
