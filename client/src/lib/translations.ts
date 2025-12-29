@@ -45,6 +45,10 @@ export const translations = {
         title: "Événements",
         desc: "Organisation et production d'événements corporatifs, lancements de produits et conférences.",
       },
+      branding: {
+        title: "Image de marque",
+        desc: "Gestion et développement de votre identité de marque pour une présence cohérente et mémorable.",
+      },
     },
     demoReel: {
       title: "Démo Reel",
@@ -120,6 +124,10 @@ export const translations = {
         title: "Events",
         desc: "Organization and production of corporate events, product launches, and conferences.",
       },
+      branding: {
+        title: "Brand Management",
+        desc: "Management and development of your brand identity for a consistent and memorable presence.",
+      },
     },
     demoReel: {
       title: "Demo Reel",
@@ -194,6 +202,10 @@ export const translations = {
       events: {
         title: "Eventos",
         desc: "Organización y producción de eventos corporativos, lanzamientos de productos y conferencias.",
+      },
+      branding: {
+        title: "Gestión de Marca",
+        desc: "Gestión y desarrollo de tu identidad de marca para una presencia coherente y memorable.",
       },
     },
     demoReel: {

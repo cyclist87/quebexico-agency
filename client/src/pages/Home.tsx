@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Calendar } from "lucide-react";
+import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Calendar, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
@@ -114,7 +114,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <ServiceCard 
               icon={Lightbulb}
               title={t.services.strategy.title}
@@ -139,6 +139,11 @@ export default function Home() {
               icon={Calendar}
               title={t.services.events.title}
               description={t.services.events.desc}
+            />
+            <ServiceCard 
+              icon={Sparkles}
+              title={t.services.branding.title}
+              description={t.services.branding.desc}
             />
           </div>
         </div>
