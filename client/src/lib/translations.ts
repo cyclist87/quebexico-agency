@@ -71,6 +71,25 @@ export const translations = {
       send: "Envoyer le message",
       sending: "Envoi en cours...",
     },
+    booking: {
+      title: "Prendre rendez-vous",
+      subtitle: "Choisissez le type de rencontre qui vous convient.",
+      discovery: {
+        title: "Appel découverte",
+        desc: "15 minutes pour faire connaissance",
+        cta: "Réserver",
+      },
+      expert: {
+        title: "Consultation expert",
+        desc: "1 heure de consultation approfondie",
+        cta: "Réserver",
+      },
+      inPerson: {
+        title: "Rencontre en personne",
+        desc: "1 heure - Région de Québec",
+        cta: "Réserver",
+      },
+    },
   },
   en: {
     nav: {
@@ -142,6 +161,25 @@ export const translations = {
       send: "Send message",
       sending: "Sending...",
     },
+    booking: {
+      title: "Book a Meeting",
+      subtitle: "Choose the meeting type that suits you.",
+      discovery: {
+        title: "Discovery Call",
+        desc: "15 minutes to get to know each other",
+        cta: "Book",
+      },
+      expert: {
+        title: "Expert Consultation",
+        desc: "1 hour in-depth consultation",
+        cta: "Book",
+      },
+      inPerson: {
+        title: "In-Person Meeting",
+        desc: "1 hour - Quebec City area",
+        cta: "Book",
+      },
+    },
   },
   es: {
     nav: {
@@ -212,6 +250,25 @@ export const translations = {
       message: "Tu mensaje",
       send: "Enviar mensaje",
       sending: "Enviando...",
+    },
+    booking: {
+      title: "Reservar una cita",
+      subtitle: "Elige el tipo de reunión que te convenga.",
+      discovery: {
+        title: "Llamada de descubrimiento",
+        desc: "15 minutos para conocernos",
+        cta: "Reservar",
+      },
+      expert: {
+        title: "Consulta experta",
+        desc: "1 hora de consulta en profundidad",
+        cta: "Reservar",
+      },
+      inPerson: {
+        title: "Reunión en persona",
+        desc: "1 hora - Región de Quebec",
+        cta: "Reservar",
+      },
     },
   },
 } as const;
