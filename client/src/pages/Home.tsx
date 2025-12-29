@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import wordCloudImage from "@assets/quebexico-trim_1767029606319.png";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -94,12 +95,11 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl transform rotate-3 scale-105" />
+            <div className="relative flex items-center justify-center">
               <img 
-                src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=1000" 
-                alt="Notre équipe" 
-                className="relative rounded-3xl shadow-2xl w-full h-auto object-cover"
+                src={wordCloudImage}
+                alt="Quebexico - Créativité québécoise" 
+                className="relative w-full h-auto object-contain max-w-md mx-auto"
               />
             </div>
           </motion.div>
