@@ -145,31 +145,22 @@ export default function Home() {
       </section>
 
       {/* Demo Reel Section */}
-      <section id="demoreel" className="py-24 bg-foreground text-background">
-        <div className="container-padding max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-4xl font-bold mb-4">{t.demoReel.title}</h2>
-            <p className="text-white/60 max-w-2xl mx-auto">
-              {t.demoReel.subtitle}
-            </p>
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className="relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl"
-          >
-            <iframe
-              src="https://www.youtube.com/embed/judToWBm8bU"
-              title="Quebexico Demo Reel"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-              data-testid="video-demoreel"
-            />
-          </motion.div>
-        </div>
+      <section id="demoreel" className="bg-foreground">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full aspect-video"
+        >
+          <iframe
+            src="https://www.youtube.com/embed/judToWBm8bU"
+            title="Quebexico Demo Reel"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+            data-testid="video-demoreel"
+          />
+        </motion.div>
       </section>
 
       {/* Testimonials Quote */}
