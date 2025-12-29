@@ -145,24 +145,22 @@ export default function Home() {
       </section>
 
       {/* Demo Reel Section */}
-      <section id="demoreel" className="py-16 bg-foreground">
-        <div className="max-w-6xl mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10"
-          >
-            <iframe
-              src="https://www.youtube.com/embed/judToWBm8bU?modestbranding=1&rel=0&showinfo=0&iv_load_policy=3"
-              title="Quebexico Demo Reel"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-              data-testid="video-demoreel"
-            />
-          </motion.div>
-        </div>
+      <section id="demoreel" className="bg-foreground">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full aspect-video shadow-2xl"
+        >
+          <iframe
+            src="https://www.youtube.com/embed/judToWBm8bU?modestbranding=1&rel=0&showinfo=0&iv_load_policy=3"
+            title="Quebexico Demo Reel"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+            data-testid="video-demoreel"
+          />
+        </motion.div>
       </section>
 
       {/* Testimonials Quote */}
