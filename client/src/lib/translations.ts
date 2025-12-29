@@ -18,8 +18,8 @@ export const translations = {
     },
     about: {
       title: "Notre Approche",
-      p1: "Chez QUEBEXICO, chaque projet suit un parcours stratégique. Nous ne créons pas pour créer — nous construisons avec intention.",
-      p2: "Notre méthode intégrée assure une cohérence totale, de la vision initiale jusqu'à l'exécution finale. Un système, une équipe, un objectif : votre croissance.",
+      p1: "Chez QUEBEXICO, nous aidons les organisations à identifier les points de friction, comprendre les besoins des parties prenantes, et concevoir des stratégies d'innovation pratiques.",
+      p2: "Notre processus combine insight qualitatif, pensée systémique et design thinking pour diagnostiquer le fonctionnement actuel et développer des solutions réalistes, évolutives et alignées avec vos objectifs.",
       list: ["Stratégie", "Création", "Impact"],
     },
     services: {
@@ -47,8 +47,8 @@ export const translations = {
       subtitle: "Découvrez un aperçu de notre travail et de notre expertise créative.",
     },
     quote: {
-      text: "Un pessimiste voit la difficulté dans chaque opportunité, un optimiste voit l'opportunité dans chaque difficulté.",
-      author: "Winston Churchill",
+      text: "L'innovation commence par comprendre chaque partie du système et comment ces parties interagissent. C'est seulement alors qu'on peut concevoir un changement qui dure vraiment.",
+      author: "",
     },
     footer: {
       tagline: "Agence créative stratégique",
@@ -89,8 +89,8 @@ export const translations = {
     },
     about: {
       title: "Our Approach",
-      p1: "At QUEBEXICO, every project follows a strategic path. We don't create for the sake of creating — we build with intention.",
-      p2: "Our integrated method ensures total consistency, from initial vision to final execution. One system, one team, one goal: your growth.",
+      p1: "At QUEBEXICO, we help organizations identify friction points, understand stakeholder needs, and design practical innovation strategies.",
+      p2: "Our process blends qualitative insight, systems thinking and design thinking to diagnose how things function today and develop solutions that are realistic, scalable, and aligned with your goals.",
       list: ["Strategy", "Creation", "Impact"],
     },
     services: {
@@ -118,8 +118,8 @@ export const translations = {
       subtitle: "Discover a glimpse of our work and creative expertise.",
     },
     quote: {
-      text: "A pessimist sees the difficulty in every opportunity; an optimist sees the opportunity in every difficulty.",
-      author: "Winston Churchill",
+      text: "Innovation begins by understanding every part of the system and how those parts interact. Only then can you design change that truly lasts.",
+      author: "",
     },
     footer: {
       tagline: "Strategic Creative Agency",
@@ -160,8 +160,8 @@ export const translations = {
     },
     about: {
       title: "Nuestro Enfoque",
-      p1: "En QUEBEXICO, cada proyecto sigue un camino estratégico. No creamos por crear — construimos con intención.",
-      p2: "Nuestro método integrado asegura coherencia total, desde la visión inicial hasta la ejecución final. Un sistema, un equipo, un objetivo: tu crecimiento.",
+      p1: "En QUEBEXICO, ayudamos a las organizaciones a identificar puntos de fricción, comprender las necesidades de las partes interesadas y diseñar estrategias de innovación prácticas.",
+      p2: "Nuestro proceso combina insight cualitativo, pensamiento sistémico y design thinking para diagnosticar el funcionamiento actual y desarrollar soluciones realistas, escalables y alineadas con tus objetivos.",
       list: ["Estrategia", "Creación", "Impacto"],
     },
     services: {
@@ -189,8 +189,8 @@ export const translations = {
       subtitle: "Descubre un vistazo de nuestro trabajo y experiencia creativa.",
     },
     quote: {
-      text: "Un pesimista ve la dificultad en cada oportunidad; un optimista ve la oportunidad en cada dificultad.",
-      author: "Winston Churchill",
+      text: "La innovación comienza por comprender cada parte del sistema y cómo interactúan entre sí. Solo entonces se puede diseñar un cambio que realmente perdure.",
+      author: "",
     },
     footer: {
       tagline: "Agencia Creativa Estratégica",

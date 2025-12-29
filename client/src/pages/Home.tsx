@@ -160,16 +160,13 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Testimonials Quote */}
+      {/* Philosophy Quote */}
       <section className="py-32 bg-primary/5">
         <div className="container-padding max-w-4xl mx-auto text-center">
           <Quote className="w-12 h-12 text-primary/20 mx-auto mb-8" />
-          <blockquote className="font-display text-3xl md:text-4xl font-medium leading-tight mb-8">
+          <blockquote className="font-display text-3xl md:text-4xl font-medium leading-tight">
             "{t.quote.text}"
           </blockquote>
-          <cite className="text-lg font-semibold text-primary not-italic">
-            — {t.quote.author}
-          </cite>
         </div>
       </section>
 
