@@ -50,7 +50,7 @@ export function Footer() {
                 <Linkedin className="w-5 h-5" />
               </a>
               <a 
-                href="https://www.instagram.com/quebexico.co" 
+                href="https://www.instagram.com/quebexicoagency/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-background/5 rounded-full hover:bg-primary hover:text-white transition-colors"
