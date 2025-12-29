@@ -30,7 +30,7 @@ export const translations = {
         desc: "Vision, positionnement de marque, stratégie de croissance.",
       },
       branding: {
-        title: "Branding & Image de marque",
+        title: "Image de marque",
         desc: "Identité visuelle, direction artistique, systèmes de marque.",
       },
       digital: {
