@@ -76,7 +76,7 @@ export function Navigation() {
                   {languageLabels[language]}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background border shadow-lg">
                 <DropdownMenuItem onClick={() => setLanguage("fr")} data-testid="lang-fr">
                   Français
                 </DropdownMenuItem>
@@ -104,7 +104,7 @@ export function Navigation() {
                   <Globe className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background border shadow-lg">
                 <DropdownMenuItem onClick={() => setLanguage("fr")}>Français</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLanguage("es")}>Español</DropdownMenuItem>
