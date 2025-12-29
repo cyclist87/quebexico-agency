@@ -6,9 +6,11 @@ import { useCreateSubscriber } from "@/hooks/use-messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Footer() {
   const { mutate, isPending } = useCreateSubscriber();
+  const { t } = useLanguage();
   
   const form = useForm({
     resolver: zodResolver(insertSubscriberSchema),
@@ -32,10 +34,10 @@ export function Footer() {
               <h2 className="font-display font-bold text-3xl tracking-tighter">
                 QUEBEXICO
               </h2>
-              <span className="text-xs text-white/50 tracking-wide">Agence créative</span>
+              <span className="text-xs text-white/50 tracking-wide">{t.footer.tagline}</span>
             </div>
             <p className="text-muted-foreground mb-6">
-              Nous résolvons des problèmes complexes avec des solutions créatives simples.
+              {t.footer.description}
             </p>
             <div className="flex gap-4">
               <a 
@@ -61,9 +63,9 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h3 className="font-bold text-lg mb-4">Navigation</h3>
+            <h3 className="font-bold text-lg mb-4">{t.footer.navigation}</h3>
             <ul className="space-y-3">
-              {['Accueil', 'À Propos', 'Services', 'Contact'].map((item) => (
+              {t.footer.navLinks.map((item) => (
                 <li key={item}>
                   <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                     {item}
@@ -75,9 +77,9 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-bold text-lg mb-4">Légal</h3>
+            <h3 className="font-bold text-lg mb-4">{t.footer.legal}</h3>
             <ul className="space-y-3">
-              {['Mentions Légales', 'Politique de Confidentialité', 'CGV', 'Cookies'].map((item) => (
+              {t.footer.legalLinks.map((item) => (
                 <li key={item}>
                   <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                     {item}
@@ -89,9 +91,9 @@ export function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-bold text-lg mb-4">Newsletter</h3>
+            <h3 className="font-bold text-lg mb-4">{t.footer.newsletter}</h3>
             <p className="text-muted-foreground mb-4 text-sm">
-              Abonnez-vous pour recevoir nos dernières actualités.
+              {t.footer.newsletterDesc}
             </p>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
@@ -103,7 +105,7 @@ export function Footer() {
                       <div className="flex gap-2">
                         <FormControl>
                           <Input 
-                            placeholder="votre@email.com" 
+                            placeholder={t.footer.emailPlaceholder}
                             {...field} 
                             className="bg-background/10 border-white/10 text-white placeholder:text-muted-foreground focus-visible:ring-primary"
                           />
@@ -122,7 +124,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-muted-foreground text-sm">
-          &copy; {new Date().getFullYear()} Quebexico. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Quebexico. {t.footer.copyright}
         </div>
       </div>
     </footer>

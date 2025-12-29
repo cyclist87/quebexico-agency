@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Play } from "lucide-react";
+import { ArrowRight, Lightbulb, Monitor, PenTool, Layout, Quote, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -12,13 +13,14 @@ const fadeIn = {
 };
 
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          {/* unsplash: winter city skyline modern architecture */}
           <img 
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2000" 
             alt="Background" 
@@ -34,8 +36,8 @@ export default function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="font-display font-extrabold text-5xl md:text-7xl lg:text-8xl tracking-tight mb-6"
           >
-            Des problèmes ?<br />
-            <span className="text-gradient">Agence Créative.</span>
+            {t.hero.title1}<br />
+            <span className="text-gradient">{t.hero.title2}</span>
           </motion.h1>
           
           <motion.p 
@@ -44,7 +46,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10"
           >
-            Experts en résolutions de problèmes. Nous transformons vos défis en opportunités digitales.
+            {t.hero.subtitle}
           </motion.p>
           
           <motion.div 
@@ -55,12 +57,12 @@ export default function Home() {
           >
             <Link href="/contact">
               <Button size="lg" className="rounded-full text-lg h-14 px-8 shadow-xl shadow-primary/25 hover:shadow-2xl hover:-translate-y-1 transition-all">
-                Démarrer un projet <ArrowRight className="ml-2 w-5 h-5" />
+                {t.hero.cta} <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             <a href="#services">
               <Button variant="outline" size="lg" className="rounded-full text-lg h-14 px-8 bg-background/50 backdrop-blur-sm hover:bg-background/80">
-                Découvrir nos services
+                {t.hero.discover}
               </Button>
             </a>
           </motion.div>
@@ -72,15 +74,17 @@ export default function Home() {
         <div className="container-padding max-w-7xl mx-auto">
           <motion.div {...fadeIn} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold mb-6">Que faisons nous ?</h2>
+              <h2 className="font-display text-4xl font-bold mb-6">{t.about.title}</h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                Chez <span className="font-bold text-foreground">QUEBEXICO</span>, nous ne sommes pas juste des designers ou des développeurs. Nous sommes des architectes de solutions.
+                {t.about.p1.split("QUEBEXICO")[0]}
+                <span className="font-bold text-foreground">QUEBEXICO</span>
+                {t.about.p1.split("QUEBEXICO")[1]}
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                Notre approche est simple : analyser, concevoir, délivrer. Que vous ayez besoin d'une refonte complète de votre identité de marque, d'une application complexe ou d'une stratégie marketing percutante, nous avons l'équipe pour relever le défi.
+                {t.about.p2}
               </p>
               <ul className="space-y-4">
-                {['Stratégie Digitale', 'Design Thinking', 'Développement Agile'].map((item) => (
+                {t.about.list.map((item) => (
                   <li key={item} className="flex items-center gap-3 font-medium">
                     <div className="h-2 w-2 rounded-full bg-primary" />
                     {item}
@@ -90,7 +94,6 @@ export default function Home() {
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl transform rotate-3 scale-105" />
-              {/* unsplash: team working on whiteboard creative */}
               <img 
                 src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=1000" 
                 alt="Notre équipe" 
@@ -105,32 +108,37 @@ export default function Home() {
       <section id="services" className="py-24">
         <div className="container-padding max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-display text-4xl font-bold mb-4">Nos Services</h2>
+            <h2 className="font-display text-4xl font-bold mb-4">{t.services.title}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Une gamme complète de services pour propulser votre entreprise vers le succès.
+              {t.services.subtitle}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             <ServiceCard 
               icon={Lightbulb}
-              title="Stratégie"
-              description="Analyse de marché, positionnement de marque et conseil stratégique pour maximiser votre impact."
+              title={t.services.strategy.title}
+              description={t.services.strategy.desc}
             />
             <ServiceCard 
               icon={PenTool}
-              title="Design"
-              description="Direction artistique, UI/UX design, logos et identité visuelle qui marquent les esprits."
+              title={t.services.design.title}
+              description={t.services.design.desc}
             />
             <ServiceCard 
               icon={Monitor}
-              title="Développement"
-              description="Sites web performants, applications mobiles et solutions e-commerce sur mesure."
+              title={t.services.development.title}
+              description={t.services.development.desc}
             />
             <ServiceCard 
               icon={Layout}
-              title="Marketing"
-              description="SEO, gestion des réseaux sociaux et campagnes publicitaires ciblées."
+              title={t.services.marketing.title}
+              description={t.services.marketing.desc}
+            />
+            <ServiceCard 
+              icon={Calendar}
+              title={t.services.events.title}
+              description={t.services.events.desc}
             />
           </div>
         </div>
@@ -140,9 +148,9 @@ export default function Home() {
       <section id="demoreel" className="py-24 bg-foreground text-background">
         <div className="container-padding max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-display text-4xl font-bold mb-4">Démo Reel</h2>
+            <h2 className="font-display text-4xl font-bold mb-4">{t.demoReel.title}</h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Découvrez un aperçu de notre travail et de notre expertise créative.
+              {t.demoReel.subtitle}
             </p>
           </div>
 
@@ -169,10 +177,10 @@ export default function Home() {
         <div className="container-padding max-w-4xl mx-auto text-center">
           <Quote className="w-12 h-12 text-primary/20 mx-auto mb-8" />
           <blockquote className="font-display text-3xl md:text-4xl font-medium leading-tight mb-8">
-            "Un pessimiste voit la difficulté dans chaque opportunité, un optimiste voit l'opportunité dans chaque difficulté."
+            "{t.quote.text}"
           </blockquote>
           <cite className="text-lg font-semibold text-primary not-italic">
-            — Winston Churchill
+            — {t.quote.author}
           </cite>
         </div>
       </section>

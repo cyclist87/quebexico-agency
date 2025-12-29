@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Contact() {
   const { mutate, isPending } = useCreateMessage();
+  const { t } = useLanguage();
   
   const form = useForm({
     resolver: zodResolver(insertMessageSchema),
@@ -35,9 +37,9 @@ export default function Contact() {
           
           {/* Contact Info */}
           <div>
-            <h1 className="font-display text-4xl font-bold mb-6">Contactez-nous</h1>
+            <h1 className="font-display text-4xl font-bold mb-6">{t.contact.title}</h1>
             <p className="text-lg text-muted-foreground mb-12">
-              Vous avez un projet en tête ? Une question ? Notre équipe est là pour vous aider à concrétiser vos idées.
+              {t.contact.subtitle}
             </p>
 
             <div className="space-y-8">
@@ -78,7 +80,7 @@ export default function Contact() {
 
           {/* Contact Form */}
           <div className="bg-card p-8 rounded-3xl border shadow-lg">
-            <h2 className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
+            <h2 className="text-2xl font-bold mb-6">{t.contact.send}</h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -86,7 +88,7 @@ export default function Contact() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom complet</FormLabel>
+                      <FormLabel>{t.contact.name}</FormLabel>
                       <FormControl>
                         <Input placeholder="Jean Dupont" className="h-12 bg-background" {...field} />
                       </FormControl>
@@ -100,7 +102,7 @@ export default function Contact() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t.contact.email}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="jean@exemple.com" className="h-12 bg-background" {...field} />
                       </FormControl>
@@ -114,10 +116,10 @@ export default function Contact() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Message</FormLabel>
+                      <FormLabel>{t.contact.message}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Parlez-nous de votre projet..." 
+                          placeholder="..." 
                           className="min-h-[150px] bg-background resize-none" 
                           {...field} 
                         />
@@ -132,7 +134,7 @@ export default function Contact() {
                   className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                   disabled={isPending}
                 >
-                  {isPending ? "Envoi en cours..." : "Envoyer le message"}
+                  {isPending ? t.contact.sending : t.contact.send}
                 </Button>
               </form>
             </Form>

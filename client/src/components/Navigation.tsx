@@ -4,11 +4,26 @@ import { Menu, X, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { Language } from "@/lib/translations";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const languageLabels: Record<Language, string> = {
+  fr: "FR",
+  en: "EN",
+  es: "ES",
+};
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,10 +34,10 @@ export function Navigation() {
   }, []);
 
   const navLinks = [
-    { name: "À Propos", href: "/#about" },
-    { name: "Services", href: "/#services" },
-    { name: "Démo Reel", href: "/#demoreel" },
-    { name: "Blogue", href: "/#blog" },
+    { name: t.nav.about, href: "/#about" },
+    { name: t.nav.services, href: "/#services" },
+    { name: t.nav.demoReel, href: "/#demoreel" },
+    { name: t.nav.blog, href: "/#blog" },
   ];
 
   return (
@@ -38,7 +53,7 @@ export function Navigation() {
             <span className="font-display font-bold text-2xl tracking-tighter flex items-center gap-2">
               <span className="text-primary text-3xl">Q</span>UEBEXICO
             </span>
-            <span className="text-xs text-muted-foreground tracking-wide">Agence créative</span>
+            <span className="text-xs text-muted-foreground tracking-wide">{t.footer.tagline}</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -52,20 +67,56 @@ export function Navigation() {
                 {link.name}
               </a>
             ))}
+            
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2" data-testid="button-language">
+                  <Globe className="w-4 h-4" />
+                  {languageLabels[language]}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage("fr")} data-testid="lang-fr">
+                  Français
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("en")} data-testid="lang-en">
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("es")} data-testid="lang-es">
+                  Español
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link href="/contact">
               <Button variant="default" className="rounded-full px-6 font-semibold shadow-lg shadow-primary/20">
-                Contactez-nous
+                {t.nav.contact}
               </Button>
             </Link>
           </nav>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" data-testid="button-language-mobile">
+                  <Globe className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage("fr")}>Français</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("es")}>Español</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              className="p-2 text-foreground"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -91,7 +142,7 @@ export function Navigation() {
               ))}
               <Link href="/contact">
                 <Button className="w-full rounded-full" onClick={() => setIsOpen(false)}>
-                  Contactez-nous
+                  {t.nav.contact}
                 </Button>
               </Link>
             </div>
