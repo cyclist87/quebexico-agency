@@ -108,7 +108,7 @@ export default function Home() {
 
       {/* Services Section */}
       <section id="services" className="py-24">
-        <div className="container-padding max-w-7xl mx-auto">
+        <div className="container-padding max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl font-bold mb-4">{t.services.title}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -116,7 +116,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <ServiceCard 
               icon={Target}
               title={t.services.strategy.title}
