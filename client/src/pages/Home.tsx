@@ -182,8 +182,8 @@ export default function Home() {
               isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
           >
-            {/* Dark filter */}
-            <div className="absolute inset-0 bg-black/30" />
+            {/* Vignette effect */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(0,0,0,0.5)_100%)]" />
             
             {/* Subtle play button */}
             <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-[2px] border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-white/15">
