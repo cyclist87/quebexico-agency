@@ -3,14 +3,20 @@ import {
   messages,
   subscribers,
   projects,
+  blogPosts,
+  blogCategories,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
+  type InsertBlogPost,
+  type InsertBlogCategory,
   type Message,
   type Subscriber,
-  type Project
+  type Project,
+  type BlogPost,
+  type BlogCategory
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc, asc, and } from "drizzle-orm";
 
 export interface IStorage {
   // Messages
@@ -23,6 +29,24 @@ export interface IStorage {
   // Projects
   getProjects(): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
+  
+  // Blog Categories
+  getBlogCategories(): Promise<BlogCategory[]>;
+  getBlogCategoryById(id: number): Promise<BlogCategory | undefined>;
+  createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
+  updateBlogCategory(id: number, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined>;
+  deleteBlogCategory(id: number): Promise<boolean>;
+  
+  // Blog Posts
+  getPublishedBlogPosts(): Promise<BlogPost[]>;
+  getAllBlogPosts(): Promise<BlogPost[]>;
+  getBlogPostById(id: number): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: number): Promise<boolean>;
+  updateBlogPostOrder(id: number, orderIndex: number): Promise<BlogPost | undefined>;
+  setFeaturedPost(id: number): Promise<BlogPost | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -51,6 +75,88 @@ export class DatabaseStorage implements IStorage {
   async createProject(insertProject: InsertProject): Promise<Project> {
     const [project] = await db.insert(projects).values(insertProject).returning();
     return project;
+  }
+
+  // Blog Categories
+  async getBlogCategories(): Promise<BlogCategory[]> {
+    return await db.select().from(blogCategories).orderBy(asc(blogCategories.nameFr));
+  }
+
+  async getBlogCategoryById(id: number): Promise<BlogCategory | undefined> {
+    const [category] = await db.select().from(blogCategories).where(eq(blogCategories.id, id));
+    return category;
+  }
+
+  async createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory> {
+    const [newCategory] = await db.insert(blogCategories).values(category).returning();
+    return newCategory;
+  }
+
+  async updateBlogCategory(id: number, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined> {
+    const [updated] = await db.update(blogCategories).set(category).where(eq(blogCategories.id, id)).returning();
+    return updated;
+  }
+
+  async deleteBlogCategory(id: number): Promise<boolean> {
+    const result = await db.delete(blogCategories).where(eq(blogCategories.id, id));
+    return true;
+  }
+
+  // Blog Posts
+  async getPublishedBlogPosts(): Promise<BlogPost[]> {
+    return await db.select().from(blogPosts)
+      .where(eq(blogPosts.isPublished, true))
+      .orderBy(desc(blogPosts.isFeatured), asc(blogPosts.orderIndex), desc(blogPosts.publishedAt));
+  }
+
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    return await db.select().from(blogPosts)
+      .orderBy(desc(blogPosts.isFeatured), asc(blogPosts.orderIndex), desc(blogPosts.createdAt));
+  }
+
+  async getBlogPostById(id: number): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post;
+  }
+
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const [newPost] = await db.insert(blogPosts).values(post).returning();
+    return newPost;
+  }
+
+  async updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
+    const [updated] = await db.update(blogPosts)
+      .set({ ...post, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBlogPost(id: number): Promise<boolean> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    return true;
+  }
+
+  async updateBlogPostOrder(id: number, orderIndex: number): Promise<BlogPost | undefined> {
+    const [updated] = await db.update(blogPosts)
+      .set({ orderIndex, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async setFeaturedPost(id: number): Promise<BlogPost | undefined> {
+    await db.update(blogPosts).set({ isFeatured: false });
+    const [updated] = await db.update(blogPosts)
+      .set({ isFeatured: true, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return updated;
   }
 }
 

@@ -75,6 +75,44 @@ export const adminUsers = pgTable("admin_users", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === BLOG TABLES ===
+
+// Blog categories
+export const blogCategories = pgTable("blog_categories", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  nameFr: text("name_fr").notNull(),
+  nameEn: text("name_en").notNull(),
+  nameEs: text("name_es").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Blog posts with multilingual support
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  titleFr: text("title_fr").notNull(),
+  titleEn: text("title_en").notNull(),
+  titleEs: text("title_es").notNull(),
+  excerptFr: text("excerpt_fr"),
+  excerptEn: text("excerpt_en"),
+  excerptEs: text("excerpt_es"),
+  contentFr: text("content_fr").notNull(),
+  contentEn: text("content_en").notNull(),
+  contentEs: text("content_es").notNull(),
+  imageUrl: text("image_url"),
+  videoUrl: text("video_url"),
+  categoryId: integer("category_id").references(() => blogCategories.id),
+  tags: text("tags").array(),
+  isFeatured: boolean("is_featured").default(false),
+  isPublished: boolean("is_published").default(false),
+  orderIndex: integer("order_index").default(0),
+  authorName: text("author_name"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === SCHEMAS ===
 
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
@@ -85,6 +123,9 @@ export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({ i
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true });
+
+export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({ id: true, createdAt: true });
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -108,6 +149,12 @@ export type InsertKnowledgeBaseDoc = z.infer<typeof insertKnowledgeBaseSchema>;
 
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;
