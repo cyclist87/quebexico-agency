@@ -295,6 +295,10 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
       setBlogDialogOpen(false);
       setNewPost(emptyPost);
+      toast({ title: "Succès", description: "Article créé avec succès" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message || "Erreur lors de la création de l'article", variant: "destructive" });
     },
   });
 
@@ -307,6 +311,10 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
       setEditingPost(null);
+      toast({ title: "Succès", description: "Article modifié avec succès" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message || "Erreur lors de la modification de l'article", variant: "destructive" });
     },
   });
 
