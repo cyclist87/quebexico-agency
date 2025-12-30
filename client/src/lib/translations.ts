@@ -52,6 +52,7 @@ export const translations = {
     },
     footer: {
       tagline: "Agence créative stratégique",
+      since: "Depuis 2013",
       description: "De la stratégie à l'exécution créative, nous construisons des marques qui génèrent de l'impact.",
       navigation: "Navigation",
       navLinks: ["Accueil", "Approche", "Services", "Contact"],
@@ -143,6 +144,7 @@ export const translations = {
     },
     footer: {
       tagline: "Strategic Creative Agency",
+      since: "Since 2013",
       description: "From strategy to creative execution, we build brands that generate impact.",
       navigation: "Navigation",
       navLinks: ["Home", "Approach", "Services", "Contact"],
@@ -234,6 +236,7 @@ export const translations = {
     },
     footer: {
       tagline: "Agencia Creativa Estratégica",
+      since: "Desde 2013",
       description: "De la estrategia a la ejecución creativa, construimos marcas que generan impacto.",
       navigation: "Navegación",
       navLinks: ["Inicio", "Enfoque", "Servicios", "Contacto"],

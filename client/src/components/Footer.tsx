@@ -38,7 +38,11 @@ export function Footer() {
               <h2 className="font-display font-bold text-3xl tracking-tighter">
                 QUEBEXICO
               </h2>
-              <span className="text-xs text-white/50 tracking-wide">{t.footer.tagline}</span>
+              <div className="flex items-center gap-2 text-xs text-white/50 tracking-wide">
+                <span>{t.footer.tagline}</span>
+                <span className="opacity-50">|</span>
+                <span>{t.footer.since}</span>
+              </div>
             </div>
             <p className="text-muted-foreground mb-6">
               {t.footer.description}
