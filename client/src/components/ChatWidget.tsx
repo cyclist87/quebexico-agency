@@ -146,9 +146,9 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-card rounded-2xl shadow-2xl border flex flex-col overflow-hidden" style={{ height: "500px" }}>
+        <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border flex flex-col overflow-hidden" style={{ height: "500px" }}>
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 p-4 border-b bg-primary text-primary-foreground">
+          <div className="flex items-center justify-between gap-2 p-4 border-b bg-primary text-primary-foreground rounded-t-2xl">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
               <span className="font-semibold">{labels.title}</span>
@@ -165,9 +165,9 @@ export function ChatWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-zinc-800">
             {messages.length === 0 && (
-              <div className="p-3 rounded-lg bg-muted text-sm">
+              <div className="p-3 rounded-lg bg-white dark:bg-zinc-700 text-sm shadow-sm">
                 {labels.greeting}
               </div>
             )}
@@ -177,10 +177,10 @@ export function ChatWidget() {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                  className={`max-w-[80%] p-3 rounded-lg text-sm shadow-sm ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      : "bg-white dark:bg-zinc-700 text-foreground"
                   }`}
                 >
                   {message.content}
@@ -189,7 +189,7 @@ export function ChatWidget() {
             ))}
             {isLoading && messages[messages.length - 1]?.role === "user" && (
               <div className="flex justify-start">
-                <div className="p-3 rounded-lg bg-muted">
+                <div className="p-3 rounded-lg bg-white dark:bg-zinc-700 shadow-sm">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
               </div>
@@ -198,7 +198,7 @@ export function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t bg-white dark:bg-zinc-900">
             <div className="flex gap-2">
               <Input
                 value={input}
