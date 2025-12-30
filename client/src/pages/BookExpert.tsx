@@ -22,14 +22,16 @@ export default function BookExpert() {
           <div className="w-24" />
         </div>
         
-        <div className="bg-card rounded-2xl border shadow-lg overflow-hidden" style={{ height: "calc(100vh - 100px)" }}>
+        <div className="bg-card rounded-2xl border shadow-lg overflow-hidden">
           <iframe
             src="https://tidycal.com/lachance/1h-expert-consult"
             width="100%"
-            height="100%"
+            height="1000"
             frameBorder="0"
+            scrolling="no"
             title={t.booking.expert.title}
-            className="w-full h-full"
+            className="w-full border-none block"
+            style={{ overflow: "hidden" }}
           />
         </div>
       </div>
