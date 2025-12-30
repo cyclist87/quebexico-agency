@@ -159,16 +159,18 @@ export function ChatWidget() {
       {/* Chat Button */}
       <Button
         onClick={() => setIsOpen(true)}
+        onTouchEnd={(e) => { e.preventDefault(); setIsOpen(true); }}
         size="icon"
-        className={`fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg ${isOpen ? "hidden" : ""}`}
+        className={`fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full shadow-lg touch-manipulation ${isOpen ? "hidden" : ""}`}
         data-testid="button-open-chat"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <MessageCircle className="h-6 w-6" />
       </Button>
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border flex flex-col overflow-hidden" style={{ height: "500px" }}>
+        <div className="fixed bottom-6 right-6 z-[9999] w-[380px] max-w-[calc(100vw-48px)] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border flex flex-col overflow-hidden" style={{ height: "min(500px, calc(100vh - 100px))" }}>
           {/* Header */}
           <div className="flex items-center justify-between gap-2 p-4 border-b bg-primary text-primary-foreground rounded-t-2xl">
             <div className="flex items-center gap-2">
