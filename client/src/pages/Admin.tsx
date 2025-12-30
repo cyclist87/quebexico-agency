@@ -105,6 +105,7 @@ export default function Admin() {
     isFeatured: false,
     isPublished: false,
     authorName: "",
+    publishedAt: "",
   };
   const [newPost, setNewPost] = useState(emptyPost);
   const emptyCategory = {
@@ -279,7 +280,13 @@ export default function Admin() {
 
   // Create blog post mutation
   const createPostMutation = useMutation({
-    mutationFn: (post: typeof newPost) => adminRequest("POST", "/api/admin/blog", post),
+    mutationFn: (post: typeof newPost) => {
+      const postData = {
+        ...post,
+        publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : null,
+      };
+      return adminRequest("POST", "/api/admin/blog", postData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
       setBlogDialogOpen(false);
@@ -834,6 +841,17 @@ export default function Admin() {
                             data-testid="input-post-author"
                           />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <Label className="text-sm text-muted-foreground">Date de publication</Label>
+                            <Input
+                              type="datetime-local"
+                              value={newPost.publishedAt}
+                              onChange={(e) => setNewPost({ ...newPost, publishedAt: e.target.value })}
+                              data-testid="input-post-published-at"
+                            />
+                          </div>
+                        </div>
                         
                         <div className="space-y-4">
                           <div className="space-y-2">
@@ -1121,6 +1139,17 @@ export default function Admin() {
                         value={editingPost.authorName || ""}
                         onChange={(e) => setEditingPost({ ...editingPost, authorName: e.target.value })}
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-sm text-muted-foreground">Date de publication</Label>
+                        <Input
+                          type="datetime-local"
+                          value={editingPost.publishedAt ? new Date(editingPost.publishedAt).toISOString().slice(0, 16) : ""}
+                          onChange={(e) => setEditingPost({ ...editingPost, publishedAt: e.target.value ? new Date(e.target.value) : null })}
+                          data-testid="input-edit-post-published-at"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-4">
