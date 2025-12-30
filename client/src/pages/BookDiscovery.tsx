@@ -26,7 +26,7 @@ export default function BookDiscovery() {
           <iframe
             src="https://tidycal.com/lachance/15-minute-meeting"
             width="100%"
-            height="720"
+            height="800"
             frameBorder="0"
             scrolling="no"
             title={t.booking.discovery.title}
