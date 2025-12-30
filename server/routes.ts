@@ -5,6 +5,16 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
+
+function requireAdminAuth(req: any, res: any, next: any) {
+  const adminKey = req.headers["x-admin-key"];
+  if (adminKey !== ADMIN_SECRET_KEY) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -58,6 +68,164 @@ export async function registerRoutes(
       }
       throw err;
     }
+  });
+
+  // === PUBLIC BLOG ROUTES ===
+  
+  // Get published blog posts
+  app.get(api.blog.list.path, async (req, res) => {
+    const posts = await storage.getPublishedBlogPosts();
+    res.json(posts);
+  });
+
+  // Get blog categories
+  app.get(api.blogCategories.list.path, async (req, res) => {
+    const categories = await storage.getBlogCategories();
+    res.json(categories);
+  });
+
+  // Get single blog post by slug
+  app.get("/api/blog/:slug", async (req, res) => {
+    const post = await storage.getBlogPostBySlug(req.params.slug);
+    if (!post || !post.isPublished) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json(post);
+  });
+
+  // === ADMIN BLOG ROUTES ===
+
+  // Get all blog posts (including drafts)
+  app.get(api.admin.blog.list.path, requireAdminAuth, async (req, res) => {
+    const posts = await storage.getAllBlogPosts();
+    res.json(posts);
+  });
+
+  // Create blog post
+  app.post(api.admin.blog.create.path, requireAdminAuth, async (req, res) => {
+    try {
+      const input = api.admin.blog.create.input.parse(req.body);
+      const post = await storage.createBlogPost(input);
+      res.status(201).json(post);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Update blog post
+  app.put("/api/admin/blog/:id", requireAdminAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const input = api.admin.blog.update.input.parse(req.body);
+      const post = await storage.updateBlogPost(id, input);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      res.json(post);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Delete blog post
+  app.delete("/api/admin/blog/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const success = await storage.deleteBlogPost(id);
+    res.json({ success });
+  });
+
+  // Set featured post
+  app.post("/api/admin/blog/:id/featured", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const post = await storage.setFeaturedPost(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json(post);
+  });
+
+  // Update post order
+  app.put(api.admin.blog.updateOrder.path, requireAdminAuth, async (req, res) => {
+    try {
+      const items = api.admin.blog.updateOrder.input.parse(req.body);
+      for (const item of items) {
+        await storage.updateBlogPostOrder(item.id, item.orderIndex);
+      }
+      res.json({ success: true });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // === ADMIN CATEGORY ROUTES ===
+
+  // Get categories (admin)
+  app.get(api.admin.categories.list.path, requireAdminAuth, async (req, res) => {
+    const categories = await storage.getBlogCategories();
+    res.json(categories);
+  });
+
+  // Create category
+  app.post(api.admin.categories.create.path, requireAdminAuth, async (req, res) => {
+    try {
+      const input = api.admin.categories.create.input.parse(req.body);
+      const category = await storage.createBlogCategory(input);
+      res.status(201).json(category);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Update category
+  app.put("/api/admin/blog/categories/:id", requireAdminAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const input = api.admin.categories.update.input.parse(req.body);
+      const category = await storage.updateBlogCategory(id, input);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Delete category
+  app.delete("/api/admin/blog/categories/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const success = await storage.deleteBlogCategory(id);
+    res.json({ success });
   });
 
   // Initialize seed data
