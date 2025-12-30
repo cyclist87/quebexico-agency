@@ -1,0 +1,32 @@
+# Securite pour media.quebexico.co
+# Renommez ce fichier en .htaccess avant de l'uploader
+
+# Desactiver le listing des fichiers
+Options -Indexes
+
+# Forcer HTTPS
+RewriteEngine on
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Protection anti-hotlink (autorise seulement quebexico.co)
+RewriteCond %{HTTP_REFERER} !^$
+RewriteCond %{HTTP_REFERER} !^https://(www\.)?quebexico\.co [NC]
+RewriteCond %{HTTP_REFERER} !^https://.*\.replit\.app [NC]
+RewriteCond %{HTTP_REFERER} !^https://.*\.replit\.dev [NC]
+RewriteRule \.(mp4|webm|mov|jpg|jpeg|png|gif|svg)$ - [F,L]
+
+# Headers de securite
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# Cache pour les fichiers media (1 mois)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType video/mp4 "access plus 1 month"
+    ExpiresByType video/webm "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+</IfModule>
