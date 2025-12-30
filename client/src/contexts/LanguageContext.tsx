@@ -9,6 +9,19 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+const detectBrowserLanguage = (): Language => {
+  if (typeof window === "undefined") return "fr";
+  
+  const browserLang = navigator.language || (navigator as any).userLanguage || "";
+  const langCode = browserLang.split("-")[0].toLowerCase();
+  
+  if (langCode === "en") return "en";
+  if (langCode === "es") return "es";
+  if (langCode === "fr") return "fr";
+  
+  return "fr";
+};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== "undefined") {
@@ -16,6 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       if (saved && ["fr", "en", "es"].includes(saved)) {
         return saved;
       }
+      return detectBrowserLanguage();
     }
     return "fr";
   });
