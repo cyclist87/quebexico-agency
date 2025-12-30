@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import wordCloudImage from "@assets/quebexico-trim_1767029606319.png";
-import heroBackground from "@assets/stock_images/snowy_mountain_pine__31c815ae.jpg";
+import heroBackground from "@assets/IMG_4491_1767057213854.JPG";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
