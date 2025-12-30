@@ -176,14 +176,18 @@ export default function Home() {
             Votre navigateur ne supporte pas la lecture vidéo.
           </video>
           
-          {/* Elegant Play Button Overlay */}
+          {/* Dark Overlay + Elegant Play Button */}
           <div 
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
               isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
           >
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-              <Play className="w-8 h-8 md:w-10 md:h-10 text-white fill-white ml-1" />
+            {/* Dark filter */}
+            <div className="absolute inset-0 bg-black/30" />
+            
+            {/* Subtle play button */}
+            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-[2px] border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-white/15">
+              <Play className="w-6 h-6 md:w-7 md:h-7 text-white/80 fill-white/80 ml-0.5" />
             </div>
           </div>
         </motion.div>
