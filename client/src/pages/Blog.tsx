@@ -100,8 +100,8 @@ export default function Blog() {
                     className="overflow-hidden hover-elevate cursor-pointer group"
                     data-testid={`card-blog-featured-${featuredPost.id}`}
                   >
-                    <div className="grid md:grid-cols-2 gap-0">
-                      <div className="relative h-64 md:h-80 overflow-hidden">
+                    <div className="grid md:grid-cols-5 gap-0">
+                      <div className="relative h-64 md:h-96 md:col-span-3 overflow-hidden">
                         {featuredPost.imageUrl ? (
                           <img
                             src={featuredPost.imageUrl}
@@ -124,7 +124,7 @@ export default function Blog() {
                           {t.blog.featured}
                         </Badge>
                       </div>
-                      <CardContent className="p-6 md:p-8 flex flex-col justify-center">
+                      <CardContent className="p-6 md:p-8 flex flex-col justify-center md:col-span-2">
                         <div className="flex items-center gap-3 mb-3 flex-wrap">
                           {getCategoryForPost(featuredPost) && (
                             <Badge variant="secondary">
