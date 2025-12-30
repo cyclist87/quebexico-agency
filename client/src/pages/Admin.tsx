@@ -8,9 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ArrowLeft, Lock, LogOut } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
+import type { BlogPost, BlogCategory } from "@shared/schema";
 
 const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const setAdminKey = (key: string) => localStorage.setItem("quebexico_admin_key", key);
@@ -77,6 +80,38 @@ export default function Admin() {
   const [kbDialogOpen, setKbDialogOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<KnowledgeDoc | null>(null);
   const [newDoc, setNewDoc] = useState({ title: "", content: "", language: "fr", category: "" });
+  
+  const [blogDialogOpen, setBlogDialogOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<BlogCategory | null>(null);
+  const emptyPost = {
+    slug: "",
+    titleFr: "",
+    titleEn: "",
+    titleEs: "",
+    excerptFr: "",
+    excerptEn: "",
+    excerptEs: "",
+    contentFr: "",
+    contentEn: "",
+    contentEs: "",
+    imageUrl: "",
+    videoUrl: "",
+    categoryId: null as number | null,
+    tags: [] as string[],
+    isFeatured: false,
+    isPublished: false,
+    authorName: "",
+  };
+  const [newPost, setNewPost] = useState(emptyPost);
+  const emptyCategory = {
+    slug: "",
+    nameFr: "",
+    nameEn: "",
+    nameEs: "",
+  };
+  const [newCategory, setNewCategory] = useState(emptyCategory);
 
   // Check existing key on mount
   useEffect(() => {
@@ -125,6 +160,20 @@ export default function Admin() {
     enabled: isAuthenticated,
   });
 
+  // Fetch blog posts
+  const { data: blogPosts = [], isLoading: blogLoading } = useQuery<BlogPost[]>({
+    queryKey: ["/api/admin/blog"],
+    queryFn: () => adminRequest<BlogPost[]>("GET", "/api/admin/blog"),
+    enabled: isAuthenticated,
+  });
+
+  // Fetch blog categories
+  const { data: blogCategories = [] } = useQuery<BlogCategory[]>({
+    queryKey: ["/api/admin/blog/categories"],
+    queryFn: () => adminRequest<BlogCategory[]>("GET", "/api/admin/blog/categories"),
+    enabled: isAuthenticated,
+  });
+
   // Handle auth errors
   useEffect(() => {
     if (sessionsError?.message === "Unauthorized") {
@@ -165,6 +214,71 @@ export default function Admin() {
     mutationFn: (id: number) => adminRequest("DELETE", `/api/admin/knowledge-base/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge-base"] });
+    },
+  });
+
+  // Create blog post mutation
+  const createPostMutation = useMutation({
+    mutationFn: (post: typeof newPost) => adminRequest("POST", "/api/admin/blog", post),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
+      setBlogDialogOpen(false);
+      setNewPost(emptyPost);
+    },
+  });
+
+  // Update blog post mutation
+  const updatePostMutation = useMutation({
+    mutationFn: (post: BlogPost) => {
+      const { id, createdAt, updatedAt, ...updateData } = post;
+      return adminRequest("PUT", `/api/admin/blog/${id}`, updateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
+      setEditingPost(null);
+    },
+  });
+
+  // Delete blog post mutation
+  const deletePostMutation = useMutation({
+    mutationFn: (id: number) => adminRequest("DELETE", `/api/admin/blog/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
+    },
+  });
+
+  // Set featured post mutation
+  const setFeaturedMutation = useMutation({
+    mutationFn: (id: number) => adminRequest("POST", `/api/admin/blog/${id}/featured`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
+    },
+  });
+
+  // Create category mutation
+  const createCategoryMutation = useMutation({
+    mutationFn: (cat: typeof newCategory) => adminRequest("POST", "/api/admin/blog/categories", cat),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog/categories"] });
+      setCategoryDialogOpen(false);
+      setNewCategory(emptyCategory);
+    },
+  });
+
+  // Update category mutation
+  const updateCategoryMutation = useMutation({
+    mutationFn: (cat: BlogCategory) => adminRequest("PUT", `/api/admin/blog/categories/${cat.id}`, cat),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog/categories"] });
+      setEditingCategory(null);
+    },
+  });
+
+  // Delete category mutation
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id: number) => adminRequest("DELETE", `/api/admin/blog/categories/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog/categories"] });
     },
   });
 
@@ -241,6 +355,10 @@ export default function Admin() {
             <TabsTrigger value="knowledge" className="gap-2">
               <BookOpen className="h-4 w-4" />
               Base de connaissances
+            </TabsTrigger>
+            <TabsTrigger value="blog" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Blog
             </TabsTrigger>
           </TabsList>
 
@@ -511,6 +629,552 @@ export default function Admin() {
                     <Button
                       className="w-full"
                       onClick={() => updateDocMutation.mutate(editingDoc)}
+                    >
+                      Mettre à jour
+                    </Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+
+          {/* Blog Tab */}
+          <TabsContent value="blog">
+            <div className="space-y-6">
+              {/* Categories Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Catégories</CardTitle>
+                    <CardDescription>Organisez vos articles par catégories</CardDescription>
+                  </div>
+                  <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" data-testid="button-add-category">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Catégorie
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Nouvelle catégorie</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <Input
+                          placeholder="Slug (ex: technology)"
+                          value={newCategory.slug}
+                          onChange={(e) => setNewCategory({ ...newCategory, slug: e.target.value })}
+                          data-testid="input-category-slug"
+                        />
+                        <Input
+                          placeholder="Nom (Français)"
+                          value={newCategory.nameFr}
+                          onChange={(e) => setNewCategory({ ...newCategory, nameFr: e.target.value })}
+                          data-testid="input-category-name-fr"
+                        />
+                        <Input
+                          placeholder="Name (English)"
+                          value={newCategory.nameEn}
+                          onChange={(e) => setNewCategory({ ...newCategory, nameEn: e.target.value })}
+                          data-testid="input-category-name-en"
+                        />
+                        <Input
+                          placeholder="Nombre (Español)"
+                          value={newCategory.nameEs}
+                          onChange={(e) => setNewCategory({ ...newCategory, nameEs: e.target.value })}
+                          data-testid="input-category-name-es"
+                        />
+                        <Button
+                          className="w-full"
+                          onClick={() => createCategoryMutation.mutate(newCategory)}
+                          disabled={!newCategory.slug || !newCategory.nameFr || !newCategory.nameEn || !newCategory.nameEs}
+                          data-testid="button-save-category"
+                        >
+                          Créer
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {blogCategories.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      Aucune catégorie. Créez-en une pour organiser vos articles.
+                    </p>
+                  ) : (
+                    <div className="flex gap-2 flex-wrap">
+                      {blogCategories.map((cat) => (
+                        <div key={cat.id} className="flex items-center gap-1">
+                          <Badge variant="secondary" data-testid={`badge-category-${cat.id}`}>
+                            {cat.nameFr}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => setEditingCategory(cat)}
+                            data-testid={`button-edit-category-${cat.id}`}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => deleteCategoryMutation.mutate(cat.id)}
+                            data-testid={`button-delete-category-${cat.id}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Blog Posts Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Articles ({blogPosts.length})</CardTitle>
+                    <CardDescription>
+                      Gérez vos articles de blog multilingues
+                    </CardDescription>
+                  </div>
+                  <Dialog open={blogDialogOpen} onOpenChange={setBlogDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="button-add-post">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nouvel article
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Créer un article</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input
+                            placeholder="Slug (ex: my-article)"
+                            value={newPost.slug}
+                            onChange={(e) => setNewPost({ ...newPost, slug: e.target.value })}
+                            data-testid="input-post-slug"
+                          />
+                          <Input
+                            placeholder="Auteur"
+                            value={newPost.authorName}
+                            onChange={(e) => setNewPost({ ...newPost, authorName: e.target.value })}
+                            data-testid="input-post-author"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Français</Label>
+                            <Input
+                              placeholder="Titre (FR)"
+                              value={newPost.titleFr}
+                              onChange={(e) => setNewPost({ ...newPost, titleFr: e.target.value })}
+                              data-testid="input-post-title-fr"
+                            />
+                            <Input
+                              placeholder="Extrait (FR)"
+                              value={newPost.excerptFr}
+                              onChange={(e) => setNewPost({ ...newPost, excerptFr: e.target.value })}
+                            />
+                            <Textarea
+                              placeholder="Contenu (FR)"
+                              value={newPost.contentFr}
+                              onChange={(e) => setNewPost({ ...newPost, contentFr: e.target.value })}
+                              className="min-h-[150px]"
+                              data-testid="input-post-content-fr"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>English</Label>
+                            <Input
+                              placeholder="Title (EN)"
+                              value={newPost.titleEn}
+                              onChange={(e) => setNewPost({ ...newPost, titleEn: e.target.value })}
+                              data-testid="input-post-title-en"
+                            />
+                            <Input
+                              placeholder="Excerpt (EN)"
+                              value={newPost.excerptEn}
+                              onChange={(e) => setNewPost({ ...newPost, excerptEn: e.target.value })}
+                            />
+                            <Textarea
+                              placeholder="Content (EN)"
+                              value={newPost.contentEn}
+                              onChange={(e) => setNewPost({ ...newPost, contentEn: e.target.value })}
+                              className="min-h-[150px]"
+                              data-testid="input-post-content-en"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Español</Label>
+                            <Input
+                              placeholder="Título (ES)"
+                              value={newPost.titleEs}
+                              onChange={(e) => setNewPost({ ...newPost, titleEs: e.target.value })}
+                              data-testid="input-post-title-es"
+                            />
+                            <Input
+                              placeholder="Extracto (ES)"
+                              value={newPost.excerptEs}
+                              onChange={(e) => setNewPost({ ...newPost, excerptEs: e.target.value })}
+                            />
+                            <Textarea
+                              placeholder="Contenido (ES)"
+                              value={newPost.contentEs}
+                              onChange={(e) => setNewPost({ ...newPost, contentEs: e.target.value })}
+                              className="min-h-[150px]"
+                              data-testid="input-post-content-es"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input
+                            placeholder="URL Image (https://...)"
+                            value={newPost.imageUrl}
+                            onChange={(e) => setNewPost({ ...newPost, imageUrl: e.target.value })}
+                            data-testid="input-post-image"
+                          />
+                          <Input
+                            placeholder="URL Vidéo (optionnel)"
+                            value={newPost.videoUrl}
+                            onChange={(e) => setNewPost({ ...newPost, videoUrl: e.target.value })}
+                            data-testid="input-post-video"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <Select
+                            value={newPost.categoryId?.toString() || "none"}
+                            onValueChange={(v) => setNewPost({ ...newPost, categoryId: v === "none" ? null : parseInt(v) })}
+                          >
+                            <SelectTrigger data-testid="select-post-category">
+                              <SelectValue placeholder="Catégorie" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Aucune catégorie</SelectItem>
+                              {blogCategories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id.toString()}>
+                                  {cat.nameFr}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Tags (séparés par virgule)"
+                            value={newPost.tags.join(", ")}
+                            onChange={(e) => setNewPost({ ...newPost, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                            data-testid="input-post-tags"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={newPost.isPublished}
+                              onCheckedChange={(v) => setNewPost({ ...newPost, isPublished: v })}
+                              data-testid="switch-post-published"
+                            />
+                            <Label>Publié</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={newPost.isFeatured}
+                              onCheckedChange={(v) => setNewPost({ ...newPost, isFeatured: v })}
+                              data-testid="switch-post-featured"
+                            />
+                            <Label>Mise en avant</Label>
+                          </div>
+                        </div>
+
+                        <Button
+                          className="w-full"
+                          onClick={() => createPostMutation.mutate(newPost)}
+                          disabled={!newPost.slug || !newPost.titleFr || !newPost.contentFr}
+                          data-testid="button-save-post"
+                        >
+                          Créer l'article
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {blogLoading ? (
+                    <p className="text-muted-foreground">Chargement...</p>
+                  ) : blogPosts.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-8">
+                      Aucun article. Créez votre premier article de blog.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {blogPosts.map((post) => (
+                        <div
+                          key={post.id}
+                          className="p-4 border rounded-lg"
+                          data-testid={`blog-post-${post.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                              <GripVertical className="h-5 w-5 text-muted-foreground mt-1 cursor-grab" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <h3 className="font-semibold">{post.titleFr}</h3>
+                                  {post.isFeatured && (
+                                    <Badge variant="default" className="text-xs">
+                                      <Star className="h-3 w-3 mr-1" />
+                                      Vedette
+                                    </Badge>
+                                  )}
+                                  {post.isPublished ? (
+                                    <Badge variant="secondary" className="text-xs">
+                                      <Eye className="h-3 w-3 mr-1" />
+                                      Publié
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs">
+                                      <EyeOff className="h-3 w-3 mr-1" />
+                                      Brouillon
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                  {post.excerptFr || post.contentFr.slice(0, 100)}...
+                                </p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <Badge variant="outline" className="text-xs">
+                                    /{post.slug}
+                                  </Badge>
+                                  {post.authorName && (
+                                    <span className="text-xs text-muted-foreground">
+                                      par {post.authorName}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              {!post.isFeatured && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setFeaturedMutation.mutate(post.id)}
+                                  title="Mettre en vedette"
+                                  data-testid={`button-feature-post-${post.id}`}
+                                >
+                                  <Star className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditingPost(post)}
+                                data-testid={`button-edit-post-${post.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deletePostMutation.mutate(post.id)}
+                                data-testid={`button-delete-post-${post.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Edit Post Dialog */}
+            <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Modifier l'article</DialogTitle>
+                </DialogHeader>
+                {editingPost && (
+                  <div className="space-y-4 pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Slug"
+                        value={editingPost.slug}
+                        onChange={(e) => setEditingPost({ ...editingPost, slug: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Auteur"
+                        value={editingPost.authorName || ""}
+                        onChange={(e) => setEditingPost({ ...editingPost, authorName: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Français</Label>
+                        <Input
+                          placeholder="Titre (FR)"
+                          value={editingPost.titleFr}
+                          onChange={(e) => setEditingPost({ ...editingPost, titleFr: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Extrait (FR)"
+                          value={editingPost.excerptFr || ""}
+                          onChange={(e) => setEditingPost({ ...editingPost, excerptFr: e.target.value })}
+                        />
+                        <Textarea
+                          placeholder="Contenu (FR)"
+                          value={editingPost.contentFr}
+                          onChange={(e) => setEditingPost({ ...editingPost, contentFr: e.target.value })}
+                          className="min-h-[150px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>English</Label>
+                        <Input
+                          placeholder="Title (EN)"
+                          value={editingPost.titleEn}
+                          onChange={(e) => setEditingPost({ ...editingPost, titleEn: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Excerpt (EN)"
+                          value={editingPost.excerptEn || ""}
+                          onChange={(e) => setEditingPost({ ...editingPost, excerptEn: e.target.value })}
+                        />
+                        <Textarea
+                          placeholder="Content (EN)"
+                          value={editingPost.contentEn}
+                          onChange={(e) => setEditingPost({ ...editingPost, contentEn: e.target.value })}
+                          className="min-h-[150px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Español</Label>
+                        <Input
+                          placeholder="Título (ES)"
+                          value={editingPost.titleEs}
+                          onChange={(e) => setEditingPost({ ...editingPost, titleEs: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Extracto (ES)"
+                          value={editingPost.excerptEs || ""}
+                          onChange={(e) => setEditingPost({ ...editingPost, excerptEs: e.target.value })}
+                        />
+                        <Textarea
+                          placeholder="Contenido (ES)"
+                          value={editingPost.contentEs}
+                          onChange={(e) => setEditingPost({ ...editingPost, contentEs: e.target.value })}
+                          className="min-h-[150px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input
+                        placeholder="URL Image"
+                        value={editingPost.imageUrl || ""}
+                        onChange={(e) => setEditingPost({ ...editingPost, imageUrl: e.target.value })}
+                      />
+                      <Input
+                        placeholder="URL Vidéo"
+                        value={editingPost.videoUrl || ""}
+                        onChange={(e) => setEditingPost({ ...editingPost, videoUrl: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Select
+                        value={editingPost.categoryId?.toString() || "none"}
+                        onValueChange={(v) => setEditingPost({ ...editingPost, categoryId: v === "none" ? null : parseInt(v) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Aucune catégorie</SelectItem>
+                          {blogCategories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id.toString()}>
+                              {cat.nameFr}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="Tags (séparés par virgule)"
+                        value={editingPost.tags?.join(", ") || ""}
+                        onChange={(e) => setEditingPost({ ...editingPost, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editingPost.isPublished || false}
+                          onCheckedChange={(v) => setEditingPost({ ...editingPost, isPublished: v })}
+                        />
+                        <Label>Publié</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editingPost.isFeatured || false}
+                          onCheckedChange={(v) => setEditingPost({ ...editingPost, isFeatured: v })}
+                        />
+                        <Label>Mise en avant</Label>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={() => updatePostMutation.mutate(editingPost)}
+                    >
+                      Mettre à jour
+                    </Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Category Dialog */}
+            <Dialog open={!!editingCategory} onOpenChange={() => setEditingCategory(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Modifier la catégorie</DialogTitle>
+                </DialogHeader>
+                {editingCategory && (
+                  <div className="space-y-4 pt-4">
+                    <Input
+                      placeholder="Slug"
+                      value={editingCategory.slug}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Nom (Français)"
+                      value={editingCategory.nameFr}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, nameFr: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Name (English)"
+                      value={editingCategory.nameEn}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, nameEn: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Nombre (Español)"
+                      value={editingCategory.nameEs}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, nameEs: e.target.value })}
+                    />
+                    <Button
+                      className="w-full"
+                      onClick={() => updateCategoryMutation.mutate(editingCategory)}
                     >
                       Mettre à jour
                     </Button>

@@ -37,7 +37,7 @@ export function Navigation() {
     { name: t.nav.about, href: "/#about" },
     { name: t.nav.services, href: "/#services" },
     { name: t.nav.demoReel, href: "/#demoreel" },
-    { name: t.nav.blog, href: "/#blog" },
+    { name: t.nav.blog, href: "/blog" },
   ];
 
   return (
