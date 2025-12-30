@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ArrowLeft } from "lucide-react";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ArrowLeft, Lock, LogOut } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
+
+const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
+const setAdminKey = (key: string) => localStorage.setItem("quebexico_admin_key", key);
+const clearAdminKey = () => localStorage.removeItem("quebexico_admin_key");
+
+async function adminRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-admin-key": getAdminKey(),
+  };
+  
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include",
+  });
+
+  if (res.status === 401) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || "Request failed");
+  }
+
+  if (res.status === 204) return {} as T;
+  return res.json();
+}
 
 interface ChatSession {
   id: number;
@@ -40,39 +70,80 @@ interface KnowledgeDoc {
 }
 
 export default function Admin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminKeyInput, setAdminKeyInput] = useState("");
+  const [authError, setAuthError] = useState("");
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
   const [kbDialogOpen, setKbDialogOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<KnowledgeDoc | null>(null);
   const [newDoc, setNewDoc] = useState({ title: "", content: "", language: "fr", category: "" });
 
+  // Check existing key on mount
+  useEffect(() => {
+    if (getAdminKey()) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = async () => {
+    setAdminKey(adminKeyInput);
+    try {
+      await adminRequest<KnowledgeDoc[]>("GET", "/api/admin/knowledge-base");
+      setIsAuthenticated(true);
+      setAuthError("");
+    } catch (error) {
+      clearAdminKey();
+      setAuthError("Clé d'administration invalide");
+    }
+  };
+
+  const handleLogout = () => {
+    clearAdminKey();
+    setIsAuthenticated(false);
+    setAdminKeyInput("");
+    queryClient.clear();
+  };
+
   // Fetch chat sessions
-  const { data: sessions = [], isLoading: sessionsLoading } = useQuery<ChatSession[]>({
-    queryKey: ["/api/chat/sessions"],
+  const { data: sessions = [], isLoading: sessionsLoading, error: sessionsError } = useQuery<ChatSession[]>({
+    queryKey: ["/api/admin/chat/sessions"],
+    queryFn: () => adminRequest<ChatSession[]>("GET", "/api/admin/chat/sessions"),
+    enabled: isAuthenticated,
   });
 
   // Fetch selected session details
   const { data: sessionDetails } = useQuery<ChatSession>({
-    queryKey: ["/api/chat/sessions", selectedSession?.id],
-    enabled: !!selectedSession,
+    queryKey: ["/api/admin/chat/sessions", selectedSession?.id],
+    queryFn: () => adminRequest<ChatSession>("GET", `/api/admin/chat/sessions/${selectedSession?.id}`),
+    enabled: isAuthenticated && !!selectedSession,
   });
 
   // Fetch knowledge base
   const { data: knowledgeDocs = [], isLoading: kbLoading } = useQuery<KnowledgeDoc[]>({
     queryKey: ["/api/admin/knowledge-base"],
+    queryFn: () => adminRequest<KnowledgeDoc[]>("GET", "/api/admin/knowledge-base"),
+    enabled: isAuthenticated,
   });
+
+  // Handle auth errors
+  useEffect(() => {
+    if (sessionsError?.message === "Unauthorized") {
+      handleLogout();
+    }
+  }, [sessionsError]);
 
   // Delete session mutation
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/chat/sessions/${id}`),
+    mutationFn: (id: number) => adminRequest("DELETE", `/api/admin/chat/sessions/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat/sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/chat/sessions"] });
       setSelectedSession(null);
     },
   });
 
   // Create knowledge doc mutation
   const createDocMutation = useMutation({
-    mutationFn: (doc: typeof newDoc) => apiRequest("POST", "/api/admin/knowledge-base", doc),
+    mutationFn: (doc: typeof newDoc) => adminRequest("POST", "/api/admin/knowledge-base", doc),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge-base"] });
       setKbDialogOpen(false);
@@ -82,7 +153,7 @@ export default function Admin() {
 
   // Update knowledge doc mutation
   const updateDocMutation = useMutation({
-    mutationFn: (doc: KnowledgeDoc) => apiRequest("PUT", `/api/admin/knowledge-base/${doc.id}`, doc),
+    mutationFn: (doc: KnowledgeDoc) => adminRequest("PUT", `/api/admin/knowledge-base/${doc.id}`, doc),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge-base"] });
       setEditingDoc(null);
@@ -91,25 +162,74 @@ export default function Admin() {
 
   // Delete knowledge doc mutation
   const deleteDocMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/knowledge-base/${id}`),
+    mutationFn: (id: number) => adminRequest("DELETE", `/api/admin/knowledge-base/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/knowledge-base"] });
     },
   });
 
+  // Login screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Lock className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle>Administration</CardTitle>
+            <CardDescription>
+              Entrez la clé d'administration pour accéder au tableau de bord
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Clé d'administration"
+              value={adminKeyInput}
+              onChange={(e) => setAdminKeyInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+              data-testid="input-admin-key"
+            />
+            {authError && (
+              <p className="text-sm text-destructive">{authError}</p>
+            )}
+            <Button className="w-full" onClick={handleLogin} data-testid="button-admin-login">
+              Se connecter
+            </Button>
+            <div className="text-center">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Retour au site
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pt-24 pb-12">
       <div className="container-padding max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-display text-3xl font-bold">Administration</h1>
-            <p className="text-muted-foreground">Gérez le chatbot et la base de connaissances</p>
+        <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="font-display text-3xl font-bold">Administration</h1>
+              <p className="text-muted-foreground">Gérez le chatbot et la base de connaissances</p>
+            </div>
           </div>
+          <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
+            <LogOut className="h-4 w-4 mr-2" />
+            Déconnexion
+          </Button>
         </div>
 
         <Tabs defaultValue="conversations" className="space-y-6">
@@ -308,7 +428,7 @@ export default function Admin() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <h3 className="font-semibold">{doc.title}</h3>
                               <Badge variant="outline" className="text-xs">
                                 {doc.language.toUpperCase()}

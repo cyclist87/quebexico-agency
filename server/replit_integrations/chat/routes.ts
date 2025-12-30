@@ -4,6 +4,52 @@ import { chatStorage } from "./storage";
 import { db } from "../../db";
 import { knowledgeBase } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
+
+// Validation schemas
+const createSessionSchema = z.object({
+  visitorId: z.string().min(1, "Visitor ID is required"),
+  language: z.enum(["fr", "en", "es"]).optional().default("fr"),
+});
+
+const createMessageSchema = z.object({
+  content: z.string().min(1, "Message content is required").max(2000),
+  language: z.enum(["fr", "en", "es"]).optional().default("fr"),
+});
+
+const createKnowledgeDocSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  content: z.string().min(1, "Content is required").max(10000),
+  language: z.enum(["fr", "en", "es"]).optional().default("fr"),
+  category: z.string().max(100).optional(),
+});
+
+const updateKnowledgeDocSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  content: z.string().min(1).max(10000).optional(),
+  language: z.enum(["fr", "en", "es"]).optional(),
+  category: z.string().max(100).optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+// Admin key check - requires ADMIN_SECRET_KEY to be set
+function requireAdmin(req: Request, res: Response): boolean {
+  const adminKey = process.env.ADMIN_SECRET_KEY;
+  
+  // Fail if admin key is not configured
+  if (!adminKey) {
+    console.error("ADMIN_SECRET_KEY environment variable is not set");
+    res.status(503).json({ error: "Admin access not configured" });
+    return false;
+  }
+  
+  const providedKey = req.headers["x-admin-key"] || req.query.adminKey;
+  if (providedKey !== adminKey) {
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+  }
+  return true;
+}
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -25,8 +71,11 @@ INFORMATIONS SUR L'AGENCE:
 `;
 
 export function registerChatRoutes(app: Express): void {
-  // Get all chat sessions (admin)
-  app.get("/api/chat/sessions", async (req: Request, res: Response) => {
+  // === ADMIN ROUTES (require authentication) ===
+  
+  // Get all chat sessions (admin only)
+  app.get("/api/admin/chat/sessions", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
     try {
       const sessions = await chatStorage.getAllSessions();
       res.json(sessions);
@@ -36,10 +85,14 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Get single session with messages (admin)
-  app.get("/api/chat/sessions/:id", async (req: Request, res: Response) => {
+  // Get single session with messages (admin only)
+  app.get("/api/admin/chat/sessions/:id", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
       const session = await chatStorage.getSession(id);
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
@@ -52,15 +105,117 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
+  // Delete session (admin only)
+  app.delete("/api/admin/chat/sessions/:id", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+      await chatStorage.deleteSession(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      res.status(500).json({ error: "Failed to delete session" });
+    }
+  });
+
+  // === KNOWLEDGE BASE ROUTES (admin only) ===
+
+  app.get("/api/admin/knowledge-base", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const docs = await db.select().from(knowledgeBase);
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching knowledge base:", error);
+      res.status(500).json({ error: "Failed to fetch knowledge base" });
+    }
+  });
+
+  app.post("/api/admin/knowledge-base", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const parseResult = createKnowledgeDocSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: parseResult.error.errors[0].message,
+          field: parseResult.error.errors[0].path.join(".")
+        });
+      }
+      const { title, content, language, category } = parseResult.data;
+      const [doc] = await db.insert(knowledgeBase).values({ 
+        title, 
+        content, 
+        language,
+        category 
+      }).returning();
+      res.status(201).json(doc);
+    } catch (error) {
+      console.error("Error creating knowledge base doc:", error);
+      res.status(500).json({ error: "Failed to create document" });
+    }
+  });
+
+  app.put("/api/admin/knowledge-base/:id", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid document ID" });
+      }
+      const parseResult = updateKnowledgeDocSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: parseResult.error.errors[0].message,
+          field: parseResult.error.errors[0].path.join(".")
+        });
+      }
+      const [doc] = await db.update(knowledgeBase)
+        .set(parseResult.data)
+        .where(eq(knowledgeBase.id, id))
+        .returning();
+      res.json(doc);
+    } catch (error) {
+      console.error("Error updating knowledge base doc:", error);
+      res.status(500).json({ error: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/admin/knowledge-base/:id", async (req: Request, res: Response) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid document ID" });
+      }
+      await db.delete(knowledgeBase).where(eq(knowledgeBase.id, id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting knowledge base doc:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
+  // === PUBLIC ROUTES (for chat widget) ===
+
   // Create or get existing session (public)
   app.post("/api/chat/sessions", async (req: Request, res: Response) => {
     try {
-      const { visitorId, language } = req.body;
+      const parseResult = createSessionSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: parseResult.error.errors[0].message,
+          field: parseResult.error.errors[0].path.join(".")
+        });
+      }
+      const { visitorId, language } = parseResult.data;
       
       // Check if session exists
       let session = await chatStorage.getSessionByVisitor(visitorId);
       if (!session) {
-        session = await chatStorage.createSession(visitorId, language || "fr");
+        session = await chatStorage.createSession(visitorId, language);
       }
       
       const messages = await chatStorage.getMessagesBySession(session.id);
@@ -71,36 +226,28 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Update session with email
-  app.patch("/api/chat/sessions/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { email } = req.body;
-      await chatStorage.updateSessionEmail(id, email);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error updating session:", error);
-      res.status(500).json({ error: "Failed to update session" });
-    }
-  });
-
-  // Delete session (admin)
-  app.delete("/api/chat/sessions/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await chatStorage.deleteSession(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting session:", error);
-      res.status(500).json({ error: "Failed to delete session" });
-    }
-  });
-
   // Send message and get AI response (streaming) - public
   app.post("/api/chat/sessions/:id/messages", async (req: Request, res: Response) => {
     try {
       const sessionId = parseInt(req.params.id);
-      const { content, language } = req.body;
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const parseResult = createMessageSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: parseResult.error.errors[0].message,
+          field: parseResult.error.errors[0].path.join(".")
+        });
+      }
+      const { content, language } = parseResult.data;
+
+      // Verify session exists
+      const session = await chatStorage.getSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
 
       // Save user message
       await chatStorage.createMessage(sessionId, "user", content);
@@ -109,7 +256,7 @@ export function registerChatRoutes(app: Express): void {
       const sessionMessages = await chatStorage.getMessagesBySession(sessionId);
       
       // Get knowledge base for context
-      const kbDocs = await chatStorage.getKnowledgeBase(language || "fr");
+      const kbDocs = await chatStorage.getKnowledgeBase(language);
       const kbContext = kbDocs.map(doc => `${doc.title}: ${doc.content}`).join("\n\n");
 
       const chatMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
@@ -156,60 +303,6 @@ export function registerChatRoutes(app: Express): void {
       } else {
         res.status(500).json({ error: "Failed to send message" });
       }
-    }
-  });
-
-  // === KNOWLEDGE BASE ROUTES (admin) ===
-
-  app.get("/api/admin/knowledge-base", async (req: Request, res: Response) => {
-    try {
-      const docs = await db.select().from(knowledgeBase);
-      res.json(docs);
-    } catch (error) {
-      console.error("Error fetching knowledge base:", error);
-      res.status(500).json({ error: "Failed to fetch knowledge base" });
-    }
-  });
-
-  app.post("/api/admin/knowledge-base", async (req: Request, res: Response) => {
-    try {
-      const { title, content, language, category } = req.body;
-      const [doc] = await db.insert(knowledgeBase).values({ 
-        title, 
-        content, 
-        language: language || "fr",
-        category 
-      }).returning();
-      res.status(201).json(doc);
-    } catch (error) {
-      console.error("Error creating knowledge base doc:", error);
-      res.status(500).json({ error: "Failed to create document" });
-    }
-  });
-
-  app.put("/api/admin/knowledge-base/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { title, content, language, category, isActive } = req.body;
-      const [doc] = await db.update(knowledgeBase)
-        .set({ title, content, language, category, isActive })
-        .where(eq(knowledgeBase.id, id))
-        .returning();
-      res.json(doc);
-    } catch (error) {
-      console.error("Error updating knowledge base doc:", error);
-      res.status(500).json({ error: "Failed to update document" });
-    }
-  });
-
-  app.delete("/api/admin/knowledge-base/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await db.delete(knowledgeBase).where(eq(knowledgeBase.id, id));
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting knowledge base doc:", error);
-      res.status(500).json({ error: "Failed to delete document" });
     }
   });
 }
