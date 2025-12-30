@@ -4,8 +4,14 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
+import OpenAI from "openai";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
+
+const openai = new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
 
 function requireAdminAuth(req: any, res: any, next: any) {
   const adminKey = req.headers["x-admin-key"];
@@ -226,6 +232,59 @@ export async function registerRoutes(
     const id = parseInt(req.params.id);
     const success = await storage.deleteBlogCategory(id);
     res.json({ success });
+  });
+
+  // Translation endpoint
+  const translateSchema = z.object({
+    titleFr: z.string().min(1),
+    excerptFr: z.string().optional(),
+    contentFr: z.string().min(1),
+  });
+
+  app.post("/api/admin/translate", requireAdminAuth, async (req, res) => {
+    try {
+      const { titleFr, excerptFr, contentFr } = translateSchema.parse(req.body);
+      
+      const prompt = `Translate the following French content to English and Spanish. Return ONLY a valid JSON object with these exact keys: titleEn, titleEs, excerptEn, excerptEs, contentEn, contentEs.
+
+French Title: ${titleFr}
+French Excerpt: ${excerptFr || ""}
+French Content: ${contentFr}
+
+Important:
+- Preserve all HTML tags exactly as they are
+- Maintain the same formatting and structure
+- Return ONLY the JSON object, no markdown code blocks or additional text`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a professional translator. Return only valid JSON." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.3,
+      });
+
+      const content = response.choices[0].message.content || "{}";
+      // Clean up any markdown code blocks
+      const cleanedContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const translations = JSON.parse(cleanedContent);
+      
+      res.json({
+        titleEn: translations.titleEn || "",
+        titleEs: translations.titleEs || "",
+        excerptEn: translations.excerptEn || "",
+        excerptEs: translations.excerptEs || "",
+        contentEn: translations.contentEn || "",
+        contentEs: translations.contentEs || "",
+      });
+    } catch (err) {
+      console.error("Translation error:", err);
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input" });
+      }
+      res.status(500).json({ message: "Translation failed" });
+    }
   });
 
   // Initialize seed data

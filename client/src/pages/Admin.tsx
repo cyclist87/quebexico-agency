@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
 import type { BlogPost, BlogCategory } from "@shared/schema";
@@ -112,6 +114,64 @@ export default function Admin() {
     nameEs: "",
   };
   const [newCategory, setNewCategory] = useState(emptyCategory);
+  const [enOpen, setEnOpen] = useState(false);
+  const [esOpen, setEsOpen] = useState(false);
+  const [editEnOpen, setEditEnOpen] = useState(false);
+  const [editEsOpen, setEditEsOpen] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const { toast } = useToast();
+
+  const generateTranslations = async (isEditing: boolean) => {
+    const post = isEditing ? editingPost : newPost;
+    if (!post?.titleFr || !post?.contentFr) {
+      toast({ title: "Erreur", description: "Veuillez d'abord remplir le titre et contenu en français", variant: "destructive" });
+      return;
+    }
+    
+    setTranslating(true);
+    try {
+      const response = await adminRequest<{ titleEn: string; titleEs: string; excerptEn: string; excerptEs: string; contentEn: string; contentEs: string }>(
+        "POST",
+        "/api/admin/translate",
+        {
+          titleFr: post.titleFr,
+          excerptFr: post.excerptFr || "",
+          contentFr: post.contentFr,
+        }
+      );
+      
+      if (isEditing && editingPost) {
+        setEditingPost({
+          ...editingPost,
+          titleEn: response.titleEn,
+          titleEs: response.titleEs,
+          excerptEn: response.excerptEn,
+          excerptEs: response.excerptEs,
+          contentEn: response.contentEn,
+          contentEs: response.contentEs,
+        });
+        setEditEnOpen(true);
+        setEditEsOpen(true);
+      } else {
+        setNewPost({
+          ...newPost,
+          titleEn: response.titleEn,
+          titleEs: response.titleEs,
+          excerptEn: response.excerptEn,
+          excerptEs: response.excerptEs,
+          contentEn: response.contentEn,
+          contentEs: response.contentEs,
+        });
+        setEnOpen(true);
+        setEsOpen(true);
+      }
+      toast({ title: "Traductions générées", description: "Les traductions EN et ES ont été générées avec succès" });
+    } catch (error) {
+      toast({ title: "Erreur", description: "Impossible de générer les traductions", variant: "destructive" });
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   // Check existing key on mount
   useEffect(() => {
@@ -769,9 +829,9 @@ export default function Admin() {
                           />
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label>Français</Label>
+                            <Label className="text-base font-semibold">Français (principal)</Label>
                             <Input
                               placeholder="Titre (FR)"
                               value={newPost.titleFr}
@@ -784,55 +844,93 @@ export default function Admin() {
                               onChange={(e) => setNewPost({ ...newPost, excerptFr: e.target.value })}
                             />
                             <Textarea
-                              placeholder="Contenu (FR)"
+                              placeholder="Contenu (FR) - Supporte le HTML"
                               value={newPost.contentFr}
                               onChange={(e) => setNewPost({ ...newPost, contentFr: e.target.value })}
                               className="min-h-[150px]"
                               data-testid="input-post-content-fr"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label>English</Label>
-                            <Input
-                              placeholder="Title (EN)"
-                              value={newPost.titleEn}
-                              onChange={(e) => setNewPost({ ...newPost, titleEn: e.target.value })}
-                              data-testid="input-post-title-en"
-                            />
-                            <Input
-                              placeholder="Excerpt (EN)"
-                              value={newPost.excerptEn}
-                              onChange={(e) => setNewPost({ ...newPost, excerptEn: e.target.value })}
-                            />
-                            <Textarea
-                              placeholder="Content (EN)"
-                              value={newPost.contentEn}
-                              onChange={(e) => setNewPost({ ...newPost, contentEn: e.target.value })}
-                              className="min-h-[150px]"
-                              data-testid="input-post-content-en"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Español</Label>
-                            <Input
-                              placeholder="Título (ES)"
-                              value={newPost.titleEs}
-                              onChange={(e) => setNewPost({ ...newPost, titleEs: e.target.value })}
-                              data-testid="input-post-title-es"
-                            />
-                            <Input
-                              placeholder="Extracto (ES)"
-                              value={newPost.excerptEs}
-                              onChange={(e) => setNewPost({ ...newPost, excerptEs: e.target.value })}
-                            />
-                            <Textarea
-                              placeholder="Contenido (ES)"
-                              value={newPost.contentEs}
-                              onChange={(e) => setNewPost({ ...newPost, contentEs: e.target.value })}
-                              className="min-h-[150px]"
-                              data-testid="input-post-content-es"
-                            />
-                          </div>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => generateTranslations(false)}
+                            disabled={translating || !newPost.titleFr || !newPost.contentFr}
+                            className="w-full"
+                            data-testid="button-generate-translations"
+                          >
+                            {translating ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Languages className="h-4 w-4 mr-2" />
+                            )}
+                            Générer les traductions EN/ES
+                          </Button>
+
+                          <Collapsible open={enOpen} onOpenChange={setEnOpen}>
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" className="w-full justify-between" data-testid="button-toggle-en">
+                                <span className="flex items-center gap-2">
+                                  English
+                                  {newPost.titleEn && <Badge variant="secondary" className="text-xs">Rempli</Badge>}
+                                </span>
+                                <ChevronDown className={`h-4 w-4 transition-transform ${enOpen ? "rotate-180" : ""}`} />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-2 pt-2">
+                              <Input
+                                placeholder="Title (EN)"
+                                value={newPost.titleEn}
+                                onChange={(e) => setNewPost({ ...newPost, titleEn: e.target.value })}
+                                data-testid="input-post-title-en"
+                              />
+                              <Input
+                                placeholder="Excerpt (EN)"
+                                value={newPost.excerptEn}
+                                onChange={(e) => setNewPost({ ...newPost, excerptEn: e.target.value })}
+                              />
+                              <Textarea
+                                placeholder="Content (EN)"
+                                value={newPost.contentEn}
+                                onChange={(e) => setNewPost({ ...newPost, contentEn: e.target.value })}
+                                className="min-h-[150px]"
+                                data-testid="input-post-content-en"
+                              />
+                            </CollapsibleContent>
+                          </Collapsible>
+
+                          <Collapsible open={esOpen} onOpenChange={setEsOpen}>
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" className="w-full justify-between" data-testid="button-toggle-es">
+                                <span className="flex items-center gap-2">
+                                  Español
+                                  {newPost.titleEs && <Badge variant="secondary" className="text-xs">Rempli</Badge>}
+                                </span>
+                                <ChevronDown className={`h-4 w-4 transition-transform ${esOpen ? "rotate-180" : ""}`} />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-2 pt-2">
+                              <Input
+                                placeholder="Título (ES)"
+                                value={newPost.titleEs}
+                                onChange={(e) => setNewPost({ ...newPost, titleEs: e.target.value })}
+                                data-testid="input-post-title-es"
+                              />
+                              <Input
+                                placeholder="Extracto (ES)"
+                                value={newPost.excerptEs}
+                                onChange={(e) => setNewPost({ ...newPost, excerptEs: e.target.value })}
+                              />
+                              <Textarea
+                                placeholder="Contenido (ES)"
+                                value={newPost.contentEs}
+                                onChange={(e) => setNewPost({ ...newPost, contentEs: e.target.value })}
+                                className="min-h-[150px]"
+                                data-testid="input-post-content-es"
+                              />
+                            </CollapsibleContent>
+                          </Collapsible>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -1019,9 +1117,9 @@ export default function Admin() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Français</Label>
+                        <Label className="text-base font-semibold">Français (principal)</Label>
                         <Input
                           placeholder="Titre (FR)"
                           value={editingPost.titleFr}
@@ -1033,50 +1131,87 @@ export default function Admin() {
                           onChange={(e) => setEditingPost({ ...editingPost, excerptFr: e.target.value })}
                         />
                         <Textarea
-                          placeholder="Contenu (FR)"
+                          placeholder="Contenu (FR) - Supporte le HTML"
                           value={editingPost.contentFr}
                           onChange={(e) => setEditingPost({ ...editingPost, contentFr: e.target.value })}
                           className="min-h-[150px]"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>English</Label>
-                        <Input
-                          placeholder="Title (EN)"
-                          value={editingPost.titleEn}
-                          onChange={(e) => setEditingPost({ ...editingPost, titleEn: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Excerpt (EN)"
-                          value={editingPost.excerptEn || ""}
-                          onChange={(e) => setEditingPost({ ...editingPost, excerptEn: e.target.value })}
-                        />
-                        <Textarea
-                          placeholder="Content (EN)"
-                          value={editingPost.contentEn}
-                          onChange={(e) => setEditingPost({ ...editingPost, contentEn: e.target.value })}
-                          className="min-h-[150px]"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Español</Label>
-                        <Input
-                          placeholder="Título (ES)"
-                          value={editingPost.titleEs}
-                          onChange={(e) => setEditingPost({ ...editingPost, titleEs: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Extracto (ES)"
-                          value={editingPost.excerptEs || ""}
-                          onChange={(e) => setEditingPost({ ...editingPost, excerptEs: e.target.value })}
-                        />
-                        <Textarea
-                          placeholder="Contenido (ES)"
-                          value={editingPost.contentEs}
-                          onChange={(e) => setEditingPost({ ...editingPost, contentEs: e.target.value })}
-                          className="min-h-[150px]"
-                        />
-                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => generateTranslations(true)}
+                        disabled={translating || !editingPost.titleFr || !editingPost.contentFr}
+                        className="w-full"
+                      >
+                        {translating ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Languages className="h-4 w-4 mr-2" />
+                        )}
+                        Régénérer les traductions EN/ES
+                      </Button>
+
+                      <Collapsible open={editEnOpen} onOpenChange={setEditEnOpen}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" className="w-full justify-between">
+                            <span className="flex items-center gap-2">
+                              English
+                              {editingPost.titleEn && <Badge variant="secondary" className="text-xs">Rempli</Badge>}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${editEnOpen ? "rotate-180" : ""}`} />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="space-y-2 pt-2">
+                          <Input
+                            placeholder="Title (EN)"
+                            value={editingPost.titleEn}
+                            onChange={(e) => setEditingPost({ ...editingPost, titleEn: e.target.value })}
+                          />
+                          <Input
+                            placeholder="Excerpt (EN)"
+                            value={editingPost.excerptEn || ""}
+                            onChange={(e) => setEditingPost({ ...editingPost, excerptEn: e.target.value })}
+                          />
+                          <Textarea
+                            placeholder="Content (EN)"
+                            value={editingPost.contentEn}
+                            onChange={(e) => setEditingPost({ ...editingPost, contentEn: e.target.value })}
+                            className="min-h-[150px]"
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      <Collapsible open={editEsOpen} onOpenChange={setEditEsOpen}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" className="w-full justify-between">
+                            <span className="flex items-center gap-2">
+                              Español
+                              {editingPost.titleEs && <Badge variant="secondary" className="text-xs">Rempli</Badge>}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${editEsOpen ? "rotate-180" : ""}`} />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="space-y-2 pt-2">
+                          <Input
+                            placeholder="Título (ES)"
+                            value={editingPost.titleEs}
+                            onChange={(e) => setEditingPost({ ...editingPost, titleEs: e.target.value })}
+                          />
+                          <Input
+                            placeholder="Extracto (ES)"
+                            value={editingPost.excerptEs || ""}
+                            onChange={(e) => setEditingPost({ ...editingPost, excerptEs: e.target.value })}
+                          />
+                          <Textarea
+                            placeholder="Contenido (ES)"
+                            value={editingPost.contentEs}
+                            onChange={(e) => setEditingPost({ ...editingPost, contentEs: e.target.value })}
+                            className="min-h-[150px]"
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
