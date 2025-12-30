@@ -92,6 +92,16 @@ export const translations = {
         cta: "Réserver",
       },
     },
+    blog: {
+      title: "Blogue",
+      subtitle: "Perspectives, conseils et actualités de notre équipe.",
+      readMore: "Lire la suite",
+      featured: "À la une",
+      allCategories: "Toutes les catégories",
+      noPosts: "Aucun article pour le moment.",
+      publishedOn: "Publié le",
+      by: "par",
+    },
   },
   en: {
     nav: {
@@ -184,6 +194,16 @@ export const translations = {
         cta: "Book",
       },
     },
+    blog: {
+      title: "Blog",
+      subtitle: "Insights, tips and news from our team.",
+      readMore: "Read more",
+      featured: "Featured",
+      allCategories: "All categories",
+      noPosts: "No posts yet.",
+      publishedOn: "Published on",
+      by: "by",
+    },
   },
   es: {
     nav: {
@@ -275,6 +295,16 @@ export const translations = {
         desc: "1 hora - Región de Quebec",
         cta: "Reservar",
       },
+    },
+    blog: {
+      title: "Blog",
+      subtitle: "Perspectivas, consejos y noticias de nuestro equipo.",
+      readMore: "Leer más",
+      featured: "Destacado",
+      allCategories: "Todas las categorías",
+      noPosts: "No hay artículos todavía.",
+      publishedOn: "Publicado el",
+      by: "por",
     },
   },
 } as const;

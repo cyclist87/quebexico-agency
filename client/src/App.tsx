@@ -15,6 +15,8 @@ import Legal from "@/pages/Legal";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Cookies from "@/pages/Cookies";
+import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
@@ -29,6 +31,8 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/cookies" component={Cookies} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
