@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const pageTitles = {
+  fr: "Conditions Générales | QUEBEXICO",
+  en: "Terms and Conditions | QUEBEXICO",
+  es: "Términos y Condiciones | QUEBEXICO",
+};
 
 export default function Terms() {
   const { language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   const content = {
     fr: {

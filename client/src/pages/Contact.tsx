@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMessageSchema } from "@shared/schema";
@@ -11,9 +12,19 @@ import { Mail, Clock, Video, Calendar } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 
+const pageTitles = {
+  fr: "Contact | QUEBEXICO",
+  en: "Contact | QUEBEXICO",
+  es: "Contacto | QUEBEXICO",
+};
+
 export default function Contact() {
   const { mutate, isPending } = useCreateMessage();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
   
   const form = useForm({
     resolver: zodResolver(insertMessageSchema),

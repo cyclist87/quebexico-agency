@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Target, Palette, Globe, Rocket, Quote, Play } from "lucide-react";
 import { Link } from "wouter";
@@ -15,8 +15,18 @@ const fadeIn = {
   transition: { duration: 0.6 }
 };
 
+const pageTitles = {
+  fr: "QUEBEXICO | Agence Créative Stratégique | Québec",
+  en: "QUEBEXICO | Strategic Creative Agency | Quebec",
+  es: "QUEBEXICO | Agencia Creativa Estratégica | Quebec",
+};
+
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 

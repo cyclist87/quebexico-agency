@@ -1,10 +1,21 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
+const pageTitles = {
+  fr: "Appel Découverte | QUEBEXICO",
+  en: "Discovery Call | QUEBEXICO",
+  es: "Llamada de Descubrimiento | QUEBEXICO",
+};
+
 export default function BookDiscovery() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-8">

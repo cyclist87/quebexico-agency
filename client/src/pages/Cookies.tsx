@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const pageTitles = {
+  fr: "Politique de Cookies | QUEBEXICO",
+  en: "Cookie Policy | QUEBEXICO",
+  es: "Política de Cookies | QUEBEXICO",
+};
 
 export default function Cookies() {
   const { language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   const content = {
     fr: {

@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const pageTitles = {
+  fr: "Mentions Légales | QUEBEXICO",
+  en: "Legal Notice | QUEBEXICO",
+  es: "Aviso Legal | QUEBEXICO",
+};
 
 export default function Legal() {
   const { language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   const content = {
     fr: {

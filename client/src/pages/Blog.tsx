@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,8 +10,18 @@ import { Calendar, User, ArrowRight, Star, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 
+const pageTitles = {
+  fr: "Blogue | QUEBEXICO",
+  en: "Blog | QUEBEXICO",
+  es: "Blog | QUEBEXICO",
+};
+
 export default function Blog() {
   const { t, language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   const { data: posts, isLoading: postsLoading } = useQuery<BlogPost[]>({
     queryKey: ["/api/blog"],

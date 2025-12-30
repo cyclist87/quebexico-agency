@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const pageTitles = {
+  fr: "Politique de Confidentialité | QUEBEXICO",
+  en: "Privacy Policy | QUEBEXICO",
+  es: "Política de Privacidad | QUEBEXICO",
+};
 
 export default function Privacy() {
   const { language } = useLanguage();
+
+  useEffect(() => {
+    document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
+  }, [language]);
 
   const content = {
     fr: {

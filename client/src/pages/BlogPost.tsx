@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
@@ -24,6 +25,20 @@ export default function BlogPostPage() {
     },
     enabled: !!slug,
   });
+
+  const getLocalizedTitleForMeta = (post: BlogPost) => {
+    if (language === "en") return post.titleEn;
+    if (language === "es") return post.titleEs;
+    return post.titleFr;
+  };
+
+  useEffect(() => {
+    if (post) {
+      document.title = `${getLocalizedTitleForMeta(post)} | QUEBEXICO`;
+    } else {
+      document.title = "Blog | QUEBEXICO";
+    }
+  }, [post, language]);
 
   const { data: categories } = useQuery<BlogCategory[]>({
     queryKey: ["/api/blog/categories"],

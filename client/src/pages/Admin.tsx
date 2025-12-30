@@ -80,6 +80,10 @@ export default function Admin() {
   const [authError, setAuthError] = useState("");
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
   const [kbDialogOpen, setKbDialogOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = "Administration | QUEBEXICO";
+  }, []);
   const [editingDoc, setEditingDoc] = useState<KnowledgeDoc | null>(null);
   const [newDoc, setNewDoc] = useState({ title: "", content: "", language: "fr", category: "" });
   
