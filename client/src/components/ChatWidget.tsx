@@ -132,6 +132,28 @@ export function ChatWidget() {
 
   const labels = chatLabels[language];
 
+  const renderMessageContent = (content: string) => {
+    const parts = content.split(/(\[.*?\]\(.*?\))/g);
+    return parts.map((part, index) => {
+      const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
+      if (linkMatch) {
+        const [, text, url] = linkMatch;
+        return (
+          <a
+            key={index}
+            href={url}
+            className="underline font-medium hover:opacity-80"
+            target={url.startsWith("http") ? "_blank" : undefined}
+            rel={url.startsWith("http") ? "noopener noreferrer" : undefined}
+          >
+            {text}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <>
       {/* Chat Button */}
@@ -177,13 +199,13 @@ export function ChatWidget() {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg text-sm shadow-sm ${
+                  className={`max-w-[80%] p-3 rounded-lg text-sm shadow-sm whitespace-pre-wrap ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-white dark:bg-zinc-700 text-foreground"
                   }`}
                 >
-                  {message.content}
+                  {message.role === "assistant" ? renderMessageContent(message.content) : message.content}
                 </div>
               </div>
             ))}
