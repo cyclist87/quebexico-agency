@@ -1,5 +1,6 @@
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Target, Palette, Globe, Rocket, Quote } from "lucide-react";
+import { ArrowRight, Target, Palette, Globe, Rocket, Quote, Play } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
@@ -16,6 +17,15 @@ const fadeIn = {
 
 export default function Home() {
   const { t } = useLanguage();
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayClick = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+      setIsVideoPlaying(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,18 +158,34 @@ export default function Home() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="relative w-full aspect-video shadow-2xl"
+          className="relative w-full aspect-video shadow-2xl group cursor-pointer"
+          onClick={!isVideoPlaying ? handlePlayClick : undefined}
         >
           <video
-            controls
+            ref={videoRef}
+            controls={isVideoPlaying}
             preload="metadata"
             poster="https://media.quebexico.co/quebexico-video.jpg"
             className="absolute inset-0 w-full h-full bg-black"
             data-testid="video-demoreel"
+            onPlay={() => setIsVideoPlaying(true)}
+            onPause={() => setIsVideoPlaying(false)}
+            onEnded={() => setIsVideoPlaying(false)}
           >
             <source src="https://media.quebexico.co/quebexico-demo-reel-2025.mp4" type="video/mp4" />
             Votre navigateur ne supporte pas la lecture vidéo.
           </video>
+          
+          {/* Elegant Play Button Overlay */}
+          <div 
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+              isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+              <Play className="w-8 h-8 md:w-10 md:h-10 text-white fill-white ml-1" />
+            </div>
+          </div>
         </motion.div>
       </section>
 
