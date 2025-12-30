@@ -65,10 +65,11 @@ export const translations = {
     contact: {
       title: "Contactez-nous",
       subtitle: "Une idée ? Un projet ? Parlons-en.",
+      formTitle: "Écrivez-nous",
       name: "Nom complet",
       email: "Adresse email",
       message: "Votre message",
-      send: "Envoyer le message",
+      send: "Envoyer",
       sending: "Envoi en cours...",
     },
     booking: {
@@ -155,10 +156,11 @@ export const translations = {
     contact: {
       title: "Contact Us",
       subtitle: "Have an idea? A project? Let's talk.",
+      formTitle: "Write to us",
       name: "Full name",
       email: "Email address",
       message: "Your message",
-      send: "Send message",
+      send: "Send",
       sending: "Sending...",
     },
     booking: {
@@ -245,10 +247,11 @@ export const translations = {
     contact: {
       title: "Contáctenos",
       subtitle: "¿Tienes una idea? ¿Un proyecto? Hablemos.",
+      formTitle: "Escríbenos",
       name: "Nombre completo",
       email: "Correo electrónico",
       message: "Tu mensaje",
-      send: "Enviar mensaje",
+      send: "Enviar",
       sending: "Enviando...",
     },
     booking: {

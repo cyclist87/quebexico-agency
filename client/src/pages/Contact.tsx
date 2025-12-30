@@ -54,7 +54,7 @@ export default function Contact() {
                 <div className="p-2 rounded-full bg-primary/10 text-primary">
                   <Mail className="w-5 h-5" />
                 </div>
-                <CardTitle>{t.contact.send}</CardTitle>
+                <CardTitle>{t.contact.formTitle}</CardTitle>
               </div>
               <CardDescription>salut@quebexico.co</CardDescription>
             </CardHeader>
