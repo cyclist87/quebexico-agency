@@ -397,7 +397,7 @@ export default function Admin() {
             </Link>
             <div>
               <h1 className="font-display text-3xl font-bold">Administration</h1>
-              <p className="text-muted-foreground">Gérez le chatbot et la base de connaissances</p>
+              <p className="text-muted-foreground">Tableau de bord de gestion</p>
             </div>
           </div>
           <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
@@ -406,21 +406,27 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Tabs defaultValue="conversations" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="conversations" className="gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Conversations
-            </TabsTrigger>
-            <TabsTrigger value="knowledge" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              Base de connaissances
-            </TabsTrigger>
-            <TabsTrigger value="blog" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Blog
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="blog" className="space-y-6">
+          <div className="flex flex-wrap gap-2">
+            <TabsList className="h-auto p-1">
+              <TabsTrigger value="blog" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Blog
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="h-auto p-1">
+              <div className="flex items-center gap-1 px-2 text-xs text-muted-foreground font-medium">
+                <MessageCircle className="h-3 w-3" />
+                Chatbot IA
+              </div>
+              <TabsTrigger value="conversations" className="gap-2">
+                Conversations
+              </TabsTrigger>
+              <TabsTrigger value="knowledge" className="gap-2">
+                Base de connaissances
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Conversations Tab */}
           <TabsContent value="conversations">
