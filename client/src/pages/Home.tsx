@@ -150,14 +150,16 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="relative w-full aspect-video shadow-2xl"
         >
-          <iframe
-            src="https://www.youtube.com/embed/judToWBm8bU?modestbranding=1&rel=0&showinfo=0&iv_load_policy=3"
-            title="Quebexico Demo Reel"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="absolute inset-0 w-full h-full"
+          <video
+            controls
+            preload="metadata"
+            poster="https://media.quebexico.co/quebexico-demo-reel-poster.jpg"
+            className="absolute inset-0 w-full h-full bg-black"
             data-testid="video-demoreel"
-          />
+          >
+            <source src="https://media.quebexico.co/quebexico-demo-reel-2025.mp4" type="video/mp4" />
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
         </motion.div>
       </section>
 
