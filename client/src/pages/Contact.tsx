@@ -152,16 +152,16 @@ export default function Contact() {
               </div>
 
               {/* Expert Consultation */}
-              <div className="p-4 rounded-lg border border-primary bg-primary/5">
+              <div className="p-4 rounded-lg border bg-background">
                 <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-full bg-primary/10 text-primary">
+                  <div className="p-2 rounded-full bg-muted">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold">{t.booking.expert.title}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{t.booking.expert.desc}</p>
                     <Link href="/book/expert">
-                      <Button size="sm" data-testid="button-book-expert">
+                      <Button variant="outline" size="sm" data-testid="button-book-expert">
                         {t.booking.expert.cta}
                       </Button>
                     </Link>
