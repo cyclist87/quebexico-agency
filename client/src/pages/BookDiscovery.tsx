@@ -7,9 +7,9 @@ export default function BookDiscovery() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-background pt-16 pb-4">
+    <div className="min-h-screen bg-background pt-24 pb-8">
       <div className="container-padding max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <Link href="/contact">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -26,7 +26,7 @@ export default function BookDiscovery() {
           <iframe
             src="https://tidycal.com/lachance/15-minute-meeting"
             width="100%"
-            height="850"
+            height="720"
             frameBorder="0"
             scrolling="no"
             title={t.booking.discovery.title}
