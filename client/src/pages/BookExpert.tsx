@@ -26,7 +26,7 @@ export default function BookExpert() {
           <iframe
             src="https://tidycal.com/lachance/1h-expert-consult"
             width="100%"
-            height="1000"
+            height="850"
             frameBorder="0"
             scrolling="no"
             title={t.booking.expert.title}
