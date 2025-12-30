@@ -153,7 +153,7 @@ export default function Home() {
           <video
             controls
             preload="metadata"
-            poster="https://media.quebexico.co/quebexico-demo-reel-poster.jpg"
+            poster="https://media.quebexico.co/quebexico-video.jpg"
             className="absolute inset-0 w-full h-full bg-black"
             data-testid="video-demoreel"
           >
