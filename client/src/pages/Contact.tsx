@@ -56,7 +56,7 @@ export default function Contact() {
                 </div>
                 <CardTitle>{t.contact.formTitle}</CardTitle>
               </div>
-              <CardDescription>salut@quebexico.co</CardDescription>
+              <CardDescription>{t.contact.formSubtitle}</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
