@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import wordCloudImage from "@assets/quebexico-trim_1767029606319.png";
+import heroBackground from "@assets/stock_images/quebec_canada_winter_9cc0b1b2.jpg";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -23,9 +24,9 @@ export default function Home() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2000" 
-            alt="Background" 
-            className="w-full h-full object-cover opacity-20 dark:opacity-10"
+            src={heroBackground} 
+            alt="Paysage québécois" 
+            className="w-full h-full object-cover opacity-15 dark:opacity-10"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/50 to-background" />
         </div>
