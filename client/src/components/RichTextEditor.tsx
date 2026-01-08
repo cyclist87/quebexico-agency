@@ -11,10 +11,11 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ value, onChange, placeholder, height = 300 }: RichTextEditorProps) {
   const editorRef = useRef<TinyMCEEditor | null>(null);
+  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key';
 
   return (
     <Editor
-      tinymceScriptSrc="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"
+      tinymceScriptSrc={`https://cdn.tiny.cloud/1/${apiKey}/tinymce/6/tinymce.min.js`}
       onInit={(_evt: unknown, editor: TinyMCEEditor) => { editorRef.current = editor; }}
       value={value}
       onEditorChange={(content: string) => onChange(content)}
