@@ -18,6 +18,7 @@ import Cookies from "@/pages/Cookies";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Admin from "@/pages/Admin";
+import Booking from "@/pages/Booking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
+      <Route path="/booking" component={Booking} />
       <Route component={NotFound} />
     </Switch>
   );

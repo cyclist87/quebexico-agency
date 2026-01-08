@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
+import { registerHostProRoutes } from "./hostpro/routes";
 import OpenAI from "openai";
 import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
 
@@ -44,6 +45,9 @@ export async function registerRoutes(
   
   // Register chatbot routes
   registerChatRoutes(app);
+  
+  // Register HostPro integration routes
+  registerHostProRoutes(app);
   
   // Projects
   app.get(api.projects.list.path, async (req, res) => {
