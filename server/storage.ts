@@ -6,19 +6,22 @@ import {
   blogPosts,
   blogCategories,
   siteSettings,
+  aiUsage,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
   type InsertBlogPost,
   type InsertBlogCategory,
+  type InsertAiUsage,
   type Message,
   type Subscriber,
   type Project,
   type BlogPost,
   type BlogCategory,
-  type SiteSetting
+  type SiteSetting,
+  type AiUsage
 } from "@shared/schema";
-import { eq, desc, asc, and } from "drizzle-orm";
+import { eq, desc, asc, and, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // Messages
@@ -54,6 +57,16 @@ export interface IStorage {
   getAllSettings(): Promise<SiteSetting[]>;
   getSetting(key: string): Promise<SiteSetting | undefined>;
   upsertSetting(key: string, value: string | null): Promise<SiteSetting>;
+  
+  // AI Usage Tracking
+  recordAiUsage(usage: InsertAiUsage): Promise<AiUsage>;
+  getAiUsageStats(): Promise<{
+    totalTokens: number;
+    totalCost: number;
+    usageByDay: { date: string; tokens: number; cost: number }[];
+    customKeyUsage: number;
+    platformKeyUsage: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,6 +203,56 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // AI Usage Tracking
+  async recordAiUsage(usage: InsertAiUsage): Promise<AiUsage> {
+    const [record] = await db.insert(aiUsage).values(usage).returning();
+    return record;
+  }
+
+  async getAiUsageStats() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const allUsage = await db.select().from(aiUsage).where(gte(aiUsage.createdAt, thirtyDaysAgo));
+
+    let totalTokens = 0;
+    let totalCost = 0;
+    let customKeyUsage = 0;
+    let platformKeyUsage = 0;
+    const usageByDayMap: Record<string, { tokens: number; cost: number }> = {};
+
+    for (const record of allUsage) {
+      totalTokens += record.totalTokens;
+      const cost = parseFloat(record.estimatedCost || "0");
+      totalCost += cost;
+
+      if (record.useCustomKey) {
+        customKeyUsage += record.totalTokens;
+      } else {
+        platformKeyUsage += record.totalTokens;
+      }
+
+      const dateKey = record.createdAt.toISOString().split("T")[0];
+      if (!usageByDayMap[dateKey]) {
+        usageByDayMap[dateKey] = { tokens: 0, cost: 0 };
+      }
+      usageByDayMap[dateKey].tokens += record.totalTokens;
+      usageByDayMap[dateKey].cost += cost;
+    }
+
+    const usageByDay = Object.entries(usageByDayMap)
+      .map(([date, data]) => ({ date, ...data }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      totalTokens,
+      totalCost,
+      usageByDay,
+      customKeyUsage,
+      platformKeyUsage,
+    };
   }
 }
 

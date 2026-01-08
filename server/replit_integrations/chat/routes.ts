@@ -6,6 +6,21 @@ import { knowledgeBase } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getOpenAIClient } from "../../routes";
+import { storage } from "../../storage";
+
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+function estimateCost(inputTokens: number, outputTokens: number, model: string): string {
+  const pricing: Record<string, { input: number; output: number }> = {
+    "gpt-4o-mini": { input: 0.00015, output: 0.0006 },
+    "gpt-4o": { input: 0.0025, output: 0.01 },
+  };
+  const modelPricing = pricing[model] || pricing["gpt-4o-mini"];
+  const cost = (inputTokens / 1000) * modelPricing.input + (outputTokens / 1000) * modelPricing.output;
+  return cost.toFixed(6);
+}
 
 // Validation schemas
 const createSessionSchema = z.object({
@@ -286,7 +301,7 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Connection", "keep-alive");
 
       // Get OpenAI client (custom key if configured, otherwise platform key)
-      const openaiClient = await getOpenAIClient();
+      const { client: openaiClient, usedCustomKey } = await getOpenAIClient();
 
       // Stream response from OpenAI
       const stream = await openaiClient.chat.completions.create({
@@ -308,6 +323,23 @@ export function registerChatRoutes(app: Express): void {
 
       // Save assistant message
       await chatStorage.createMessage(sessionId, "assistant", fullResponse);
+
+      // Track AI usage
+      const inputText = chatMessages.map(m => m.content).join(" ");
+      const inputTokens = estimateTokens(inputText);
+      const outputTokens = estimateTokens(fullResponse);
+      const totalTokens = inputTokens + outputTokens;
+      const model = "gpt-4o-mini";
+
+      await storage.recordAiUsage({
+        model,
+        inputTokens,
+        outputTokens,
+        totalTokens,
+        estimatedCost: estimateCost(inputTokens, outputTokens, model),
+        sessionId,
+        useCustomKey: usedCustomKey,
+      });
 
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       res.end();

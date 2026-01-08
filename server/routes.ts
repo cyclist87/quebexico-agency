@@ -14,19 +14,19 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-export async function getOpenAIClient(): Promise<OpenAI> {
+export async function getOpenAIClient(): Promise<{ client: OpenAI; usedCustomKey: boolean }> {
   try {
     const setting = await storage.getSetting("openai_api_key");
     if (setting?.value) {
       const decryptedKey = isEncrypted(setting.value) 
         ? decrypt(setting.value) 
         : setting.value;
-      return new OpenAI({ apiKey: decryptedKey });
+      return { client: new OpenAI({ apiKey: decryptedKey }), usedCustomKey: true };
     }
   } catch (error) {
     console.error("Error getting custom OpenAI key, using platform key:", error);
   }
-  return openai;
+  return { client: openai, usedCustomKey: false };
 }
 
 function requireAdminAuth(req: any, res: any, next: any) {
@@ -291,6 +291,17 @@ export async function registerRoutes(
         });
       }
       throw err;
+    }
+  });
+
+  // Get AI usage statistics
+  app.get("/api/admin/ai-usage", requireAdminAuth, async (req, res) => {
+    try {
+      const stats = await storage.getAiUsageStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching AI usage stats:", error);
+      res.status(500).json({ error: "Failed to fetch usage stats" });
     }
   });
 

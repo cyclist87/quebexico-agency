@@ -253,7 +253,108 @@ function SettingsTab() {
           </div>
         </CardContent>
       </Card>
+
+      <AiUsageCard />
     </div>
+  );
+}
+
+interface AiUsageStats {
+  totalTokens: number;
+  totalCost: number;
+  usageByDay: { date: string; tokens: number; cost: number }[];
+  customKeyUsage: number;
+  platformKeyUsage: number;
+}
+
+function AiUsageCard() {
+  const { data: stats, isLoading } = useQuery<AiUsageStats>({
+    queryKey: ["/api/admin/ai-usage"],
+    queryFn: async () => {
+      return adminRequest<AiUsageStats>("GET", "/api/admin/ai-usage");
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Consommation IA</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-4">Chargement...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!stats || stats.totalTokens === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Consommation IA</CardTitle>
+          <CardDescription>
+            Suivez l'utilisation du chatbot IA sur les 30 derniers jours
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-4">
+            Aucune utilisation enregistrée pour le moment. Les statistiques apparaîtront après les premières conversations avec le chatbot.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const platformPercentage = stats.totalTokens > 0 
+    ? Math.round((stats.platformKeyUsage / stats.totalTokens) * 100) 
+    : 0;
+  const customPercentage = 100 - platformPercentage;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Consommation IA (30 derniers jours)</CardTitle>
+        <CardDescription>
+          Statistiques d'utilisation du chatbot IA
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="p-4 bg-secondary/50 rounded-md text-center">
+            <p className="text-2xl font-bold">{stats.totalTokens.toLocaleString()}</p>
+            <p className="text-sm text-muted-foreground">Tokens totaux</p>
+          </div>
+          <div className="p-4 bg-secondary/50 rounded-md text-center">
+            <p className="text-2xl font-bold">${parseFloat(stats.totalCost.toFixed(4))}</p>
+            <p className="text-sm text-muted-foreground">Coût estimé</p>
+          </div>
+          <div className="p-4 bg-secondary/50 rounded-md text-center">
+            <p className="text-2xl font-bold">{platformPercentage}%</p>
+            <p className="text-sm text-muted-foreground">Clé plateforme</p>
+          </div>
+          <div className="p-4 bg-secondary/50 rounded-md text-center">
+            <p className="text-2xl font-bold">{customPercentage}%</p>
+            <p className="text-sm text-muted-foreground">Clé personnalisée</p>
+          </div>
+        </div>
+
+        {stats.usageByDay.length > 0 && (
+          <div>
+            <h4 className="font-medium mb-3">Usage quotidien</h4>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {stats.usageByDay.slice(-7).reverse().map((day) => (
+                <div key={day.date} className="flex justify-between items-center p-2 bg-secondary/30 rounded">
+                  <span className="text-sm">{new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                  <span className="text-sm font-medium">{day.tokens.toLocaleString()} tokens</span>
+                  <span className="text-sm text-muted-foreground">${parseFloat(day.cost.toFixed(4))}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
