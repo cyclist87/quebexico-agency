@@ -23,7 +23,7 @@ const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const setAdminKey = (key: string) => localStorage.setItem("quebexico_admin_key", key);
 const clearAdminKey = () => localStorage.removeItem("quebexico_admin_key");
 
-const MONTHLY_TOKEN_LIMIT = 9000000;
+const MONTHLY_TOKEN_LIMIT = 3000000;
 
 function getUsageStatus(tokensUsed: number, limit: number) {
   const percentage = (tokensUsed / limit) * 100;
