@@ -77,6 +77,7 @@ export default function Home() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
+{/* Temporarily hidden for LinkedIn screenshot
             <Link href="/contact">
               <Button size="lg" className="rounded-full text-lg h-14 px-8 shadow-xl shadow-primary/25 hover:shadow-2xl hover:-translate-y-1 transition-all">
                 {t.hero.cta} <ArrowRight className="ml-2 w-5 h-5" />
@@ -87,6 +88,7 @@ export default function Home() {
                 {t.hero.discover}
               </Button>
             </a>
+*/}
           </motion.div>
         </div>
       </section>
