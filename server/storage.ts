@@ -5,6 +5,7 @@ import {
   projects,
   blogPosts,
   blogCategories,
+  siteSettings,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -14,7 +15,8 @@ import {
   type Subscriber,
   type Project,
   type BlogPost,
-  type BlogCategory
+  type BlogCategory,
+  type SiteSetting
 } from "@shared/schema";
 import { eq, desc, asc, and } from "drizzle-orm";
 
@@ -47,6 +49,11 @@ export interface IStorage {
   deleteBlogPost(id: number): Promise<boolean>;
   updateBlogPostOrder(id: number, orderIndex: number): Promise<BlogPost | undefined>;
   setFeaturedPost(id: number): Promise<BlogPost | undefined>;
+  
+  // Site Settings
+  getAllSettings(): Promise<SiteSetting[]>;
+  getSetting(key: string): Promise<SiteSetting | undefined>;
+  upsertSetting(key: string, value: string | null): Promise<SiteSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -157,6 +164,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(blogPosts.id, id))
       .returning();
     return updated;
+  }
+
+  // Site Settings
+  async getAllSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+
+  async getSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+
+  async upsertSetting(key: string, value: string | null): Promise<SiteSetting> {
+    const existing = await this.getSetting(key);
+    if (existing) {
+      const [updated] = await db.update(siteSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(siteSettings.key, key))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(siteSettings)
+        .values({ key, value })
+        .returning();
+      return created;
+    }
   }
 }
 

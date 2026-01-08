@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2 } from "lucide-react";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -21,6 +21,104 @@ import type { BlogPost, BlogCategory } from "@shared/schema";
 const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const setAdminKey = (key: string) => localStorage.setItem("quebexico_admin_key", key);
 const clearAdminKey = () => localStorage.removeItem("quebexico_admin_key");
+
+interface SiteSetting {
+  id: number;
+  key: string;
+  value: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function SettingsTab() {
+  const { toast } = useToast();
+  const [tinymceApiKey, setTinymceApiKey] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { data: settings, isLoading } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/admin/settings"],
+    queryFn: async () => {
+      return adminRequest<SiteSetting[]>("GET", "/api/admin/settings");
+    },
+  });
+
+  useEffect(() => {
+    if (settings) {
+      const tinymceSetting = settings.find(s => s.key === "tinymce_api_key");
+      if (tinymceSetting?.value) {
+        setTinymceApiKey(tinymceSetting.value);
+      }
+    }
+  }, [settings]);
+
+  const saveSetting = async (key: string, value: string | null) => {
+    setIsSaving(true);
+    try {
+      await adminRequest("PUT", `/api/admin/settings/${key}`, { value });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      toast({ title: "Paramètre sauvegardé", description: "Le paramètre a été mis à jour avec succès" });
+    } catch (error) {
+      toast({ title: "Erreur", description: "Impossible de sauvegarder le paramètre", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-muted-foreground text-center">Chargement des paramètres...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Éditeur de contenu (TinyMCE)</CardTitle>
+          <CardDescription>
+            Configurez votre clé API TinyMCE pour l'éditeur de texte enrichi.
+            Obtenez une clé gratuite sur{" "}
+            <a 
+              href="https://www.tiny.cloud/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
+              tiny.cloud
+            </a>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="tinymce-api-key">Clé API TinyMCE</Label>
+              <Input
+                id="tinymce-api-key"
+                type="password"
+                placeholder="Entrez votre clé API TinyMCE"
+                value={tinymceApiKey}
+                onChange={(e) => setTinymceApiKey(e.target.value)}
+                data-testid="input-tinymce-api-key"
+              />
+            </div>
+            <Button
+              onClick={() => saveSetting("tinymce_api_key", tinymceApiKey || null)}
+              disabled={isSaving}
+              data-testid="button-save-tinymce-key"
+            >
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Sauvegarder
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 async function adminRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
   const headers: Record<string, string> = {
@@ -240,6 +338,15 @@ export default function Admin() {
     enabled: isAuthenticated,
   });
 
+  // Fetch site settings for TinyMCE API key
+  const { data: adminSettings = [] } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/admin/settings"],
+    queryFn: () => adminRequest<SiteSetting[]>("GET", "/api/admin/settings"),
+    enabled: isAuthenticated,
+  });
+
+  const tinymceApiKey = adminSettings.find(s => s.key === "tinymce_api_key")?.value || undefined;
+
   // Handle auth errors
   useEffect(() => {
     if (sessionsError?.message === "Unauthorized") {
@@ -444,6 +551,12 @@ export default function Admin() {
               </TabsTrigger>
               <TabsTrigger value="knowledge" className="gap-2">
                 Base de connaissances
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="h-auto p-1">
+              <TabsTrigger value="settings" className="gap-2">
+                <Settings className="h-4 w-4" />
+                Paramètres
               </TabsTrigger>
             </TabsList>
           </div>
@@ -724,6 +837,11 @@ export default function Admin() {
             </Dialog>
           </TabsContent>
 
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <SettingsTab />
+          </TabsContent>
+
           {/* Blog Tab */}
           <TabsContent value="blog">
             <div className="space-y-6">
@@ -885,6 +1003,7 @@ export default function Admin() {
                                 value={newPost.contentFr}
                                 onChange={(content) => setNewPost({ ...newPost, contentFr: content })}
                                 placeholder="Contenu (FR)"
+                                apiKey={tinymceApiKey}
                                 height={250}
                               />
                             </div>
@@ -933,6 +1052,7 @@ export default function Admin() {
                                   value={newPost.contentEn}
                                   onChange={(content) => setNewPost({ ...newPost, contentEn: content })}
                                   placeholder="Content (EN)"
+                                  apiKey={tinymceApiKey}
                                   height={200}
                                 />
                               </div>
@@ -966,6 +1086,7 @@ export default function Admin() {
                                   value={newPost.contentEs}
                                   onChange={(content) => setNewPost({ ...newPost, contentEs: content })}
                                   placeholder="Contenido (ES)"
+                                  apiKey={tinymceApiKey}
                                   height={200}
                                 />
                               </div>
@@ -1185,6 +1306,7 @@ export default function Admin() {
                           value={editingPost.contentFr}
                           onChange={(content) => setEditingPost({ ...editingPost, contentFr: content })}
                           placeholder="Contenu (FR)"
+                          apiKey={tinymceApiKey}
                           height={250}
                         />
                       </div>
@@ -1229,6 +1351,7 @@ export default function Admin() {
                             value={editingPost.contentEn}
                             onChange={(content) => setEditingPost({ ...editingPost, contentEn: content })}
                             placeholder="Content (EN)"
+                            apiKey={tinymceApiKey}
                             height={200}
                           />
                         </CollapsibleContent>
@@ -1259,6 +1382,7 @@ export default function Admin() {
                             value={editingPost.contentEs}
                             onChange={(content) => setEditingPost({ ...editingPost, contentEs: content })}
                             placeholder="Contenido (ES)"
+                            apiKey={tinymceApiKey}
                             height={200}
                           />
                         </CollapsibleContent>

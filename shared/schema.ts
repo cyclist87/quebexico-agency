@@ -75,6 +75,16 @@ export const adminUsers = pgTable("admin_users", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === SITE SETTINGS ===
+
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === BLOG TABLES ===
 
 // Blog categories
@@ -126,6 +136,7 @@ export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: t
 
 export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({ id: true, createdAt: true });
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -155,6 +166,9 @@ export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
 
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

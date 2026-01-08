@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, messages, subscribers, projects, blogPosts, blogCategories } from './schema';
+import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, insertSiteSettingSchema, messages, subscribers, projects, blogPosts, blogCategories, siteSettings } from './schema';
 
 // ============================================
 // SHARED ERROR SCHEMAS
@@ -163,6 +163,30 @@ export const api = {
         responses: {
           200: z.object({ success: z.boolean() }),
           404: errorSchemas.notFound,
+        },
+      },
+    },
+    settings: {
+      get: {
+        method: 'GET' as const,
+        path: '/api/admin/settings',
+        responses: {
+          200: z.array(z.custom<typeof siteSettings.$inferSelect>()),
+        },
+      },
+      getSetting: {
+        method: 'GET' as const,
+        path: '/api/admin/settings/:key',
+        responses: {
+          200: z.custom<typeof siteSettings.$inferSelect>().nullable(),
+        },
+      },
+      upsert: {
+        method: 'PUT' as const,
+        path: '/api/admin/settings/:key',
+        input: z.object({ value: z.string().nullable() }),
+        responses: {
+          200: z.custom<typeof siteSettings.$inferSelect>(),
         },
       },
     },

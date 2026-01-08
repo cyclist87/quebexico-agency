@@ -7,15 +7,16 @@ interface RichTextEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   height?: number;
+  apiKey?: string;
 }
 
-export function RichTextEditor({ value, onChange, placeholder, height = 300 }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, height = 300, apiKey }: RichTextEditorProps) {
   const editorRef = useRef<TinyMCEEditor | null>(null);
-  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key';
+  const effectiveApiKey = apiKey || import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key';
 
   return (
     <Editor
-      tinymceScriptSrc={`https://cdn.tiny.cloud/1/${apiKey}/tinymce/6/tinymce.min.js`}
+      tinymceScriptSrc={`https://cdn.tiny.cloud/1/${effectiveApiKey}/tinymce/6/tinymce.min.js`}
       onInit={(_evt: unknown, editor: TinyMCEEditor) => { editorRef.current = editor; }}
       value={value}
       onEditorChange={(content: string) => onChange(content)}

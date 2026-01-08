@@ -234,6 +234,37 @@ export async function registerRoutes(
     res.json({ success });
   });
 
+  // === ADMIN SETTINGS ROUTES ===
+
+  // Get all settings
+  app.get(api.admin.settings.get.path, requireAdminAuth, async (req, res) => {
+    const settings = await storage.getAllSettings();
+    res.json(settings);
+  });
+
+  // Get single setting by key
+  app.get("/api/admin/settings/:key", requireAdminAuth, async (req, res) => {
+    const setting = await storage.getSetting(req.params.key);
+    res.json(setting || null);
+  });
+
+  // Upsert setting
+  app.put("/api/admin/settings/:key", requireAdminAuth, async (req, res) => {
+    try {
+      const input = api.admin.settings.upsert.input.parse(req.body);
+      const setting = await storage.upsertSetting(req.params.key, input.value);
+      res.json(setting);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
   // Translation endpoint
   const translateSchema = z.object({
     titleFr: z.string().min(1),
