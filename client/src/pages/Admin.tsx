@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings } from "lucide-react";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -21,6 +22,24 @@ import type { BlogPost, BlogCategory } from "@shared/schema";
 const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const setAdminKey = (key: string) => localStorage.setItem("quebexico_admin_key", key);
 const clearAdminKey = () => localStorage.removeItem("quebexico_admin_key");
+
+const MONTHLY_TOKEN_LIMIT = 100000;
+
+function getUsageStatus(tokensUsed: number, limit: number) {
+  const percentage = (tokensUsed / limit) * 100;
+  if (percentage >= 100) return { level: "exceeded", color: "destructive" as const };
+  if (percentage >= 80) return { level: "warning", color: "warning" as const };
+  if (percentage >= 50) return { level: "medium", color: "secondary" as const };
+  return { level: "low", color: "default" as const };
+}
+
+interface AiUsageStats {
+  totalTokens: number;
+  totalCost: number;
+  usageByDay: { date: string; tokens: number; cost: number }[];
+  customKeyUsage: number;
+  platformKeyUsage: number;
+}
 
 interface SiteSetting {
   id: number;
@@ -42,6 +61,13 @@ function SettingsTab() {
     queryKey: ["/api/admin/settings"],
     queryFn: async () => {
       return adminRequest<SiteSetting[]>("GET", "/api/admin/settings");
+    },
+  });
+
+  const { data: usageStats } = useQuery<AiUsageStats>({
+    queryKey: ["/api/admin/ai-usage"],
+    queryFn: async () => {
+      return adminRequest<AiUsageStats>("GET", "/api/admin/ai-usage");
     },
   });
 
@@ -183,31 +209,84 @@ function SettingsTab() {
               <Badge variant="secondary">Clé personnalisée active</Badge>
             )}
           </CardTitle>
-          <CardDescription>
-            Optionnel: Configurez votre propre clé API OpenAI pour le chatbot.
-            Si non configurée, le chatbot utilise la clé plateforme (coûts inclus dans votre abonnement).
-            Obtenez une clé sur{" "}
-            <a 
-              href="https://platform.openai.com/api-keys" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              platform.openai.com
-            </a>
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {openaiKeyStatus === "configured" ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-md">
-                  <Badge variant="outline">Clé configurée</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Votre clé OpenAI personnalisée est active
-                  </span>
+          <div className="space-y-6">
+            {(() => {
+              const tokensUsed = usageStats?.platformKeyUsage || 0;
+              const usagePercentage = Math.min((tokensUsed / MONTHLY_TOKEN_LIMIT) * 100, 100);
+              const status = getUsageStatus(tokensUsed, MONTHLY_TOKEN_LIMIT);
+              const tokensRemaining = Math.max(MONTHLY_TOKEN_LIMIT - tokensUsed, 0);
+              
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Utilisation ce mois-ci</span>
+                    <span className="text-sm text-muted-foreground">
+                      {tokensUsed.toLocaleString()} / {MONTHLY_TOKEN_LIMIT.toLocaleString()} tokens
+                    </span>
+                  </div>
+                  <Progress value={usagePercentage} className="h-2" />
+                  
+                  {status.level === "exceeded" ? (
+                    <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+                      <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-destructive">
+                          Limite de crédits atteinte
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Vous avez utilisé tous vos crédits IA inclus. Pour continuer à utiliser le chatbot, 
+                          vous pouvez passer au forfait supérieur ou configurer votre propre clé OpenAI ci-dessous.
+                        </p>
+                      </div>
+                    </div>
+                  ) : status.level === "warning" ? (
+                    <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
+                      <Zap className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                          {tokensRemaining.toLocaleString()} crédits restants
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Vous approchez de votre limite mensuelle. Si votre utilisation continue à ce rythme, 
+                          il pourrait être plus économique de passer au forfait supérieur ou d'utiliser votre propre clé OpenAI.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Votre abonnement inclut {MONTHLY_TOKEN_LIMIT.toLocaleString()} crédits IA par mois. 
+                      Il vous reste {tokensRemaining.toLocaleString()} crédits.
+                    </p>
+                  )}
                 </div>
-                <div className="flex gap-2">
+              );
+            })()}
+
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium mb-2">Clé OpenAI personnalisée (optionnel)</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Configurez votre propre clé pour un usage illimité. Les coûts seront facturés directement par OpenAI.
+                {" "}
+                <a 
+                  href="https://platform.openai.com/api-keys" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  Obtenir une clé
+                </a>
+              </p>
+              
+              {openaiKeyStatus === "configured" ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-md">
+                    <Badge variant="outline">Clé configurée</Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Votre clé OpenAI personnalisée est active (usage illimité)
+                    </span>
+                  </div>
                   <Button
                     variant="outline"
                     onClick={removeOpenAIKey}
@@ -215,41 +294,41 @@ function SettingsTab() {
                     data-testid="button-remove-openai-key"
                   >
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                    Supprimer et utiliser la clé plateforme
+                    Supprimer et revenir aux crédits inclus
                   </Button>
                 </div>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <Label htmlFor="openai-api-key">Clé API OpenAI</Label>
-                  <Input
-                    id="openai-api-key"
-                    type="password"
-                    placeholder="sk-..."
-                    value={openaiApiKey}
-                    onChange={(e) => {
-                      setOpenaiApiKey(e.target.value);
-                      setOpenaiKeyStatus("none");
-                    }}
-                    data-testid="input-openai-api-key"
-                  />
-                  {openaiKeyStatus === "invalid" && (
-                    <p className="text-sm text-destructive mt-1">
-                      Cette clé n'est pas valide. Vérifiez qu'elle commence par "sk-" et qu'elle est active.
-                    </p>
-                  )}
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="openai-api-key">Clé API OpenAI</Label>
+                    <Input
+                      id="openai-api-key"
+                      type="password"
+                      placeholder="sk-..."
+                      value={openaiApiKey}
+                      onChange={(e) => {
+                        setOpenaiApiKey(e.target.value);
+                        setOpenaiKeyStatus("none");
+                      }}
+                      data-testid="input-openai-api-key"
+                    />
+                    {openaiKeyStatus === "invalid" && (
+                      <p className="text-sm text-destructive mt-1">
+                        Cette clé n'est pas valide. Vérifiez qu'elle commence par "sk-" et qu'elle est active.
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={validateAndSaveOpenAIKey}
+                    disabled={isValidating || !openaiApiKey.trim()}
+                    data-testid="button-save-openai-key"
+                  >
+                    {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Valider et sauvegarder
+                  </Button>
                 </div>
-                <Button
-                  onClick={validateAndSaveOpenAIKey}
-                  disabled={isValidating || !openaiApiKey.trim()}
-                  data-testid="button-save-openai-key"
-                >
-                  {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Valider et sauvegarder
-                </Button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -257,14 +336,6 @@ function SettingsTab() {
       <AiUsageCard />
     </div>
   );
-}
-
-interface AiUsageStats {
-  totalTokens: number;
-  totalCost: number;
-  usageByDay: { date: string; tokens: number; cost: number }[];
-  customKeyUsage: number;
-  platformKeyUsage: number;
 }
 
 function AiUsageCard() {
