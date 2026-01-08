@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2 } from "lucide-react";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -879,13 +880,14 @@ export default function Admin() {
                               value={newPost.excerptFr}
                               onChange={(e) => setNewPost({ ...newPost, excerptFr: e.target.value })}
                             />
-                            <Textarea
-                              placeholder="Contenu (FR) - Supporte le HTML"
-                              value={newPost.contentFr}
-                              onChange={(e) => setNewPost({ ...newPost, contentFr: e.target.value })}
-                              className="min-h-[150px]"
-                              data-testid="input-post-content-fr"
-                            />
+                            <div data-testid="input-post-content-fr">
+                              <RichTextEditor
+                                value={newPost.contentFr}
+                                onChange={(content) => setNewPost({ ...newPost, contentFr: content })}
+                                placeholder="Contenu (FR)"
+                                height={250}
+                              />
+                            </div>
                           </div>
 
                           <Button
@@ -926,13 +928,14 @@ export default function Admin() {
                                 value={newPost.excerptEn}
                                 onChange={(e) => setNewPost({ ...newPost, excerptEn: e.target.value })}
                               />
-                              <Textarea
-                                placeholder="Content (EN)"
-                                value={newPost.contentEn}
-                                onChange={(e) => setNewPost({ ...newPost, contentEn: e.target.value })}
-                                className="min-h-[150px]"
-                                data-testid="input-post-content-en"
-                              />
+                              <div data-testid="input-post-content-en">
+                                <RichTextEditor
+                                  value={newPost.contentEn}
+                                  onChange={(content) => setNewPost({ ...newPost, contentEn: content })}
+                                  placeholder="Content (EN)"
+                                  height={200}
+                                />
+                              </div>
                             </CollapsibleContent>
                           </Collapsible>
 
@@ -958,13 +961,14 @@ export default function Admin() {
                                 value={newPost.excerptEs}
                                 onChange={(e) => setNewPost({ ...newPost, excerptEs: e.target.value })}
                               />
-                              <Textarea
-                                placeholder="Contenido (ES)"
-                                value={newPost.contentEs}
-                                onChange={(e) => setNewPost({ ...newPost, contentEs: e.target.value })}
-                                className="min-h-[150px]"
-                                data-testid="input-post-content-es"
-                              />
+                              <div data-testid="input-post-content-es">
+                                <RichTextEditor
+                                  value={newPost.contentEs}
+                                  onChange={(content) => setNewPost({ ...newPost, contentEs: content })}
+                                  placeholder="Contenido (ES)"
+                                  height={200}
+                                />
+                              </div>
                             </CollapsibleContent>
                           </Collapsible>
                         </div>
@@ -1177,11 +1181,11 @@ export default function Admin() {
                           value={editingPost.excerptFr || ""}
                           onChange={(e) => setEditingPost({ ...editingPost, excerptFr: e.target.value })}
                         />
-                        <Textarea
-                          placeholder="Contenu (FR) - Supporte le HTML"
+                        <RichTextEditor
                           value={editingPost.contentFr}
-                          onChange={(e) => setEditingPost({ ...editingPost, contentFr: e.target.value })}
-                          className="min-h-[150px]"
+                          onChange={(content) => setEditingPost({ ...editingPost, contentFr: content })}
+                          placeholder="Contenu (FR)"
+                          height={250}
                         />
                       </div>
 
@@ -1221,11 +1225,11 @@ export default function Admin() {
                             value={editingPost.excerptEn || ""}
                             onChange={(e) => setEditingPost({ ...editingPost, excerptEn: e.target.value })}
                           />
-                          <Textarea
-                            placeholder="Content (EN)"
+                          <RichTextEditor
                             value={editingPost.contentEn}
-                            onChange={(e) => setEditingPost({ ...editingPost, contentEn: e.target.value })}
-                            className="min-h-[150px]"
+                            onChange={(content) => setEditingPost({ ...editingPost, contentEn: content })}
+                            placeholder="Content (EN)"
+                            height={200}
                           />
                         </CollapsibleContent>
                       </Collapsible>
@@ -1251,11 +1255,11 @@ export default function Admin() {
                             value={editingPost.excerptEs || ""}
                             onChange={(e) => setEditingPost({ ...editingPost, excerptEs: e.target.value })}
                           />
-                          <Textarea
-                            placeholder="Contenido (ES)"
+                          <RichTextEditor
                             value={editingPost.contentEs}
-                            onChange={(e) => setEditingPost({ ...editingPost, contentEs: e.target.value })}
-                            className="min-h-[150px]"
+                            onChange={(content) => setEditingPost({ ...editingPost, contentEs: content })}
+                            placeholder="Contenido (ES)"
+                            height={200}
                           />
                         </CollapsibleContent>
                       </Collapsible>
