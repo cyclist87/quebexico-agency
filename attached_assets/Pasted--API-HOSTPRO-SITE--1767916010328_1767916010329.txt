@@ -1,0 +1,175 @@
+================================================================================
+API HOSTPRO - SITE DE RÉSERVATION DIRECTE
+================================================================================
+
+URL DE BASE: https://2375e0e3-ecc0-4d88-b6cc-8e9e0d719b3b-00-8xw9flv6daqy.spock.replit.dev/api/external/direct-sites
+
+AUTHENTIFICATION: Header X-API-Key
+
+================================================================================
+ENDPOINTS DISPONIBLES
+================================================================================
+
+1. CONFIGURATION DU SITE
+------------------------
+GET /config
+
+Headers:
+  X-API-Key: VOTRE_CLE_API
+
+Réponse:
+{
+  "id": "...",
+  "name": "Nom du site",
+  "slug": "nom-du-site",
+  "primaryLanguage": "fr",
+  "supportedLanguages": ["fr", "en"],
+  "logoUrl": "https://...",
+  "primaryColor": "#2c78f2",
+  "secondaryColor": "#1E40AF",
+  "accentColor": "#F59E0B",
+  "tagline": "Votre séjour parfait",
+  "description": "Description du site",
+  "contactEmail": "contact@exemple.com",
+  "contactPhone": "+1 555 123 4567",
+  "enablePayments": true,
+  "enableChat": true,
+  "enableAiConcierge": false,
+  "enableInstantBooking": true
+}
+
+--------------------------------------------------------------------------------
+
+2. LISTE DES PROPRIÉTÉS
+-----------------------
+GET /properties
+
+Headers:
+  X-API-Key: VOTRE_CLE_API
+
+Réponse:
+[
+  {
+    "id": "property-uuid",
+    "name": "Chalet Vue sur Lac",
+    "address": "123 Rue du Lac, Québec",
+    "platform": "direct",
+    "icalExportToken": "..."
+  }
+]
+
+--------------------------------------------------------------------------------
+
+3. DISPONIBILITÉS (CALENDRIER)
+------------------------------
+GET /availability?propertyId={ID}&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+
+Headers:
+  X-API-Key: VOTRE_CLE_API
+
+Paramètres:
+  - propertyId: ID de la propriété (requis)
+  - startDate: Date de début (format YYYY-MM-DD)
+  - endDate: Date de fin (format YYYY-MM-DD)
+
+Réponse:
+{
+  "propertyId": "...",
+  "blockedDates": [
+    {
+      "start": "2025-01-15",
+      "end": "2025-01-20",
+      "source": "airbnb"
+    }
+  ],
+  "availableDates": ["2025-01-01", "2025-01-02", ...]
+}
+
+--------------------------------------------------------------------------------
+
+4. TARIFICATION
+---------------
+GET /pricing?propertyId={ID}&checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD&guests=4
+
+Headers:
+  X-API-Key: VOTRE_CLE_API
+
+Paramètres:
+  - propertyId: ID de la propriété (requis)
+  - checkIn: Date d'arrivée (requis)
+  - checkOut: Date de départ (requis)
+  - guests: Nombre de voyageurs (optionnel)
+
+Réponse:
+{
+  "propertyId": "...",
+  "checkIn": "2025-01-15",
+  "checkOut": "2025-01-20",
+  "nights": 5,
+  "pricePerNight": 150.00,
+  "subtotal": 750.00,
+  "cleaningFee": 75.00,
+  "taxes": 123.56,
+  "total": 948.56,
+  "currency": "CAD"
+}
+
+================================================================================
+EXEMPLE DE CODE - REACT/FETCH
+================================================================================
+
+const API_BASE = 'https://2375e0e3-ecc0-4d88-b6cc-8e9e0d719b3b-00-8xw9flv6daqy.spock.replit.dev/api/external/direct-sites';
+const API_KEY = 'VOTRE_CLE_API_ICI';
+
+// Récupérer la config
+async function getConfig() {
+  const res = await fetch(`${API_BASE}/config`, {
+    headers: { 'X-API-Key': API_KEY }
+  });
+  return res.json();
+}
+
+// Récupérer les propriétés
+async function getProperties() {
+  const res = await fetch(`${API_BASE}/properties`, {
+    headers: { 'X-API-Key': API_KEY }
+  });
+  return res.json();
+}
+
+// Récupérer les disponibilités
+async function getAvailability(propertyId, startDate, endDate) {
+  const params = new URLSearchParams({ propertyId, startDate, endDate });
+  const res = await fetch(`${API_BASE}/availability?${params}`, {
+    headers: { 'X-API-Key': API_KEY }
+  });
+  return res.json();
+}
+
+// Récupérer les tarifs
+async function getPricing(propertyId, checkIn, checkOut, guests) {
+  const params = new URLSearchParams({ propertyId, checkIn, checkOut, guests });
+  const res = await fetch(`${API_BASE}/pricing?${params}`, {
+    headers: { 'X-API-Key': API_KEY }
+  });
+  return res.json();
+}
+
+================================================================================
+CLÉ API
+================================================================================
+
+Votre clé API est visible dans HostPro :
+Menu "Site de réservation" → Cliquez sur votre site → Onglet "API"
+
+⚠️ Ne partagez jamais votre clé API publiquement.
+   Stockez-la dans les variables d'environnement (Secrets) de votre projet.
+
+================================================================================
+PHASE 2 - À VENIR
+================================================================================
+
+POST /reservations - Soumettre une demande de réservation
+POST /inquiries - Envoyer un message/question
+
+================================================================================
