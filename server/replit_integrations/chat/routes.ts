@@ -5,6 +5,7 @@ import { db } from "../../db";
 import { knowledgeBase } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { getOpenAIClient } from "../../routes";
 
 // Validation schemas
 const createSessionSchema = z.object({
@@ -51,7 +52,8 @@ function requireAdmin(req: Request, res: Response): boolean {
   return true;
 }
 
-const openai = new OpenAI({
+// Platform OpenAI client (fallback)
+const platformOpenai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
@@ -283,8 +285,11 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      // Get OpenAI client (custom key if configured, otherwise platform key)
+      const openaiClient = await getOpenAIClient();
+
       // Stream response from OpenAI
-      const stream = await openai.chat.completions.create({
+      const stream = await openaiClient.chat.completions.create({
         model: "gpt-4o-mini",
         messages: chatMessages,
         stream: true,

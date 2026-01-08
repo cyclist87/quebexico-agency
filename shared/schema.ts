@@ -123,6 +123,20 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === AI USAGE TRACKING ===
+
+export const aiUsage = pgTable("ai_usage", {
+  id: serial("id").primaryKey(),
+  model: text("model").notNull(),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  estimatedCost: text("estimated_cost"),
+  sessionId: integer("session_id").references(() => chatSessions.id, { onDelete: "set null" }),
+  useCustomKey: boolean("use_custom_key").default(false),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === SCHEMAS ===
 
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
@@ -137,6 +151,7 @@ export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: t
 export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({ id: true, createdAt: true });
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAiUsageSchema = createInsertSchema(aiUsage).omit({ id: true, createdAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -169,6 +184,9 @@ export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+
+export type AiUsage = typeof aiUsage.$inferSelect;
+export type InsertAiUsage = z.infer<typeof insertAiUsageSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

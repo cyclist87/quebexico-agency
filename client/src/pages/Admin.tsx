@@ -33,7 +33,10 @@ interface SiteSetting {
 function SettingsTab() {
   const { toast } = useToast();
   const [tinymceApiKey, setTinymceApiKey] = useState("");
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [openaiKeyStatus, setOpenaiKeyStatus] = useState<"none" | "valid" | "invalid" | "configured">("none");
 
   const { data: settings, isLoading } = useQuery<SiteSetting[]>({
     queryKey: ["/api/admin/settings"],
@@ -48,6 +51,10 @@ function SettingsTab() {
       if (tinymceSetting?.value) {
         setTinymceApiKey(tinymceSetting.value);
       }
+      const openaiSetting = settings.find(s => s.key === "openai_api_key");
+      if (openaiSetting?.value) {
+        setOpenaiKeyStatus("configured");
+      }
     }
   }, [settings]);
 
@@ -59,6 +66,57 @@ function SettingsTab() {
       toast({ title: "Paramètre sauvegardé", description: "Le paramètre a été mis à jour avec succès" });
     } catch (error) {
       toast({ title: "Erreur", description: "Impossible de sauvegarder le paramètre", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const validateAndSaveOpenAIKey = async () => {
+    if (!openaiApiKey.trim()) {
+      toast({ title: "Erreur", description: "Veuillez entrer une clé API", variant: "destructive" });
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const result = await adminRequest<{ valid: boolean; error?: string }>(
+        "POST",
+        "/api/admin/settings/validate-openai-key",
+        { apiKey: openaiApiKey }
+      );
+
+      if (result.valid) {
+        setOpenaiKeyStatus("valid");
+        await saveSetting("openai_api_key", openaiApiKey);
+        setOpenaiApiKey("");
+        setOpenaiKeyStatus("configured");
+        toast({ title: "Clé API valide", description: "La clé OpenAI a été vérifiée et sauvegardée" });
+      } else {
+        setOpenaiKeyStatus("invalid");
+        toast({ 
+          title: "Clé API invalide", 
+          description: result.error || "La clé ne fonctionne pas", 
+          variant: "destructive" 
+        });
+      }
+    } catch (error) {
+      setOpenaiKeyStatus("invalid");
+      toast({ title: "Erreur", description: "Impossible de valider la clé API", variant: "destructive" });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const removeOpenAIKey = async () => {
+    setIsSaving(true);
+    try {
+      await adminRequest("PUT", `/api/admin/settings/openai_api_key`, { value: null });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      setOpenaiKeyStatus("none");
+      setOpenaiApiKey("");
+      toast({ title: "Clé supprimée", description: "La clé OpenAI a été supprimée. Le chatbot utilisera la clé plateforme." });
+    } catch (error) {
+      toast({ title: "Erreur", description: "Impossible de supprimer la clé", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -113,6 +171,85 @@ function SettingsTab() {
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Sauvegarder
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Assistant IA (OpenAI)
+            {openaiKeyStatus === "configured" && (
+              <Badge variant="secondary">Clé personnalisée active</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Optionnel: Configurez votre propre clé API OpenAI pour le chatbot.
+            Si non configurée, le chatbot utilise la clé plateforme (coûts inclus dans votre abonnement).
+            Obtenez une clé sur{" "}
+            <a 
+              href="https://platform.openai.com/api-keys" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
+              platform.openai.com
+            </a>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {openaiKeyStatus === "configured" ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-md">
+                  <Badge variant="outline">Clé configurée</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Votre clé OpenAI personnalisée est active
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={removeOpenAIKey}
+                    disabled={isSaving}
+                    data-testid="button-remove-openai-key"
+                  >
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                    Supprimer et utiliser la clé plateforme
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="openai-api-key">Clé API OpenAI</Label>
+                  <Input
+                    id="openai-api-key"
+                    type="password"
+                    placeholder="sk-..."
+                    value={openaiApiKey}
+                    onChange={(e) => {
+                      setOpenaiApiKey(e.target.value);
+                      setOpenaiKeyStatus("none");
+                    }}
+                    data-testid="input-openai-api-key"
+                  />
+                  {openaiKeyStatus === "invalid" && (
+                    <p className="text-sm text-destructive mt-1">
+                      Cette clé n'est pas valide. Vérifiez qu'elle commence par "sk-" et qu'elle est active.
+                    </p>
+                  )}
+                </div>
+                <Button
+                  onClick={validateAndSaveOpenAIKey}
+                  disabled={isValidating || !openaiApiKey.trim()}
+                  data-testid="button-save-openai-key"
+                >
+                  {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Valider et sauvegarder
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

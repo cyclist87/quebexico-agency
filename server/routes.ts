@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
+import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
 
@@ -12,6 +13,21 @@ const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
+
+export async function getOpenAIClient(): Promise<OpenAI> {
+  try {
+    const setting = await storage.getSetting("openai_api_key");
+    if (setting?.value) {
+      const decryptedKey = isEncrypted(setting.value) 
+        ? decrypt(setting.value) 
+        : setting.value;
+      return new OpenAI({ apiKey: decryptedKey });
+    }
+  } catch (error) {
+    console.error("Error getting custom OpenAI key, using platform key:", error);
+  }
+  return openai;
+}
 
 function requireAdminAuth(req: any, res: any, next: any) {
   const adminKey = req.headers["x-admin-key"];
@@ -248,12 +264,25 @@ export async function registerRoutes(
     res.json(setting || null);
   });
 
-  // Upsert setting
+  // Upsert setting (with encryption for sensitive keys)
   app.put("/api/admin/settings/:key", requireAdminAuth, async (req, res) => {
     try {
       const input = api.admin.settings.upsert.input.parse(req.body);
-      const setting = await storage.upsertSetting(req.params.key, input.value);
-      res.json(setting);
+      let value = input.value;
+      
+      // Encrypt OpenAI API key before storing
+      if (req.params.key === "openai_api_key" && value) {
+        value = encrypt(value);
+      }
+      
+      const setting = await storage.upsertSetting(req.params.key, value);
+      
+      // For sensitive keys, don't return the actual value
+      if (req.params.key === "openai_api_key" && setting.value) {
+        res.json({ ...setting, value: "***configured***" });
+      } else {
+        res.json(setting);
+      }
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
@@ -262,6 +291,43 @@ export async function registerRoutes(
         });
       }
       throw err;
+    }
+  });
+
+  // Validate OpenAI API key
+  app.post("/api/admin/settings/validate-openai-key", requireAdminAuth, async (req, res) => {
+    try {
+      const { apiKey } = req.body;
+      
+      if (!apiKey || typeof apiKey !== "string") {
+        return res.json({ valid: false, error: "Clé API requise" });
+      }
+      
+      if (!apiKey.startsWith("sk-")) {
+        return res.json({ valid: false, error: "La clé doit commencer par 'sk-'" });
+      }
+      
+      // Test the key with a simple API call
+      const testClient = new OpenAI({ apiKey });
+      
+      await testClient.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      });
+      
+      res.json({ valid: true });
+    } catch (error: any) {
+      console.error("OpenAI key validation error:", error.message);
+      
+      if (error.status === 401) {
+        return res.json({ valid: false, error: "Clé API invalide ou expirée" });
+      }
+      if (error.status === 429) {
+        return res.json({ valid: false, error: "Quota dépassé ou limite de requêtes atteinte" });
+      }
+      
+      res.json({ valid: false, error: "Impossible de valider la clé" });
     }
   });
 
