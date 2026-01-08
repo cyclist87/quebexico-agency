@@ -49,6 +49,18 @@ The `shared/` directory contains code used by both frontend and backend:
 3. **Component architecture**: Presentation components in components/, pages in pages/, hooks in hooks/
 4. **Static serving in production**: Express serves built client assets with SPA fallback
 
+### HostPro Integration (Short-Term Rental Booking)
+- **Purpose**: Enables direct booking functionality for property rental sites
+- **API Proxy**: Server-side proxy at `/api/hostpro/*` to centralized HostPro API
+- **Secrets Required**: HOSTPRO_API_KEY, HOSTPRO_API_URL (optional, defaults to production URL)
+- **Types**: Shared Zod schemas in `shared/hostpro.ts` for config, properties, availability, pricing
+- **Client**: `server/hostpro/client.ts` handles API communication with error handling
+- **Routes**: `server/hostpro/routes.ts` validates queries (400 for bad params) and responses (502 for upstream failures)
+- **Hooks**: `client/src/hooks/use-hostpro.ts` provides React Query hooks for all endpoints
+- **Components**: PropertyCard, AvailabilityCalendar, PricingBreakdown in `client/src/components/booking/`
+- **Feature Flags**: `enableInstantBooking` (controls booking vs inquiry flow), `enablePayments` (controls pricing display)
+- **Phase 2 TODO**: POST /reservations and /inquiries endpoints for submitting bookings
+
 ## External Dependencies
 
 ### Database
