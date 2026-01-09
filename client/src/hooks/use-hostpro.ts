@@ -1,9 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import type {
   HostProConfig,
   HostProProperty,
   HostProAvailability,
   HostProPricing,
+  ReservationRequest,
+  ReservationResponse,
+  InquiryRequest,
+  InquiryResponse,
 } from "@shared/hostpro";
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -66,5 +71,44 @@ export function useHostProPricing(
       return fetchJson<HostProPricing>(`/api/hostpro/pricing?${params}`);
     },
     enabled: !!propertyId && !!checkIn && !!checkOut,
+  });
+}
+
+export function useCreateReservation() {
+  return useMutation<ReservationResponse, Error, ReservationRequest>({
+    mutationFn: async (data) => {
+      const res = await fetch("/api/hostpro/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || res.statusText);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hostpro/availability"] });
+    },
+  });
+}
+
+export function useCreateInquiry() {
+  return useMutation<InquiryResponse, Error, InquiryRequest>({
+    mutationFn: async (data) => {
+      const res = await fetch("/api/hostpro/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || res.statusText);
+      }
+      return res.json();
+    },
   });
 }
