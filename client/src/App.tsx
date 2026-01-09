@@ -49,9 +49,9 @@ function DemoRouter() {
   return (
     <Switch>
       <Route path="/demo" component={DemoIndex} />
-      <Route path="/demo/athlete" component={DemoAthlete} />
-      <Route path="/demo/freelancer" component={DemoFreelancer} />
-      <Route path="/demo/chalet" component={DemoRentalHost} />
+      <Route path="/demo/athlete/:page?" component={DemoAthlete} />
+      <Route path="/demo/freelancer/:page?" component={DemoFreelancer} />
+      <Route path="/demo/chalet/:page?" component={DemoRentalHost} />
     </Switch>
   );
 }

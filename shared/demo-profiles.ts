@@ -3,12 +3,81 @@ import { z } from "zod";
 export const ProfileTypeSchema = z.enum(["athlete", "freelancer", "rental-host"]);
 export type ProfileType = z.infer<typeof ProfileTypeSchema>;
 
+export const SectionTypeSchema = z.enum([
+  "hero",
+  "portfolio",
+  "services",
+  "testimonials",
+  "properties",
+  "sponsors",
+  "calendar",
+  "gallery",
+  "cta",
+  "contact",
+  "richText",
+]);
+export type SectionType = z.infer<typeof SectionTypeSchema>;
+
+export const SectionConfigSchema = z.object({
+  id: z.string(),
+  type: SectionTypeSchema,
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  background: z.enum(["default", "muted", "primary", "dark"]).optional(),
+});
+export type SectionConfig = z.infer<typeof SectionConfigSchema>;
+
+export const NavigationItemSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  slug: z.string(),
+  icon: z.string().optional(),
+});
+export type NavigationItem = z.infer<typeof NavigationItemSchema>;
+
+export const PageConfigSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  sections: z.array(SectionConfigSchema),
+});
+export type PageConfig = z.infer<typeof PageConfigSchema>;
+
+export const SponsorSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  logoUrl: z.string().optional(),
+  websiteUrl: z.string().optional(),
+  category: z.enum(["title", "technical", "support", "media"]),
+  description: z.string().optional(),
+});
+export type Sponsor = z.infer<typeof SponsorSchema>;
+
+export const CalendarEventSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  date: z.string(),
+  location: z.string().optional(),
+  description: z.string().optional(),
+  type: z.enum(["competition", "training", "appearance", "other"]),
+});
+export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
+
+export const GalleryImageSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  alt: z.string(),
+  caption: z.string().optional(),
+});
+export type GalleryImage = z.infer<typeof GalleryImageSchema>;
+
 export const ProfileConfigSchema = z.object({
   type: ProfileTypeSchema,
   name: z.string(),
   tagline: z.string(),
   description: z.string(),
   primaryColor: z.string(),
+  heroImageUrl: z.string().optional(),
+  logoUrl: z.string().optional(),
   features: z.object({
     portfolio: z.boolean(),
     services: z.boolean(),
@@ -18,7 +87,12 @@ export const ProfileConfigSchema = z.object({
     blog: z.boolean(),
     contact: z.boolean(),
     newsletter: z.boolean(),
+    sponsors: z.boolean().optional(),
+    calendar: z.boolean().optional(),
+    gallery: z.boolean().optional(),
   }),
+  navigation: z.array(NavigationItemSchema).optional(),
+  pages: z.array(PageConfigSchema).optional(),
 });
 
 export type ProfileConfig = z.infer<typeof ProfileConfigSchema>;
@@ -77,6 +151,9 @@ export interface DemoProfileData {
   services?: Service[];
   testimonials?: Testimonial[];
   properties?: DemoProperty[];
+  sponsors?: Sponsor[];
+  calendar?: CalendarEvent[];
+  gallery?: GalleryImage[];
 }
 
 export const athleteProfile: DemoProfileData = {
@@ -95,7 +172,62 @@ export const athleteProfile: DemoProfileData = {
       blog: true,
       contact: true,
       newsletter: true,
+      sponsors: true,
+      calendar: true,
+      gallery: true,
     },
+    navigation: [
+      { id: "home", label: "Accueil", slug: "" },
+      { id: "results", label: "Palmarès", slug: "resultats" },
+      { id: "sponsors", label: "Partenaires", slug: "partenaires" },
+      { id: "calendar", label: "Calendrier", slug: "calendrier" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: "Accueil",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "portfolio", type: "portfolio", title: "Palmarès récent" },
+          { id: "sponsors-preview", type: "sponsors", title: "Partenaires" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "resultats",
+        title: "Palmarès",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "portfolio-full", type: "portfolio", title: "Résultats & Performances" },
+        ],
+      },
+      {
+        slug: "partenaires",
+        title: "Partenaires",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "sponsors-full", type: "sponsors", title: "Mes partenaires" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "calendrier",
+        title: "Calendrier",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "calendar", type: "calendar", title: "Saison 2025" },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
   },
   portfolio: [
     {
@@ -144,6 +276,91 @@ export const athleteProfile: DemoProfileData = {
       role: "Présidente, Cyclisme Canada",
       content: "Un ambassadeur passionné qui redonne à la communauté cycliste québécoise.",
       rating: 5,
+    },
+  ],
+  sponsors: [
+    {
+      id: "1",
+      name: "Vélo Québec",
+      category: "title",
+      description: "Partenaire titre depuis 2022",
+      websiteUrl: "https://www.velo.qc.ca",
+    },
+    {
+      id: "2",
+      name: "Cycles Marinoni",
+      category: "technical",
+      description: "Cadres sur mesure fabriqués au Québec",
+      websiteUrl: "https://www.marinoni.qc.ca",
+    },
+    {
+      id: "3",
+      name: "Louis Garneau",
+      category: "technical",
+      description: "Équipement et vêtements de performance",
+      websiteUrl: "https://www.garneau.com",
+    },
+    {
+      id: "4",
+      name: "Desjardins",
+      category: "support",
+      description: "Fier partenaire du sport québécois",
+      websiteUrl: "https://www.desjardins.com",
+    },
+    {
+      id: "5",
+      name: "IGA",
+      category: "support",
+      description: "Nutrition et alimentation santé",
+      websiteUrl: "https://www.iga.net",
+    },
+  ],
+  calendar: [
+    {
+      id: "1",
+      title: "Tour de Beauce",
+      date: "2025-06-15",
+      location: "Beauce, Québec",
+      type: "competition",
+      description: "Course par étapes UCI - Défense du titre",
+    },
+    {
+      id: "2",
+      title: "Championnats canadiens sur route",
+      date: "2025-06-28",
+      location: "Ottawa, Ontario",
+      type: "competition",
+    },
+    {
+      id: "3",
+      title: "Camp altitude",
+      date: "2025-07-10",
+      location: "Flagstaff, Arizona",
+      type: "training",
+      description: "Préparation pour les Grands Prix québécois",
+    },
+    {
+      id: "4",
+      title: "Grand Prix Cycliste de Québec",
+      date: "2025-09-12",
+      location: "Québec, Québec",
+      type: "competition",
+      description: "UCI WorldTour",
+    },
+    {
+      id: "5",
+      title: "Grand Prix Cycliste de Montréal",
+      date: "2025-09-14",
+      location: "Montréal, Québec",
+      type: "competition",
+      description: "UCI WorldTour",
+    },
+    {
+      id: "6",
+      title: "Soirée bénéfice - Fondation Vélo Jeunesse",
+      date: "2025-10-05",
+      location: "Québec, Québec",
+      type: "appearance",
     },
   ],
 };
