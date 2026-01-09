@@ -3,7 +3,10 @@ import {
   SponsorsSection, 
   CalendarSection, 
   PortfolioSection,
-  CTASection 
+  CTASection,
+  ServicesSection,
+  TestimonialsSection,
+  PropertiesSection,
 } from "./sections";
 import type { DemoProfileData, PageConfig, SectionConfig } from "@shared/demo-profiles";
 
@@ -67,13 +70,35 @@ export function DynamicPage({ profile, page, heroImage }: DynamicPageProps) {
         );
 
       case "testimonials":
-        return null;
+        if (!testimonials || testimonials.length === 0) return null;
+        return (
+          <TestimonialsSection
+            key={section.id}
+            testimonials={testimonials}
+            section={section}
+          />
+        );
 
       case "services":
-        return null;
+        if (!services || services.length === 0) return null;
+        return (
+          <ServicesSection
+            key={section.id}
+            services={services}
+            section={section}
+          />
+        );
 
       case "properties":
-        return null;
+        if (!properties || properties.length === 0) return null;
+        return (
+          <PropertiesSection
+            key={section.id}
+            properties={properties}
+            section={section}
+            config={config}
+          />
+        );
 
       case "gallery":
         return null;
