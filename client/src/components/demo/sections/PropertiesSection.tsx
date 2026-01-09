@@ -104,9 +104,9 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
       </div>
 
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-booking">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2" data-testid="dialog-booking-title">
               <TreePine className="h-5 w-5 text-green-600" />
               {selectedProperty?.name}
             </DialogTitle>
