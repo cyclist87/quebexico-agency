@@ -1,12 +1,29 @@
+import { useState } from "react";
 import { rentalHostProfile } from "@shared/demo-profiles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TreePine, Calendar, Star, Mail, Users, Bed, Bath, MapPin, Flame } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TreePine, Calendar, Star, Mail, Users, Bed, Bath, MapPin, Flame, X } from "lucide-react";
+import { BookingFlow } from "@/components/booking";
 import heroImage from "@assets/stock_images/cozy_winter_cabin_ch_cd99d6d4.jpg";
+
+type Property = NonNullable<typeof rentalHostProfile.properties>[number];
 
 export default function DemoRentalHost() {
   const { config, properties, testimonials } = rentalHostProfile;
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
+
+  const handleBookProperty = (property: Property) => {
+    setSelectedProperty(property);
+    setBookingOpen(true);
+  };
+
+  const handleBookingComplete = () => {
+    setBookingOpen(false);
+    setSelectedProperty(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,19 +48,23 @@ export default function DemoRentalHost() {
             {config.description}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" variant="secondary" data-testid="button-see-chalets">
-              <TreePine className="mr-2 h-4 w-4" />
-              Voir nos chalets
+            <Button size="lg" variant="secondary" data-testid="button-see-chalets" asChild>
+              <a href="#chalets">
+                <TreePine className="mr-2 h-4 w-4" />
+                Voir nos chalets
+              </a>
             </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white" data-testid="button-check-availability">
-              <Calendar className="mr-2 h-4 w-4" />
-              V\u00e9rifier les disponibilit\u00e9s
+            <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white" data-testid="button-check-availability" asChild>
+              <a href="#chalets">
+                <Calendar className="mr-2 h-4 w-4" />
+                Vérifier les disponibilités
+              </a>
             </Button>
           </div>
         </div>
       </section>
 
-      <section className="py-16 px-4">
+      <section id="chalets" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-8">
             <TreePine className="h-6 w-6 text-green-700" />
@@ -95,8 +116,12 @@ export default function DemoRentalHost() {
                       </Badge>
                     )}
                   </div>
-                  <Button className="w-full mt-4" data-testid={`button-book-${property.id}`}>
-                    R\u00e9server
+                  <Button 
+                    className="w-full mt-4" 
+                    onClick={() => handleBookProperty(property)}
+                    data-testid={`button-book-${property.id}`}
+                  >
+                    Réserver
                   </Button>
                 </CardContent>
               </Card>
@@ -109,7 +134,7 @@ export default function DemoRentalHost() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2 mb-8 justify-center">
             <Star className="h-6 w-6 text-green-700" />
-            <h2 className="text-3xl font-bold" data-testid="heading-testimonials">Ce que nos invit\u00e9s disent</h2>
+            <h2 className="text-3xl font-bold" data-testid="heading-testimonials">Ce que nos invités disent</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials?.map((testimonial) => (
@@ -136,7 +161,7 @@ export default function DemoRentalHost() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-8">
             <Flame className="h-6 w-6 text-orange-500" />
-            <h2 className="text-3xl font-bold" data-testid="heading-experience">L'exp\u00e9rience Lac-Sergent</h2>
+            <h2 className="text-3xl font-bold" data-testid="heading-experience">L'expérience Lac-Sergent</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
@@ -144,36 +169,36 @@ export default function DemoRentalHost() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <TreePine className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                  <span>Chalets authentiques en bois rond - pas de condos d\u00e9guis\u00e9s</span>
+                  <span>Chalets authentiques en bois rond - pas de condos déguisés</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Flame className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
-                  <span>Po\u00eale \u00e0 bois dans chaque chalet - bois de chauffage inclus</span>
+                  <span>Poêle à bois dans chaque chalet - bois de chauffage inclus</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Users className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                  <span>Accueil personnalis\u00e9 par les propri\u00e9taires</span>
+                  <span>Accueil personnalisé par les propriétaires</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
-                  <span>\u00c0 45 minutes de Qu\u00e9bec, mais \u00e0 des ann\u00e9es-lumi\u00e8re du stress</span>
+                  <span>À 45 minutes de Québec, mais à des années-lumière du stress</span>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-4">Activit\u00e9s sur place</h3>
+              <h3 className="text-xl font-semibold mb-4">Activités sur place</h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
-                  <span className="text-muted-foreground">\u00c9t\u00e9:</span>
-                  <span>Baignade, canot, kayak, p\u00eache, randonn\u00e9e</span>
+                  <span className="text-muted-foreground">Été:</span>
+                  <span>Baignade, canot, kayak, pêche, randonnée</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-muted-foreground">Hiver:</span>
-                  <span>Ski de fond, raquette, patinage, p\u00eache sur glace</span>
+                  <span>Ski de fond, raquette, patinage, pêche sur glace</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-muted-foreground">Toute l'ann\u00e9e:</span>
-                  <span>Feu de camp, observation des \u00e9toiles, silence</span>
+                  <span className="text-muted-foreground">Toute l'année:</span>
+                  <span>Feu de camp, observation des étoiles, silence</span>
                 </li>
               </ul>
             </div>
@@ -183,14 +208,16 @@ export default function DemoRentalHost() {
 
       <section className="py-16 px-4 bg-green-800 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Pr\u00eat pour une vraie \u00e9vasion?</h2>
+          <h2 className="text-3xl font-bold mb-4">Prêt pour une vraie évasion?</h2>
           <p className="text-xl mb-8 opacity-90">
-            R\u00e9servez votre chalet et d\u00e9connectez pour de vrai.
+            Réservez votre chalet et déconnectez pour de vrai.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" variant="secondary" data-testid="button-cta-reserve">
-              <Calendar className="mr-2 h-4 w-4" />
-              V\u00e9rifier les disponibilit\u00e9s
+            <Button size="lg" variant="secondary" data-testid="button-cta-reserve" asChild>
+              <a href="#chalets">
+                <Calendar className="mr-2 h-4 w-4" />
+                Vérifier les disponibilités
+              </a>
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-white/30 text-white" data-testid="button-cta-contact">
               <Mail className="mr-2 h-4 w-4" />
@@ -199,6 +226,26 @@ export default function DemoRentalHost() {
           </div>
         </div>
       </section>
+
+      <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TreePine className="h-5 w-5 text-green-600" />
+              {selectedProperty?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedProperty && (
+            <BookingFlow
+              propertyId={selectedProperty.id}
+              propertyName={selectedProperty.name}
+              maxGuests={selectedProperty.maxGuests}
+              enableInstantBooking={config.features.booking}
+              onComplete={handleBookingComplete}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
