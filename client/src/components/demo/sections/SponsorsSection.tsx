@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Building2 } from "lucide-react";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { Sponsor, SectionConfig } from "@shared/demo-profiles";
 
 interface SponsorsSectionProps {
@@ -12,10 +13,12 @@ const categoryLabels: Record<string, string> = {
   title: "Partenaire titre",
   technical: "Partenaires techniques",
   support: "Partenaires de soutien",
-  media: "Partenaires m\u00e9dias",
+  media: "Partenaires médias",
 };
 
 export function SponsorsSection({ sponsors, section }: SponsorsSectionProps) {
+  const { getText } = useProfileLocalization();
+
   const groupedSponsors = sponsors.reduce((acc, sponsor) => {
     if (!acc[sponsor.category]) {
       acc[sponsor.category] = [];
@@ -31,12 +34,12 @@ export function SponsorsSection({ sponsors, section }: SponsorsSectionProps) {
       <div className="max-w-6xl mx-auto">
         {section.title && (
           <h2 className="text-3xl font-bold mb-8 text-center" data-testid="heading-sponsors">
-            {section.title}
+            {getText(section.title)}
           </h2>
         )}
         {section.subtitle && (
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            {section.subtitle}
+            {getText(section.subtitle)}
           </p>
         )}
 

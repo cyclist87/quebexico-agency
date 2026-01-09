@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Trophy, Dumbbell, Users } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { CalendarEvent, SectionConfig } from "@shared/demo-profiles";
 
 interface CalendarSectionProps {
@@ -11,13 +12,15 @@ interface CalendarSectionProps {
 }
 
 const eventTypeConfig: Record<string, { label: string; icon: typeof Trophy; variant: "default" | "secondary" | "outline" }> = {
-  competition: { label: "Comp\u00e9tition", icon: Trophy, variant: "default" },
-  training: { label: "Entra\u00eenement", icon: Dumbbell, variant: "secondary" },
+  competition: { label: "Compétition", icon: Trophy, variant: "default" },
+  training: { label: "Entraînement", icon: Dumbbell, variant: "secondary" },
   appearance: { label: "Apparition", icon: Users, variant: "outline" },
-  other: { label: "\u00c9v\u00e9nement", icon: Calendar, variant: "outline" },
+  other: { label: "Événement", icon: Calendar, variant: "outline" },
 };
 
 export function CalendarSection({ events, section }: CalendarSectionProps) {
+  const { getText } = useProfileLocalization();
+
   const sortedEvents = [...events].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
@@ -29,7 +32,7 @@ export function CalendarSection({ events, section }: CalendarSectionProps) {
           <div className="flex items-center gap-2 mb-8 justify-center">
             <Calendar className="h-6 w-6" />
             <h2 className="text-3xl font-bold" data-testid="heading-calendar">
-              {section.title}
+              {getText(section.title)}
             </h2>
           </div>
         )}

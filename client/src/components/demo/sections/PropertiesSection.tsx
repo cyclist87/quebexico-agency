@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TreePine, Users, Bed, Bath, MapPin } from "lucide-react";
 import { BookingFlow } from "@/components/booking";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { DemoProperty, SectionConfig, ProfileConfig } from "@shared/demo-profiles";
 
 interface PropertiesSectionProps {
@@ -16,6 +17,7 @@ interface PropertiesSectionProps {
 export function PropertiesSection({ properties, section, config }: PropertiesSectionProps) {
   const [selectedProperty, setSelectedProperty] = useState<DemoProperty | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const { getText } = useProfileLocalization();
 
   const handleBookProperty = (property: DemoProperty) => {
     setSelectedProperty(property);
@@ -35,12 +37,12 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
             <div className="flex items-center justify-center gap-2 mb-4">
               <TreePine className="h-6 w-6 text-green-600" />
               <h2 className="text-3xl font-bold" data-testid="heading-properties">
-                {section.title}
+                {getText(section.title)}
               </h2>
             </div>
             {section.subtitle && (
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                {section.subtitle}
+                {getText(section.subtitle)}
               </p>
             )}
           </div>
@@ -53,14 +55,14 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
                 <div className="aspect-video bg-muted overflow-hidden">
                   <img
                     src={property.imageUrl}
-                    alt={property.name}
+                    alt={getText(property.name)}
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-lg">{property.name}</CardTitle>
+                  <CardTitle className="text-lg">{getText(property.name)}</CardTitle>
                   <Badge variant="secondary" className="shrink-0">
                     {property.pricePerNight}$/nuit
                   </Badge>
@@ -72,7 +74,7 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {property.description}
+                  {getText(property.description)}
                 </p>
                 
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
@@ -108,13 +110,13 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2" data-testid="dialog-booking-title">
               <TreePine className="h-5 w-5 text-green-600" />
-              {selectedProperty?.name}
+              {selectedProperty && getText(selectedProperty.name)}
             </DialogTitle>
           </DialogHeader>
           {selectedProperty && (
             <BookingFlow
               propertyId={selectedProperty.id}
-              propertyName={selectedProperty.name}
+              propertyName={getText(selectedProperty.name)}
               maxGuests={selectedProperty.maxGuests}
               enableInstantBooking={config.features.booking}
               demoMode={true}

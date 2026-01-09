@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { ProfileConfig } from "@shared/demo-profiles";
 
 interface ClientFooterProps {
@@ -9,14 +10,15 @@ interface ClientFooterProps {
 export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
   const navigation = config.navigation || [];
   const currentYear = new Date().getFullYear();
+  const { getText } = useProfileLocalization();
 
   return (
     <footer className="bg-muted py-12 px-4" data-testid="client-footer">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4">{config.name}</h3>
-            <p className="text-sm text-muted-foreground">{config.tagline}</p>
+            <h3 className="font-bold text-lg mb-4">{getText(config.name)}</h3>
+            <p className="text-sm text-muted-foreground">{getText(config.tagline)}</p>
           </div>
 
           <div>
@@ -29,7 +31,7 @@ export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     data-testid={`footer-link-${item.id}`}
                   >
-                    {item.label}
+                    {getText(item.label)}
                   </Link>
                 </li>
               ))}
@@ -50,7 +52,7 @@ export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>\u00a9 {currentYear} {config.name}. Tous droits r\u00e9serv\u00e9s.</p>
+          <p>© {currentYear} {getText(config.name)}. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

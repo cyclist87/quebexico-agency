@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { ProfileConfig } from "@shared/demo-profiles";
 
 interface ClientNavigationProps {
@@ -12,6 +13,7 @@ interface ClientNavigationProps {
 export function ClientNavigation({ config, baseUrl }: ClientNavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { getText } = useProfileLocalization();
 
   const navigation = config.navigation || [];
   
@@ -25,7 +27,7 @@ export function ClientNavigation({ config, baseUrl }: ClientNavigationProps) {
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href={baseUrl} data-testid="link-logo">
-            <span className="font-bold text-xl">{config.name}</span>
+            <span className="font-bold text-xl">{getText(config.name)}</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1" data-testid="nav-desktop">
@@ -38,7 +40,7 @@ export function ClientNavigation({ config, baseUrl }: ClientNavigationProps) {
                 asChild
               >
                 <Link href={item.slug ? `${baseUrl}/${item.slug}` : baseUrl}>
-                  {item.label}
+                  {getText(item.label)}
                 </Link>
               </Button>
             ))}
@@ -68,7 +70,7 @@ export function ClientNavigation({ config, baseUrl }: ClientNavigationProps) {
                   asChild
                 >
                   <Link href={item.slug ? `${baseUrl}/${item.slug}` : baseUrl}>
-                    {item.label}
+                    {getText(item.label)}
                   </Link>
                 </Button>
               ))}

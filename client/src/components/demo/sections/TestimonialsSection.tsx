@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Quote, Star } from "lucide-react";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import type { Testimonial, SectionConfig } from "@shared/demo-profiles";
 
 interface TestimonialsSectionProps {
@@ -9,6 +10,8 @@ interface TestimonialsSectionProps {
 }
 
 export function TestimonialsSection({ testimonials, section }: TestimonialsSectionProps) {
+  const { getText } = useProfileLocalization();
+
   return (
     <section className="py-16 px-4" data-testid="section-testimonials">
       <div className="max-w-6xl mx-auto">
@@ -17,12 +20,12 @@ export function TestimonialsSection({ testimonials, section }: TestimonialsSecti
             <div className="flex items-center justify-center gap-2 mb-4">
               <Quote className="h-6 w-6" />
               <h2 className="text-3xl font-bold" data-testid="heading-testimonials">
-                {section.title}
+                {getText(section.title)}
               </h2>
             </div>
             {section.subtitle && (
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                {section.subtitle}
+                {getText(section.subtitle)}
               </p>
             )}
           </div>
@@ -48,7 +51,7 @@ export function TestimonialsSection({ testimonials, section }: TestimonialsSecti
                 )}
                 
                 <blockquote className="text-muted-foreground mb-6 italic">
-                  "{testimonial.content}"
+                  "{getText(testimonial.content)}"
                 </blockquote>
                 
                 <div className="flex items-center gap-3">
@@ -62,7 +65,7 @@ export function TestimonialsSection({ testimonials, section }: TestimonialsSecti
                     <p className="font-medium" data-testid={`text-testimonial-name-${testimonial.id}`}>
                       {testimonial.name}
                     </p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    <p className="text-sm text-muted-foreground">{getText(testimonial.role)}</p>
                   </div>
                 </div>
               </CardContent>
