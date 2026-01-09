@@ -49,6 +49,29 @@ The `shared/` directory contains code used by both frontend and backend:
 3. **Component architecture**: Presentation components in components/, pages in pages/, hooks in hooks/
 4. **Static serving in production**: Express serves built client assets with SPA fallback
 
+### Multilingual Localization System
+The application uses a two-layer localization approach for complete FR/EN/ES support:
+
+**Layer 1: Profile Content (useProfileLocalization)**
+- `shared/localization.ts`: Defines LocalizedString/LocalizedArray types and helper functions
+- Profile content (names, descriptions, portfolio items) uses `{ fr: "...", en: "...", es: "..." }` objects
+- Components use `const { getText, getArray } = useProfileLocalization()` to extract current language value
+
+**Layer 2: UI Labels (useLanguage)**
+- `client/src/lib/translations.ts`: Contains all UI translations organized by section
+- Demo-specific UI strings live under `translations.demo.*` (profileTypes, buttons, cta, footer, sponsors, calendar, properties)
+- Components use `const { t, language } = useLanguage()` to access UI strings
+
+**Key Files:**
+- `shared/localization.ts`: LocalizedString type, getText/getArray helpers
+- `shared/demo-profiles.ts`: Profile configs with localized content
+- `client/src/lib/translations.ts`: All UI translations (includes `demo` section)
+- `client/src/hooks/use-profile-localization.ts`: Hook for extracting profile content
+- `client/src/contexts/LanguageContext.tsx`: Language state management and useLanguage hook
+
+**Date Formatting:**
+- CalendarSection uses date-fns with locale-aware formatting (fr/enUS/es locales)
+
 ### HostPro Integration (Short-Term Rental Booking)
 - **Purpose**: Enables direct booking functionality for property rental sites
 - **API Proxy**: Server-side proxy at `/api/hostpro/*` to centralized HostPro API
