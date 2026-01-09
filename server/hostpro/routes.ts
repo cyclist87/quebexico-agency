@@ -6,6 +6,10 @@ import {
   HostProPropertySchema,
   HostProAvailabilitySchema,
   HostProPricingSchema,
+  ReservationRequestSchema,
+  ReservationResponseSchema,
+  InquiryRequestSchema,
+  InquiryResponseSchema,
 } from "@shared/hostpro";
 
 export function registerHostProRoutes(app: Express) {
@@ -120,6 +124,56 @@ export function registerHostProRoutes(app: Express) {
       }
       console.error("HostPro pricing error:", error.message);
       res.status(500).json({ error: "Failed to fetch pricing" });
+    }
+  });
+
+  app.post("/api/hostpro/reservations", async (req, res) => {
+    const client = getHostProClient();
+    if (!client) {
+      return res.status(503).json({ error: "HostPro integration not configured" });
+    }
+
+    const bodyResult = ReservationRequestSchema.safeParse(req.body);
+    if (!bodyResult.success) {
+      return res.status(400).json({ error: "Invalid request body", details: bodyResult.error.errors });
+    }
+
+    try {
+      const rawResponse = await client.createReservation(bodyResult.data);
+      const response = ReservationResponseSchema.parse(rawResponse);
+      res.status(201).json(response);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        console.error("HostPro reservation validation error:", error.errors);
+        return res.status(502).json({ error: "Invalid response from HostPro API" });
+      }
+      console.error("HostPro reservation error:", error.message);
+      res.status(500).json({ error: "Failed to create reservation" });
+    }
+  });
+
+  app.post("/api/hostpro/inquiries", async (req, res) => {
+    const client = getHostProClient();
+    if (!client) {
+      return res.status(503).json({ error: "HostPro integration not configured" });
+    }
+
+    const bodyResult = InquiryRequestSchema.safeParse(req.body);
+    if (!bodyResult.success) {
+      return res.status(400).json({ error: "Invalid request body", details: bodyResult.error.errors });
+    }
+
+    try {
+      const rawResponse = await client.createInquiry(bodyResult.data);
+      const response = InquiryResponseSchema.parse(rawResponse);
+      res.status(201).json(response);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        console.error("HostPro inquiry validation error:", error.errors);
+        return res.status(502).json({ error: "Invalid response from HostPro API" });
+      }
+      console.error("HostPro inquiry error:", error.message);
+      res.status(500).json({ error: "Failed to create inquiry" });
     }
   });
 }

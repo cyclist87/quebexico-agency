@@ -3,6 +3,10 @@ import type {
   HostProProperty,
   HostProAvailability,
   HostProPricing,
+  ReservationRequest,
+  ReservationResponse,
+  InquiryRequest,
+  InquiryResponse,
 } from "@shared/hostpro";
 
 export class HostProClient {
@@ -27,6 +31,24 @@ export class HostProClient {
         "X-API-Key": this.apiKey,
         "Content-Type": "application/json",
       },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`HostPro API error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  private async post<T>(endpoint: string, body: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "X-API-Key": this.apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -69,6 +91,14 @@ export class HostProClient {
       checkOut,
       guests: guests?.toString() || "",
     });
+  }
+
+  async createReservation(data: ReservationRequest): Promise<ReservationResponse> {
+    return this.post<ReservationResponse>("/reservations", data);
+  }
+
+  async createInquiry(data: InquiryRequest): Promise<InquiryResponse> {
+    return this.post<InquiryResponse>("/inquiries", data);
   }
 }
 
