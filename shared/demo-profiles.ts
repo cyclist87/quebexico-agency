@@ -382,6 +382,59 @@ export const freelancerProfile: DemoProfileData = {
       contact: true,
       newsletter: true,
     },
+    navigation: [
+      { id: "home", label: "Accueil", slug: "" },
+      { id: "services", label: "Services", slug: "services" },
+      { id: "portfolio", label: "Réalisations", slug: "realisations" },
+      { id: "testimonials", label: "Témoignages", slug: "temoignages" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: "Accueil",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-preview", type: "services", title: "Mes services" },
+          { id: "portfolio-preview", type: "portfolio", title: "Réalisations récentes" },
+          { id: "testimonials-preview", type: "testimonials", title: "Ce que mes clients disent" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "services",
+        title: "Services",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-full", type: "services", title: "Tous mes services", subtitle: "Du petit dépannage à la rénovation complète" },
+        ],
+      },
+      {
+        slug: "realisations",
+        title: "Réalisations",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "portfolio-full", type: "portfolio", title: "Mes réalisations" },
+        ],
+      },
+      {
+        slug: "temoignages",
+        title: "Témoignages",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "testimonials-full", type: "testimonials", title: "Témoignages clients" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
   },
   portfolio: [
     {
@@ -474,6 +527,49 @@ export const rentalHostProfile: DemoProfileData = {
       contact: true,
       newsletter: true,
     },
+    navigation: [
+      { id: "home", label: "Accueil", slug: "" },
+      { id: "chalets", label: "Nos chalets", slug: "chalets" },
+      { id: "testimonials", label: "Témoignages", slug: "temoignages" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: "Accueil",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "properties-preview", type: "properties", title: "Nos chalets", subtitle: "Choisissez votre havre de paix" },
+          { id: "testimonials-preview", type: "testimonials", title: "Ce que nos invités disent" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "chalets",
+        title: "Nos chalets",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "properties-full", type: "properties", title: "Tous nos chalets", subtitle: "Trouvez le chalet parfait pour votre séjour" },
+        ],
+      },
+      {
+        slug: "temoignages",
+        title: "Témoignages",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "testimonials-full", type: "testimonials", title: "Témoignages de nos invités" },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
   },
   properties: [
     {
