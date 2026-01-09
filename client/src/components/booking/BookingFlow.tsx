@@ -17,6 +17,8 @@ interface BookingFlowProps {
   propertyName: string;
   maxGuests?: number;
   enableInstantBooking?: boolean;
+  demoMode?: boolean;
+  pricePerNight?: number;
   onComplete?: (result: ReservationResponse | InquiryResponse) => void;
 }
 
@@ -27,6 +29,8 @@ export function BookingFlow({
   propertyName,
   maxGuests = 6,
   enableInstantBooking = true,
+  demoMode = false,
+  pricePerNight = 250,
   onComplete,
 }: BookingFlowProps) {
   const [step, setStep] = useState<BookingStep>("dates");
@@ -40,13 +44,13 @@ export function BookingFlow({
   const threeMonthsLater = format(addMonths(new Date(), 3), "yyyy-MM-dd");
 
   const { data: availability, isLoading: availabilityLoading } = useHostProAvailability(
-    propertyId,
+    demoMode ? "" : propertyId,
     today,
     threeMonthsLater
   );
 
-  const { data: pricing, isLoading: pricingLoading } = useHostProPricing(
-    propertyId,
+  const { data: hostProPricing, isLoading: pricingLoading } = useHostProPricing(
+    demoMode ? "" : propertyId,
     checkIn,
     checkOut,
     guests
@@ -54,6 +58,29 @@ export function BookingFlow({
 
   const reservationMutation = useCreateReservation();
   const inquiryMutation = useCreateInquiry();
+
+  const calculateDemoPricing = () => {
+    if (!checkIn || !checkOut) return null;
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const subtotal = nights * pricePerNight;
+    const cleaningFee = 85;
+    const serviceFee = Math.round(subtotal * 0.12);
+    const taxes = Math.round((subtotal + cleaningFee + serviceFee) * 0.15);
+    return {
+      nights,
+      pricePerNight,
+      subtotal,
+      cleaningFee,
+      serviceFee,
+      taxes,
+      total: subtotal + cleaningFee + serviceFee + taxes,
+      currency: "CAD" as const,
+    };
+  };
+
+  const pricing = demoMode ? calculateDemoPricing() : hostProPricing;
 
   const handleDateRangeChange = (range: { checkIn: string; checkOut: string } | null) => {
     if (range) {
@@ -73,6 +100,20 @@ export function BookingFlow({
 
   const handleSubmit = async (guestInfo: GuestInfo) => {
     setGuests(guestInfo.guests);
+
+    if (demoMode) {
+      const demoResult: ReservationResponse = {
+        id: `DEMO-${Date.now().toString(36).toUpperCase()}`,
+        status: "confirmed",
+        confirmationCode: `QBX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        total: pricing?.total || 0,
+        currency: "CAD",
+      };
+      setConfirmationData(demoResult);
+      setStep("confirmation");
+      onComplete?.(demoResult);
+      return;
+    }
 
     try {
       let result: ReservationResponse | InquiryResponse;

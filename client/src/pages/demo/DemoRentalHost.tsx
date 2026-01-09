@@ -241,6 +241,8 @@ export default function DemoRentalHost() {
               propertyName={selectedProperty.name}
               maxGuests={selectedProperty.maxGuests}
               enableInstantBooking={config.features.booking}
+              demoMode={true}
+              pricePerNight={selectedProperty.pricePerNight}
               onComplete={handleBookingComplete}
             />
           )}
