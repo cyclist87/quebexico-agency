@@ -79,15 +79,15 @@ export function AvailabilityCalendar({
       <CardHeader>
         <CardTitle className="text-lg">Sélectionnez vos dates</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6">
         <Calendar
           mode="range"
           selected={range}
           onSelect={handleSelect}
           disabled={[{ before: new Date() }, ...disabledDays]}
-          numberOfMonths={2}
+          numberOfMonths={1}
           locale={fr}
-          className="rounded-md"
+          className="rounded-md w-full"
           data-testid="calendar-availability"
         />
         {range?.from && range?.to && (

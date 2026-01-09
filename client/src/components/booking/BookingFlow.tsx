@@ -247,16 +247,18 @@ export function BookingFlow({
 
   return (
     <div className="space-y-6">
-      <div className="grid lg:grid-cols-2 gap-6">
-        <AvailabilityCalendar
-          availability={availability || null}
-          isLoading={availabilityLoading}
-          onDateRangeChange={handleDateRangeChange}
-          selectedRange={selectedRange}
-          setSelectedRange={setSelectedRange}
-        />
+      <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex-1 min-w-0">
+          <AvailabilityCalendar
+            availability={availability || null}
+            isLoading={availabilityLoading}
+            onDateRangeChange={handleDateRangeChange}
+            selectedRange={selectedRange}
+            setSelectedRange={setSelectedRange}
+          />
+        </div>
 
-        <div className="space-y-6">
+        <div className="xl:w-80 space-y-4 shrink-0">
           {pricing ? (
             <PricingBreakdown pricing={pricing} isLoading={pricingLoading} />
           ) : (
