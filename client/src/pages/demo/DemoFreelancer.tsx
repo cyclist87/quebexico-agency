@@ -3,14 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wrench, Calendar, Star, Phone, ArrowRight, CheckCircle, Hammer } from "lucide-react";
+import heroImage from "@assets/stock_images/professional_handyma_07e33c7f.jpg";
 
 export default function DemoFreelancer() {
   const { config, portfolio, services, testimonials } = freelancerProfile;
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative bg-gradient-to-br from-orange-500 to-orange-700 text-white py-24 px-4">
-        <div className="absolute inset-0 bg-black/20" />
+      <section className="relative text-white py-24 px-4 min-h-[500px] flex items-center">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="relative max-w-4xl mx-auto text-center">
           <Badge variant="secondary" className="mb-4" data-testid="badge-profile-type">
             <Hammer className="h-3 w-3 mr-1" />
@@ -19,10 +24,10 @@ export default function DemoFreelancer() {
           <h1 className="text-4xl md:text-6xl font-bold mb-4" data-testid="text-freelancer-name">
             {config.name}
           </h1>
-          <p className="text-xl md:text-2xl text-orange-100 mb-6" data-testid="text-freelancer-tagline">
+          <p className="text-xl md:text-2xl text-white/90 mb-6" data-testid="text-freelancer-tagline">
             {config.tagline}
           </p>
-          <p className="text-lg text-orange-200 max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
             {config.description}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
