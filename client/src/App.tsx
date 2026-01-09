@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -25,7 +25,7 @@ import DemoFreelancer from "@/pages/demo/DemoFreelancer";
 import DemoRentalHost from "@/pages/demo/DemoRentalHost";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+function MainRouter() {
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -40,12 +40,41 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route path="/booking" component={Booking} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function DemoRouter() {
+  return (
+    <Switch>
       <Route path="/demo" component={DemoIndex} />
       <Route path="/demo/athlete" component={DemoAthlete} />
       <Route path="/demo/freelancer" component={DemoFreelancer} />
       <Route path="/demo/chalet" component={DemoRentalHost} />
-      <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function AppContent() {
+  const [location] = useLocation();
+  const isDemoPage = location.startsWith("/demo");
+
+  if (isDemoPage) {
+    return <DemoRouter />;
+  }
+
+  return (
+    <>
+      <div className="flex flex-col min-h-screen">
+        <Navigation />
+        <main className="flex-grow">
+          <MainRouter />
+        </main>
+        <Footer />
+      </div>
+      <ChatWidget />
+    </>
   );
 }
 
@@ -54,14 +83,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <TooltipProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navigation />
-            <main className="flex-grow">
-              <Router />
-            </main>
-            <Footer />
-          </div>
-          <ChatWidget />
+          <AppContent />
           <Toaster />
         </TooltipProvider>
       </LanguageProvider>
