@@ -103,6 +103,56 @@ export const translations = {
       publishedOn: "Publié le",
       by: "par",
     },
+    demo: {
+      profileTypes: {
+        athlete: "Athlète Professionnel",
+        freelancer: "Travailleur Autonome",
+        rentalHost: "Location de chalets",
+      },
+      buttons: {
+        contact: "Contact",
+        book: "Réserver",
+        contactMe: "Me contacter",
+        schedule: "Prendre rendez-vous",
+        checkAvailability: "Vérifier les disponibilités",
+        visit: "Visiter",
+      },
+      properties: {
+        perNight: "/nuit",
+      },
+      cta: {
+        athlete: {
+          title: "Travaillons ensemble",
+          description: "Intéressé par un partenariat? Contactez-moi pour discuter de vos objectifs.",
+        },
+        freelancer: {
+          title: "Demander une soumission",
+          description: "Besoin d'un coup de main? Demandez une soumission gratuite pour votre projet.",
+        },
+        rentalHost: {
+          title: "Réserver votre séjour",
+          description: "Réservez dès maintenant pour vivre l'expérience authentique du Québec.",
+        },
+      },
+      footer: {
+        navigation: "Navigation",
+        contact: "Contact",
+        contactUs: "Nous contacter",
+        allRightsReserved: "Tous droits réservés.",
+      },
+      sponsors: {
+        title: "Partenaire titre",
+        technical: "Partenaires techniques",
+        support: "Partenaires de soutien",
+        media: "Partenaires médias",
+      },
+      calendar: {
+        competition: "Compétition",
+        training: "Entraînement",
+        appearance: "Apparition",
+        other: "Événement",
+      },
+    },
   },
   en: {
     nav: {
@@ -206,6 +256,56 @@ export const translations = {
       publishedOn: "Published on",
       by: "by",
     },
+    demo: {
+      profileTypes: {
+        athlete: "Professional Athlete",
+        freelancer: "Freelancer",
+        rentalHost: "Vacation Rentals",
+      },
+      buttons: {
+        contact: "Contact",
+        book: "Book",
+        contactMe: "Contact Me",
+        schedule: "Schedule",
+        checkAvailability: "Check Availability",
+        visit: "Visit",
+      },
+      properties: {
+        perNight: "/night",
+      },
+      cta: {
+        athlete: {
+          title: "Let's Work Together",
+          description: "Interested in a partnership? Contact me to discuss your goals.",
+        },
+        freelancer: {
+          title: "Request a Quote",
+          description: "Need a hand? Request a free quote for your project.",
+        },
+        rentalHost: {
+          title: "Book Your Stay",
+          description: "Book now to experience authentic Quebec.",
+        },
+      },
+      footer: {
+        navigation: "Navigation",
+        contact: "Contact",
+        contactUs: "Contact Us",
+        allRightsReserved: "All rights reserved.",
+      },
+      sponsors: {
+        title: "Title Sponsor",
+        technical: "Technical Partners",
+        support: "Support Partners",
+        media: "Media Partners",
+      },
+      calendar: {
+        competition: "Competition",
+        training: "Training",
+        appearance: "Appearance",
+        other: "Event",
+      },
+    },
   },
   es: {
     nav: {
@@ -308,6 +408,56 @@ export const translations = {
       noPosts: "No hay artículos todavía.",
       publishedOn: "Publicado el",
       by: "por",
+    },
+    demo: {
+      profileTypes: {
+        athlete: "Atleta Profesional",
+        freelancer: "Trabajador Independiente",
+        rentalHost: "Alquiler de cabañas",
+      },
+      buttons: {
+        contact: "Contacto",
+        book: "Reservar",
+        contactMe: "Contáctame",
+        schedule: "Agendar",
+        checkAvailability: "Ver disponibilidad",
+        visit: "Visitar",
+      },
+      properties: {
+        perNight: "/noche",
+      },
+      cta: {
+        athlete: {
+          title: "Trabajemos juntos",
+          description: "¿Interesado en una asociación? Contáctame para discutir tus objetivos.",
+        },
+        freelancer: {
+          title: "Solicitar cotización",
+          description: "¿Necesitas ayuda? Solicita una cotización gratuita para tu proyecto.",
+        },
+        rentalHost: {
+          title: "Reserva tu estancia",
+          description: "Reserva ahora para vivir la experiencia auténtica de Quebec.",
+        },
+      },
+      footer: {
+        navigation: "Navegación",
+        contact: "Contacto",
+        contactUs: "Contáctenos",
+        allRightsReserved: "Todos los derechos reservados.",
+      },
+      sponsors: {
+        title: "Patrocinador principal",
+        technical: "Socios técnicos",
+        support: "Socios de apoyo",
+        media: "Socios de medios",
+      },
+      calendar: {
+        competition: "Competición",
+        training: "Entrenamiento",
+        appearance: "Aparición",
+        other: "Evento",
+      },
     },
   },
 } as const;

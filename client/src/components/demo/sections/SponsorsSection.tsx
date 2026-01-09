@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Building2 } from "lucide-react";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Sponsor, SectionConfig } from "@shared/demo-profiles";
 
 interface SponsorsSectionProps {
@@ -9,15 +10,16 @@ interface SponsorsSectionProps {
   section: SectionConfig;
 }
 
-const categoryLabels: Record<string, string> = {
-  title: "Partenaire titre",
-  technical: "Partenaires techniques",
-  support: "Partenaires de soutien",
-  media: "Partenaires médias",
-};
-
 export function SponsorsSection({ sponsors, section }: SponsorsSectionProps) {
   const { getText } = useProfileLocalization();
+  const { t } = useLanguage();
+
+  const categoryLabels: Record<string, string> = {
+    title: t.demo.sponsors.title,
+    technical: t.demo.sponsors.technical,
+    support: t.demo.sponsors.support,
+    media: t.demo.sponsors.media,
+  };
 
   const groupedSponsors = sponsors.reduce((acc, sponsor) => {
     if (!acc[sponsor.category]) {
@@ -76,7 +78,7 @@ export function SponsorsSection({ sponsors, section }: SponsorsSectionProps) {
                             data-testid={`link-sponsor-${sponsor.id}`}
                           >
                             <ExternalLink className="h-4 w-4 mr-1" />
-                            Visiter
+                            {t.demo.buttons.visit}
                           </a>
                         </Button>
                       )}

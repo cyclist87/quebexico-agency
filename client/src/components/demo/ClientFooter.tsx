@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { ProfileConfig } from "@shared/demo-profiles";
 
 interface ClientFooterProps {
@@ -11,6 +12,7 @@ export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
   const navigation = config.navigation || [];
   const currentYear = new Date().getFullYear();
   const { getText } = useProfileLocalization();
+  const { t } = useLanguage();
 
   return (
     <footer className="bg-muted py-12 px-4" data-testid="client-footer">
@@ -22,7 +24,7 @@ export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Navigation</h4>
+            <h4 className="font-semibold mb-4">{t.demo.footer.navigation}</h4>
             <ul className="space-y-2">
               {navigation.map((item) => (
                 <li key={item.id}>
@@ -39,20 +41,20 @@ export function ClientFooter({ config, baseUrl }: ClientFooterProps) {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
+            <h4 className="font-semibold mb-4">{t.demo.footer.contact}</h4>
             {config.features.contact && (
               <Link 
                 href={`${baseUrl}/contact`}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Nous contacter
+                {t.demo.footer.contactUs}
               </Link>
             )}
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} {getText(config.name)}. Tous droits réservés.</p>
+          <p>© {currentYear} {getText(config.name)}. {t.demo.footer.allRightsReserved}</p>
         </div>
       </div>
     </footer>

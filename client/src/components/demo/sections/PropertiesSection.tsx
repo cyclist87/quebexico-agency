@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TreePine, Users, Bed, Bath, MapPin } from "lucide-react";
 import { BookingFlow } from "@/components/booking";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { DemoProperty, SectionConfig, ProfileConfig } from "@shared/demo-profiles";
 
 interface PropertiesSectionProps {
@@ -18,6 +19,7 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
   const [selectedProperty, setSelectedProperty] = useState<DemoProperty | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const { getText } = useProfileLocalization();
+  const { t } = useLanguage();
 
   const handleBookProperty = (property: DemoProperty) => {
     setSelectedProperty(property);
@@ -64,7 +66,7 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg">{getText(property.name)}</CardTitle>
                   <Badge variant="secondary" className="shrink-0">
-                    {property.pricePerNight}$/nuit
+                    ${property.pricePerNight}{t.demo.properties.perNight}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -97,7 +99,7 @@ export function PropertiesSection({ properties, section, config }: PropertiesSec
                   onClick={() => handleBookProperty(property)}
                   data-testid={`button-book-${property.id}`}
                 >
-                  Réserver
+                  {t.demo.buttons.book}
                 </Button>
               </CardContent>
             </Card>

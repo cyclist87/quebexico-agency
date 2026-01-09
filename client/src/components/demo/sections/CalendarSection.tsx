@@ -2,8 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Trophy, Dumbbell, Users } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, es } from "date-fns/locale";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { CalendarEvent, SectionConfig } from "@shared/demo-profiles";
 
 interface CalendarSectionProps {
@@ -11,15 +12,19 @@ interface CalendarSectionProps {
   section: SectionConfig;
 }
 
-const eventTypeConfig: Record<string, { label: string; icon: typeof Trophy; variant: "default" | "secondary" | "outline" }> = {
-  competition: { label: "Compétition", icon: Trophy, variant: "default" },
-  training: { label: "Entraînement", icon: Dumbbell, variant: "secondary" },
-  appearance: { label: "Apparition", icon: Users, variant: "outline" },
-  other: { label: "Événement", icon: Calendar, variant: "outline" },
-};
-
 export function CalendarSection({ events, section }: CalendarSectionProps) {
   const { getText } = useProfileLocalization();
+  const { t, language } = useLanguage();
+
+  const dateLocales = { fr, en: enUS, es };
+  const dateLocale = dateLocales[language] || fr;
+
+  const eventTypeConfig: Record<string, { label: string; icon: typeof Trophy; variant: "default" | "secondary" | "outline" }> = {
+    competition: { label: t.demo.calendar.competition, icon: Trophy, variant: "default" },
+    training: { label: t.demo.calendar.training, icon: Dumbbell, variant: "secondary" },
+    appearance: { label: t.demo.calendar.appearance, icon: Users, variant: "outline" },
+    other: { label: t.demo.calendar.other, icon: Calendar, variant: "outline" },
+  };
 
   const sortedEvents = [...events].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -48,7 +53,7 @@ export function CalendarSection({ events, section }: CalendarSectionProps) {
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="shrink-0 w-16 h-16 bg-primary/10 rounded-md flex flex-col items-center justify-center text-center">
                     <span className="text-xs text-muted-foreground uppercase">
-                      {format(eventDate, "MMM", { locale: fr })}
+                      {format(eventDate, "MMM", { locale: dateLocale })}
                     </span>
                     <span className="text-2xl font-bold">
                       {format(eventDate, "d")}
