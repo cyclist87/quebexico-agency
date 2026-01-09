@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LocalizedStringSchema, LocalizedArraySchema, type LocalizedString, type LocalizedArray } from "./localization";
 
 export const ProfileTypeSchema = z.enum(["athlete", "freelancer", "rental-host"]);
 export type ProfileType = z.infer<typeof ProfileTypeSchema>;
@@ -21,15 +22,15 @@ export type SectionType = z.infer<typeof SectionTypeSchema>;
 export const SectionConfigSchema = z.object({
   id: z.string(),
   type: SectionTypeSchema,
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
+  title: LocalizedStringSchema.optional(),
+  subtitle: LocalizedStringSchema.optional(),
   background: z.enum(["default", "muted", "primary", "dark"]).optional(),
 });
 export type SectionConfig = z.infer<typeof SectionConfigSchema>;
 
 export const NavigationItemSchema = z.object({
   id: z.string(),
-  label: z.string(),
+  label: LocalizedStringSchema,
   slug: z.string(),
   icon: z.string().optional(),
 });
@@ -37,7 +38,7 @@ export type NavigationItem = z.infer<typeof NavigationItemSchema>;
 
 export const PageConfigSchema = z.object({
   slug: z.string(),
-  title: z.string(),
+  title: LocalizedStringSchema,
   sections: z.array(SectionConfigSchema),
 });
 export type PageConfig = z.infer<typeof PageConfigSchema>;
@@ -72,9 +73,9 @@ export type GalleryImage = z.infer<typeof GalleryImageSchema>;
 
 export const ProfileConfigSchema = z.object({
   type: ProfileTypeSchema,
-  name: z.string(),
-  tagline: z.string(),
-  description: z.string(),
+  name: LocalizedStringSchema,
+  tagline: LocalizedStringSchema,
+  description: LocalizedStringSchema,
   primaryColor: z.string(),
   heroImageUrl: z.string().optional(),
   logoUrl: z.string().optional(),
@@ -99,9 +100,9 @@ export type ProfileConfig = z.infer<typeof ProfileConfigSchema>;
 
 export const PortfolioItemSchema = z.object({
   id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  category: z.string(),
+  title: LocalizedStringSchema,
+  description: LocalizedStringSchema,
+  category: LocalizedStringSchema,
   imageUrl: z.string().optional(),
   date: z.string().optional(),
   stats: z.record(z.string()).optional(),
@@ -111,10 +112,10 @@ export type PortfolioItem = z.infer<typeof PortfolioItemSchema>;
 
 export const ServiceSchema = z.object({
   id: z.string(),
-  title: z.string(),
-  description: z.string(),
+  title: LocalizedStringSchema,
+  description: LocalizedStringSchema,
   price: z.string().optional(),
-  features: z.array(z.string()),
+  features: LocalizedArraySchema,
 });
 
 export type Service = z.infer<typeof ServiceSchema>;
@@ -122,8 +123,8 @@ export type Service = z.infer<typeof ServiceSchema>;
 export const TestimonialSchema = z.object({
   id: z.string(),
   name: z.string(),
-  role: z.string(),
-  content: z.string(),
+  role: LocalizedStringSchema,
+  content: LocalizedStringSchema,
   avatarUrl: z.string().optional(),
   rating: z.number().min(1).max(5).optional(),
 });
@@ -132,14 +133,14 @@ export type Testimonial = z.infer<typeof TestimonialSchema>;
 
 export const DemoPropertySchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: LocalizedStringSchema,
   location: z.string(),
-  description: z.string(),
+  description: LocalizedStringSchema,
   pricePerNight: z.number(),
   maxGuests: z.number(),
   bedrooms: z.number(),
   bathrooms: z.number(),
-  amenities: z.array(z.string()),
+  amenities: LocalizedArraySchema,
   imageUrl: z.string().optional(),
 });
 
