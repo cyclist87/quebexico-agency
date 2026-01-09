@@ -19,6 +19,10 @@ import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Admin from "@/pages/Admin";
 import Booking from "@/pages/Booking";
+import DemoIndex from "@/pages/demo/DemoIndex";
+import DemoAthlete from "@/pages/demo/DemoAthlete";
+import DemoFreelancer from "@/pages/demo/DemoFreelancer";
+import DemoRentalHost from "@/pages/demo/DemoRentalHost";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -36,6 +40,10 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route path="/booking" component={Booking} />
+      <Route path="/demo" component={DemoIndex} />
+      <Route path="/demo/athlete" component={DemoAthlete} />
+      <Route path="/demo/freelancer" component={DemoFreelancer} />
+      <Route path="/demo/chalet" component={DemoRentalHost} />
       <Route component={NotFound} />
     </Switch>
   );
