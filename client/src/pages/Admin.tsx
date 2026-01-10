@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap } from "lucide-react";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap, Copy, Check } from "lucide-react";
+import { generateSignatureHtml, copySignatureToClipboard, type SignatureData as SignatureGenData } from "@/lib/signature-generator";
 import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -835,6 +836,38 @@ function EmailSignaturesTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSignature, setEditingSignature] = useState<EmailSignatureData>(emptySignature);
   const [isEditing, setIsEditing] = useState(false);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const handleCopySignature = async (sig: EmailSignatureData) => {
+    const signatureData: SignatureGenData = {
+      fullName: sig.fullName,
+      jobTitle: sig.jobTitle,
+      company: sig.company,
+      email: sig.email,
+      phone: sig.phone,
+      website: sig.website,
+      linkedin: sig.linkedin,
+      facebook: sig.facebook,
+      instagram: sig.instagram,
+      twitter: sig.twitter,
+      photoUrl: sig.photoUrl,
+      logoUrl: sig.logoUrl,
+      template: sig.template as "modern" | "classic" | "minimal" | "bold",
+      primaryColor: sig.primaryColor,
+      ctaText: sig.ctaText,
+      ctaUrl: sig.ctaUrl,
+    };
+    const html = generateSignatureHtml(signatureData);
+    const result = await copySignatureToClipboard(html);
+    if (result.success) {
+      setCopiedId(sig.id!);
+      toast({ 
+        title: result.asHtml ? "Signature copiée!" : "Code HTML copié!",
+        description: "Collez dans les paramètres de signature de votre client email."
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   const { data: signatures = [], isLoading } = useQuery<EmailSignatureData[]>({
     queryKey: ["/api/admin/email-signatures"],
@@ -961,8 +994,18 @@ function EmailSignaturesTab() {
                       <Button
                         size="icon"
                         variant="ghost"
+                        onClick={() => handleCopySignature(sig)}
+                        data-testid={`button-copy-signature-${sig.id}`}
+                        title="Copier la signature"
+                      >
+                        {copiedId === sig.id ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => openEditDialog(sig)}
                         data-testid={`button-edit-signature-${sig.id}`}
+                        title="Modifier"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -975,6 +1018,7 @@ function EmailSignaturesTab() {
                           }
                         }}
                         data-testid={`button-delete-signature-${sig.id}`}
+                        title="Supprimer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
