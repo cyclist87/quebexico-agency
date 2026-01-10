@@ -787,6 +787,389 @@ function DigitalCardsTab() {
   );
 }
 
+interface EmailSignatureData {
+  id?: number;
+  slug: string;
+  fullName: string;
+  jobTitle: string;
+  company: string;
+  email: string;
+  phone: string;
+  website: string;
+  linkedin: string;
+  facebook: string;
+  instagram: string;
+  twitter: string;
+  photoUrl: string;
+  logoUrl: string;
+  primaryColor: string;
+  template: string;
+  isActive: boolean;
+}
+
+const emptySignature: EmailSignatureData = {
+  slug: "",
+  fullName: "",
+  jobTitle: "",
+  company: "",
+  email: "",
+  phone: "",
+  website: "",
+  linkedin: "",
+  facebook: "",
+  instagram: "",
+  twitter: "",
+  photoUrl: "",
+  logoUrl: "",
+  primaryColor: "#2563eb",
+  template: "modern",
+  isActive: true,
+};
+
+function EmailSignaturesTab() {
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingSignature, setEditingSignature] = useState<EmailSignatureData>(emptySignature);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { data: signatures = [], isLoading } = useQuery<EmailSignatureData[]>({
+    queryKey: ["/api/admin/email-signatures"],
+    queryFn: () => adminRequest<EmailSignatureData[]>("GET", "/api/admin/email-signatures"),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: EmailSignatureData) => adminRequest<EmailSignatureData>("POST", "/api/admin/email-signatures", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/email-signatures"] });
+      setDialogOpen(false);
+      setEditingSignature(emptySignature);
+      toast({ title: "Signature créée", description: "La signature a été créée avec succès" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: EmailSignatureData) => adminRequest<EmailSignatureData>("PUT", `/api/admin/email-signatures/${data.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/email-signatures"] });
+      setDialogOpen(false);
+      setEditingSignature(emptySignature);
+      setIsEditing(false);
+      toast({ title: "Signature mise à jour", description: "Les modifications ont été sauvegardées" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminRequest<{ success: boolean }>("DELETE", `/api/admin/email-signatures/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/email-signatures"] });
+      toast({ title: "Signature supprimée" });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!editingSignature.slug || !editingSignature.fullName) {
+      toast({ title: "Erreur", description: "Le slug et le nom sont requis", variant: "destructive" });
+      return;
+    }
+    if (isEditing) {
+      updateMutation.mutate(editingSignature);
+    } else {
+      createMutation.mutate(editingSignature);
+    }
+  };
+
+  const openEditDialog = (sig: EmailSignatureData) => {
+    setEditingSignature(sig);
+    setIsEditing(true);
+    setDialogOpen(true);
+  };
+
+  const openCreateDialog = () => {
+    setEditingSignature(emptySignature);
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
+
+  const templateNames: Record<string, string> = {
+    modern: "Moderne",
+    classic: "Classique",
+    minimal: "Minimaliste",
+    bold: "Audacieux",
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <div>
+            <CardTitle>Signatures email</CardTitle>
+            <CardDescription>Gérez les signatures email de vos clients</CardDescription>
+          </div>
+          <Button onClick={openCreateDialog} data-testid="button-add-signature">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle signature
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground">Chargement...</p>
+          ) : signatures.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Aucune signature créée</p>
+          ) : (
+            <div className="space-y-3">
+              {signatures.map((sig) => {
+                const initials = sig.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+                return (
+                  <div
+                    key={sig.id}
+                    className="flex items-center gap-4 p-4 border rounded-lg"
+                  >
+                    <div 
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden"
+                      style={{ backgroundColor: sig.primaryColor || "#2563eb" }}
+                    >
+                      {sig.photoUrl ? (
+                        <img src={sig.photoUrl} alt={sig.fullName} className="w-full h-full object-cover" />
+                      ) : (
+                        initials
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{sig.fullName}</h3>
+                        <Badge variant="outline">{templateNames[sig.template] || sig.template}</Badge>
+                        {!sig.isActive && <Badge variant="secondary">Désactivée</Badge>}
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {sig.jobTitle}{sig.company ? ` @ ${sig.company}` : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        /{sig.slug}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openEditDialog(sig)}
+                        data-testid={`button-edit-signature-${sig.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm("Supprimer cette signature?")) {
+                            deleteMutation.mutate(sig.id!);
+                          }
+                        }}
+                        data-testid={`button-delete-signature-${sig.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Modifier la signature" : "Nouvelle signature"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Slug (identifiant unique)</Label>
+                <Input
+                  placeholder="jean-dupont"
+                  value={editingSignature.slug}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })}
+                  data-testid="input-signature-slug"
+                />
+              </div>
+              <div>
+                <Label>Nom complet</Label>
+                <Input
+                  placeholder="Jean Dupont"
+                  value={editingSignature.fullName}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, fullName: e.target.value })}
+                  data-testid="input-signature-name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Titre du poste</Label>
+                <Input
+                  placeholder="Directeur marketing"
+                  value={editingSignature.jobTitle}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, jobTitle: e.target.value })}
+                  data-testid="input-signature-job-title"
+                />
+              </div>
+              <div>
+                <Label>Entreprise</Label>
+                <Input
+                  placeholder="Acme Inc."
+                  value={editingSignature.company}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, company: e.target.value })}
+                  data-testid="input-signature-company"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="jean@exemple.com"
+                  value={editingSignature.email}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, email: e.target.value })}
+                  data-testid="input-signature-email"
+                />
+              </div>
+              <div>
+                <Label>Téléphone</Label>
+                <Input
+                  placeholder="(418) 555-1234"
+                  value={editingSignature.phone}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, phone: e.target.value })}
+                  data-testid="input-signature-phone"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Site web</Label>
+              <Input
+                placeholder="www.exemple.com"
+                value={editingSignature.website}
+                onChange={(e) => setEditingSignature({ ...editingSignature, website: e.target.value })}
+                data-testid="input-signature-website"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Photo</Label>
+                <ImageUpload
+                  value={editingSignature.photoUrl}
+                  onChange={(url) => setEditingSignature({ ...editingSignature, photoUrl: url })}
+                  placeholder="URL ou téléverser"
+                />
+              </div>
+              <div>
+                <Label>Logo</Label>
+                <ImageUpload
+                  value={editingSignature.logoUrl}
+                  onChange={(url) => setEditingSignature({ ...editingSignature, logoUrl: url })}
+                  placeholder="URL ou téléverser"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>LinkedIn</Label>
+                <Input
+                  placeholder="https://linkedin.com/in/..."
+                  value={editingSignature.linkedin}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, linkedin: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Facebook</Label>
+                <Input
+                  placeholder="https://facebook.com/..."
+                  value={editingSignature.facebook}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, facebook: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Instagram</Label>
+                <Input
+                  placeholder="https://instagram.com/..."
+                  value={editingSignature.instagram}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, instagram: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Twitter/X</Label>
+                <Input
+                  placeholder="https://x.com/..."
+                  value={editingSignature.twitter}
+                  onChange={(e) => setEditingSignature({ ...editingSignature, twitter: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Couleur principale</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={editingSignature.primaryColor}
+                    onChange={(e) => setEditingSignature({ ...editingSignature, primaryColor: e.target.value })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={editingSignature.primaryColor}
+                    onChange={(e) => setEditingSignature({ ...editingSignature, primaryColor: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Template</Label>
+                <Select
+                  value={editingSignature.template}
+                  onValueChange={(val) => setEditingSignature({ ...editingSignature, template: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="modern">Moderne</SelectItem>
+                    <SelectItem value="classic">Classique</SelectItem>
+                    <SelectItem value="minimal">Minimaliste</SelectItem>
+                    <SelectItem value="bold">Audacieux</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={editingSignature.isActive}
+                onCheckedChange={(checked) => setEditingSignature({ ...editingSignature, isActive: checked })}
+              />
+              <Label>Signature active</Label>
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditing ? "Mettre à jour" : "Créer la signature"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 async function adminRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -1221,9 +1604,15 @@ export default function Admin() {
               </TabsTrigger>
             </TabsList>
             <TabsList className="h-auto p-1">
+              <div className="flex items-center gap-1 px-2 text-xs text-muted-foreground font-medium">
+                <Zap className="h-3 w-3" />
+                Outils clients
+              </div>
               <TabsTrigger value="cards" className="gap-2">
-                <Zap className="h-4 w-4" />
                 Cartes digitales
+              </TabsTrigger>
+              <TabsTrigger value="signatures" className="gap-2">
+                Signatures email
               </TabsTrigger>
             </TabsList>
             <TabsList className="h-auto p-1">
@@ -1513,6 +1902,11 @@ export default function Admin() {
           {/* Digital Cards Tab */}
           <TabsContent value="cards">
             <DigitalCardsTab />
+          </TabsContent>
+
+          {/* Email Signatures Tab */}
+          <TabsContent value="signatures">
+            <EmailSignaturesTab />
           </TabsContent>
 
           {/* Settings Tab */}
