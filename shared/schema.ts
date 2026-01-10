@@ -123,6 +123,29 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === DIGITAL CARDS ===
+
+export const digitalCards = pgTable("digital_cards", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  jobTitle: text("job_title"),
+  company: text("company"),
+  email: text("email"),
+  phone: text("phone"),
+  website: text("website"),
+  linkedin: text("linkedin"),
+  facebook: text("facebook"),
+  instagram: text("instagram"),
+  twitter: text("twitter"),
+  photoUrl: text("photo_url"),
+  logoUrl: text("logo_url"),
+  primaryColor: text("primary_color").default("#2563eb"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -152,6 +175,7 @@ export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit(
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAiUsageSchema = createInsertSchema(aiUsage).omit({ id: true, createdAt: true });
+export const insertDigitalCardSchema = createInsertSchema(digitalCards).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -187,6 +211,9 @@ export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
 
 export type AiUsage = typeof aiUsage.$inferSelect;
 export type InsertAiUsage = z.infer<typeof insertAiUsageSchema>;
+
+export type DigitalCard = typeof digitalCards.$inferSelect;
+export type InsertDigitalCard = z.infer<typeof insertDigitalCardSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;
