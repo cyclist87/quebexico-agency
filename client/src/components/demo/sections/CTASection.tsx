@@ -17,9 +17,12 @@ export function CTASection({ config, section }: CTASectionProps) {
     athlete: t.demo.cta.athlete,
     freelancer: t.demo.cta.freelancer,
     "rental-host": t.demo.cta.rentalHost,
+    cleaning: t.demo.cta.cleaning,
+    "sports-club": t.demo.cta.sportsClub,
+    professional: t.demo.cta.professional,
   };
 
-  const defaults = ctaDefaults[config.type];
+  const defaults = ctaDefaults[config.type] || t.demo.cta.professional;
 
   return (
     <section className="py-16 px-4 bg-primary text-primary-foreground" data-testid="section-cta">

@@ -133,6 +133,18 @@ export const translations = {
           title: "Réserver votre séjour",
           description: "Réservez dès maintenant pour vivre l'expérience authentique du Québec.",
         },
+        cleaning: {
+          title: "Demander une soumission gratuite",
+          description: "Obtenez une estimation personnalisée pour vos besoins d'entretien ménager.",
+        },
+        sportsClub: {
+          title: "Rejoignez notre club",
+          description: "Devenez membre et participez à nos sorties et événements cyclistes.",
+        },
+        professional: {
+          title: "Planifier une consultation",
+          description: "Discutons de votre situation lors d'une première consultation.",
+        },
       },
       footer: {
         navigation: "Navigation",
@@ -286,6 +298,18 @@ export const translations = {
           title: "Book Your Stay",
           description: "Book now to experience authentic Quebec.",
         },
+        cleaning: {
+          title: "Request a Free Quote",
+          description: "Get a personalized estimate for your cleaning needs.",
+        },
+        sportsClub: {
+          title: "Join Our Club",
+          description: "Become a member and participate in our cycling rides and events.",
+        },
+        professional: {
+          title: "Schedule a Consultation",
+          description: "Let's discuss your situation during an initial consultation.",
+        },
       },
       footer: {
         navigation: "Navigation",
@@ -438,6 +462,18 @@ export const translations = {
         rentalHost: {
           title: "Reserva tu estancia",
           description: "Reserva ahora para vivir la experiencia auténtica de Quebec.",
+        },
+        cleaning: {
+          title: "Solicitar cotización gratuita",
+          description: "Obtén una estimación personalizada para tus necesidades de limpieza.",
+        },
+        sportsClub: {
+          title: "Únete a nuestro club",
+          description: "Hazte miembro y participa en nuestras salidas y eventos ciclistas.",
+        },
+        professional: {
+          title: "Programar una consulta",
+          description: "Hablemos de tu situación en una primera consulta.",
         },
       },
       footer: {
