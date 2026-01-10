@@ -25,6 +25,7 @@ import DemoFreelancer from "@/pages/demo/DemoFreelancer";
 import DemoRentalHost from "@/pages/demo/DemoRentalHost";
 import EmailSignature from "@/pages/tools/EmailSignature";
 import DigitalCard from "@/pages/tools/DigitalCard";
+import Offre from "@/pages/Offre";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -71,6 +72,7 @@ function AppContent() {
   const [location] = useLocation();
   const isDemoPage = location.startsWith("/demo");
   const isToolsPage = location.startsWith("/tools");
+  const isOffrePage = location === "/offre";
 
   if (isDemoPage) {
     return <DemoRouter />;
@@ -78,6 +80,10 @@ function AppContent() {
 
   if (isToolsPage) {
     return <ToolsRouter />;
+  }
+
+  if (isOffrePage) {
+    return <Offre />;
   }
 
   return (
