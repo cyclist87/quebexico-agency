@@ -6,6 +6,7 @@ import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerHostProRoutes } from "./hostpro/routes";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import pexelsRouter from "./pexels";
 import OpenAI from "openai";
 import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
 
@@ -52,6 +53,9 @@ export async function registerRoutes(
   
   // Register Object Storage routes for file uploads
   registerObjectStorageRoutes(app);
+  
+  // Register Pexels API routes
+  app.use("/api/pexels", pexelsRouter);
   
   // Projects
   app.get(api.projects.list.path, async (req, res) => {
