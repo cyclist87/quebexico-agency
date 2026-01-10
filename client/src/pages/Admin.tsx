@@ -14,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ImageUpload } from "@/components/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -679,19 +680,19 @@ function DigitalCardsTab() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>URL Photo</Label>
-                <Input
-                  placeholder="https://..."
+                <Label>Photo</Label>
+                <ImageUpload
                   value={editingCard.photoUrl}
-                  onChange={(e) => setEditingCard({ ...editingCard, photoUrl: e.target.value })}
+                  onChange={(url) => setEditingCard({ ...editingCard, photoUrl: url })}
+                  placeholder="URL ou téléverser"
                 />
               </div>
               <div>
-                <Label>URL Logo</Label>
-                <Input
-                  placeholder="https://..."
+                <Label>Logo</Label>
+                <ImageUpload
                   value={editingCard.logoUrl}
-                  onChange={(e) => setEditingCard({ ...editingCard, logoUrl: e.target.value })}
+                  onChange={(url) => setEditingCard({ ...editingCard, logoUrl: url })}
+                  placeholder="URL ou téléverser"
                 />
               </div>
             </div>

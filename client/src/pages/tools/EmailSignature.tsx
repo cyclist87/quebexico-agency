@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Download, Mail, Phone, Globe, Linkedin, Facebook, Instagram, Twitter, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface SignatureData {
   fullName: string;
@@ -283,23 +284,19 @@ export default function EmailSignature() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="photoUrl">URL de la photo (optionnel)</Label>
-                    <Input
-                      id="photoUrl"
+                    <Label htmlFor="photoUrl">Photo (optionnel)</Label>
+                    <ImageUpload
                       value={data.photoUrl}
-                      onChange={(e) => updateField("photoUrl", e.target.value)}
-                      placeholder="https://..."
-                      data-testid="input-photo"
+                      onChange={(url) => updateField("photoUrl", url)}
+                      placeholder="URL ou téléverser"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="logoUrl">URL du logo (optionnel)</Label>
-                    <Input
-                      id="logoUrl"
+                    <Label htmlFor="logoUrl">Logo (optionnel)</Label>
+                    <ImageUpload
                       value={data.logoUrl}
-                      onChange={(e) => updateField("logoUrl", e.target.value)}
-                      placeholder="https://..."
-                      data-testid="input-logo"
+                      onChange={(url) => updateField("logoUrl", url)}
+                      placeholder="URL ou téléverser"
                     />
                   </div>
                 </div>
