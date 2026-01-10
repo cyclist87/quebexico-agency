@@ -124,6 +124,32 @@ export function generateSignatureHtml(data: SignatureData): string {
 
 export async function copySignatureToClipboard(html: string): Promise<{ success: boolean; asHtml: boolean }> {
   try {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    document.body.appendChild(container);
+
+    const range = document.createRange();
+    range.selectNodeContents(container);
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    const success = document.execCommand('copy');
+    
+    if (selection) {
+      selection.removeAllRanges();
+    }
+    document.body.removeChild(container);
+
+    if (success) {
+      return { success: true, asHtml: true };
+    }
+    
     const blob = new Blob([html], { type: "text/html" });
     await navigator.clipboard.write([
       new ClipboardItem({
