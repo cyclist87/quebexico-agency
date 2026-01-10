@@ -16,6 +16,7 @@ import { generateSignatureHtml, copySignatureToClipboard, type SignatureData as 
 import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
+import { PexelsImageField } from "@/components/PexelsImageField";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -2279,11 +2280,10 @@ export default function Admin() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                          <Input
-                            placeholder="URL Image (https://...)"
+                          <PexelsImageField
                             value={newPost.imageUrl}
-                            onChange={(e) => setNewPost({ ...newPost, imageUrl: e.target.value })}
-                            data-testid="input-post-image"
+                            onChange={(url) => setNewPost({ ...newPost, imageUrl: url })}
+                            placeholder="URL Image (https://...)"
                           />
                           <Input
                             placeholder="URL Vidéo (optionnel)"
@@ -2574,10 +2574,10 @@ export default function Admin() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        placeholder="URL Image"
+                      <PexelsImageField
                         value={editingPost.imageUrl || ""}
-                        onChange={(e) => setEditingPost({ ...editingPost, imageUrl: e.target.value })}
+                        onChange={(url) => setEditingPost({ ...editingPost, imageUrl: url })}
+                        placeholder="URL Image"
                       />
                       <Input
                         placeholder="URL Vidéo"
