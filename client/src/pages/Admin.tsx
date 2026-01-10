@@ -2338,7 +2338,7 @@ export default function Admin() {
                         </div>
 
                         <Button
-                          className="w-full"
+                          className="w-full relative z-0"
                           onClick={() => createPostMutation.mutate(newPost)}
                           disabled={!newPost.slug || !newPost.titleFr || !newPost.contentFr}
                           data-testid="button-save-post"
