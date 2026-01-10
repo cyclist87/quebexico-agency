@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Bike, Hammer, TreePine, ArrowRight, CheckCircle,
   Globe, Calendar, Mail, FileText, Image, Users, MessageSquare,
-  Sparkles, QrCode
+  Sparkles, QrCode, SprayCanIcon, Briefcase
 } from "lucide-react";
 import { demoProfiles } from "@shared/demo-profiles";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
@@ -13,6 +13,9 @@ import { useProfileLocalization } from "@/hooks/use-profile-localization";
 import athletePreview from "@assets/stock_images/professional_road_cy_e42ef465.jpg";
 import freelancerPreview from "@assets/stock_images/professional_handyma_07e33c7f.jpg";
 import chaletPreview from "@assets/stock_images/cozy_winter_cabin_ch_cd99d6d4.jpg";
+import cleaningPreview from "@assets/stock_images/professional_cleanin_f9a00c6b.jpg";
+import sportsClubPreview from "@assets/stock_images/cycling_club_group_b_cc4a37a2.jpg";
+import professionalPreview from "@assets/stock_images/professional_busines_13c2754b.jpg";
 
 const profileMeta = {
   athlete: {
@@ -54,6 +57,52 @@ const profileMeta = {
       properties: { label: "Propriétés", icon: TreePine },
       testimonials: { label: "Avis clients", icon: MessageSquare },
       booking: { label: "Réservation", icon: Calendar },
+      blog: { label: "Blogue", icon: FileText },
+      contact: { label: "Contact", icon: Mail },
+      newsletter: { label: "Infolettre", icon: Mail },
+    },
+  },
+  cleaning: {
+    icon: SprayCanIcon,
+    color: "teal",
+    route: "/demo/cleaning",
+    preview: cleaningPreview,
+    featureLabels: {
+      portfolio: { label: "Réalisations", icon: Image },
+      services: { label: "Services", icon: Users },
+      testimonials: { label: "Témoignages", icon: MessageSquare },
+      booking: { label: "Soumission", icon: Calendar },
+      contact: { label: "Contact", icon: Mail },
+      newsletter: { label: "Infolettre", icon: Mail },
+    },
+  },
+  "sports-club": {
+    icon: Bike,
+    color: "red",
+    route: "/demo/sports-club",
+    preview: sportsClubPreview,
+    featureLabels: {
+      portfolio: { label: "Événements", icon: Image },
+      services: { label: "Adhésion", icon: Users },
+      testimonials: { label: "Témoignages", icon: MessageSquare },
+      booking: { label: "Inscription", icon: Calendar },
+      sponsors: { label: "Partenaires", icon: Users },
+      calendar: { label: "Calendrier", icon: Calendar },
+      blog: { label: "Actualités", icon: FileText },
+      contact: { label: "Contact", icon: Mail },
+      newsletter: { label: "Infolettre", icon: Mail },
+    },
+  },
+  professional: {
+    icon: Briefcase,
+    color: "slate",
+    route: "/demo/professional",
+    preview: professionalPreview,
+    featureLabels: {
+      portfolio: { label: "Dossiers", icon: FileText },
+      services: { label: "Expertise", icon: Users },
+      testimonials: { label: "Témoignages", icon: MessageSquare },
+      booking: { label: "Consultation", icon: Calendar },
       blog: { label: "Blogue", icon: FileText },
       contact: { label: "Contact", icon: Mail },
       newsletter: { label: "Infolettre", icon: Mail },
@@ -103,7 +152,7 @@ export default function DemoIndex() {
                       <div className="absolute bottom-4 left-4 right-4">
                         <Badge className={`bg-${meta.color}-600 text-white mb-2`}>
                           <Icon className="h-3 w-3 mr-1" />
-                          {type === "athlete" ? "Athlète" : type === "freelancer" ? "Travailleur autonome" : "Location"}
+                          {type === "athlete" ? "Athlète" : type === "freelancer" ? "Travailleur autonome" : type === "rental-host" ? "Location" : type === "cleaning" ? "Entretien ménager" : type === "sports-club" ? "Club sportif" : "Professionnel"}
                         </Badge>
                         <h2 className="text-2xl font-bold text-white">{getText(profile.config.name)}</h2>
                         <p className="text-white/80 text-sm">{getText(profile.config.tagline)}</p>

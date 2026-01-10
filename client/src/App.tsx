@@ -23,6 +23,9 @@ import DemoIndex from "@/pages/demo/DemoIndex";
 import DemoAthlete from "@/pages/demo/DemoAthlete";
 import DemoFreelancer from "@/pages/demo/DemoFreelancer";
 import DemoRentalHost from "@/pages/demo/DemoRentalHost";
+import DemoCleaning from "@/pages/demo/DemoCleaning";
+import DemoSportsClub from "@/pages/demo/DemoSportsClub";
+import DemoProfessional from "@/pages/demo/DemoProfessional";
 import EmailSignature from "@/pages/tools/EmailSignature";
 import DigitalCard from "@/pages/tools/DigitalCard";
 import Offre from "@/pages/Offre";
@@ -65,6 +68,9 @@ function DemoRouter() {
       <Route path="/demo/athlete/:page?" component={DemoAthlete} />
       <Route path="/demo/freelancer/:page?" component={DemoFreelancer} />
       <Route path="/demo/chalet/:page?" component={DemoRentalHost} />
+      <Route path="/demo/cleaning/:page?" component={DemoCleaning} />
+      <Route path="/demo/sports-club/:page?" component={DemoSportsClub} />
+      <Route path="/demo/professional/:page?" component={DemoProfessional} />
     </Switch>
   );
 }
