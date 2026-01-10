@@ -156,11 +156,11 @@ export default function Offre() {
               <CardContent className="space-y-6">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">250$</span>
+                    <span className="text-4xl font-bold">275$</span>
                     <span className="text-muted-foreground">/ année</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    ~21$/mois · Facturation annuelle
+                    ~23$/mois · Facturation annuelle
                   </p>
                 </div>
 
@@ -201,11 +201,11 @@ export default function Offre() {
               <CardContent className="space-y-6">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">1 000$</span>
+                    <span className="text-4xl font-bold">1 750$</span>
                     <span className="text-muted-foreground">/ année</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    ~83$/mois · Facturation annuelle
+                    ~146$/mois · Facturation annuelle
                   </p>
                 </div>
 
@@ -244,47 +244,59 @@ export default function Offre() {
       <section className="py-16 px-4 bg-muted/30">
         <div className="container mx-auto max-w-3xl">
           <h2 className="text-2xl font-bold text-center mb-4">
-            Pourquoi cet accompagnement?
+            Deux façons de démarrer
           </h2>
           <p className="text-center text-muted-foreground mb-12">
-            Après des années à aider des entrepreneurs, voici ce que j'ai appris...
+            Choisissez le niveau d'implication qui vous convient
           </p>
           
-          <div className="space-y-6">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-                <span className="text-destructive font-bold">1</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Le problème</h3>
-                <p className="text-muted-foreground">
-                  Vous êtes expert dans votre domaine, mais gérer un site web, créer des outils marketing, et développer votre présence en ligne prend un temps fou. Temps que vous n'avez pas.
-                </p>
-              </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold">A</span>
+                Forfait Autonome
+              </h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>Je configure votre site et vos outils</span>
+                </li>
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>Vous gérez vos mises à jour via un tableau de bord simple</span>
+                </li>
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>Support par courriel inclus</span>
+                </li>
+              </ul>
+              <p className="text-sm text-muted-foreground italic">
+                Idéal si vous êtes à l'aise avec la technologie et voulez garder le contrôle.
+              </p>
             </div>
             
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <span className="text-primary font-bold">2</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">La solution</h3>
-                <p className="text-muted-foreground">
-                  Je m'occupe de tout le côté technique: votre site, vos outils, votre image professionnelle. Vous vous concentrez sur ce que vous faites de mieux - servir vos clients.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                <span className="text-green-600 font-bold">3</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Le résultat</h3>
-                <p className="text-muted-foreground">
-                  Une présence professionnelle qui travaille pour vous 24/7, des outils qui impressionnent vos clients, et (avec l'accompagnement) un mentor pour vous guider dans votre croissance.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">B</span>
+                Forfait Accompagnement
+              </h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>Je m'occupe de tout: création, mises à jour, ajustements</span>
+                </li>
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>12 rencontres vidéo pour discuter stratégie et croissance</span>
+                </li>
+                <li className="flex gap-2">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>Support prioritaire et conseils personnalisés</span>
+                </li>
+              </ul>
+              <p className="text-sm text-muted-foreground italic">
+                Idéal si vous préférez déléguer et avoir un mentor pour vous guider.
+              </p>
             </div>
           </div>
         </div>
