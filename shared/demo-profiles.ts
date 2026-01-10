@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { LocalizedStringSchema, LocalizedArraySchema, type LocalizedString, type LocalizedArray } from "./localization";
 
-export const ProfileTypeSchema = z.enum(["athlete", "freelancer", "rental-host"]);
+export const ProfileTypeSchema = z.enum(["athlete", "freelancer", "rental-host", "cleaning", "sports-club", "professional"]);
 export type ProfileType = z.infer<typeof ProfileTypeSchema>;
 
 export const SectionTypeSchema = z.enum([
@@ -680,8 +680,495 @@ export const rentalHostProfile: DemoProfileData = {
   ],
 };
 
+// Cleaning service profile - entretien ménager
+export const cleaningProfile: DemoProfileData = {
+  config: {
+    type: "cleaning",
+    name: {
+      fr: "Nettoyage Brillance",
+      en: "Brilliance Cleaning",
+      es: "Limpieza Brillantez",
+    },
+    tagline: {
+      fr: "Services d'entretien ménager professionnel",
+      en: "Professional Housekeeping Services",
+      es: "Servicios profesionales de limpieza",
+    },
+    description: {
+      fr: "Service de ménage résidentiel et commercial de qualité. Produits écologiques, équipe fiable et satisfaction garantie.",
+      en: "Quality residential and commercial cleaning service. Eco-friendly products, reliable team, and guaranteed satisfaction.",
+      es: "Servicio de limpieza residencial y comercial de calidad. Productos ecológicos, equipo confiable y satisfacción garantizada.",
+    },
+    primaryColor: "teal",
+    features: {
+      portfolio: true,
+      services: true,
+      testimonials: true,
+      booking: true,
+      properties: false,
+      blog: false,
+      contact: true,
+      newsletter: true,
+    },
+    navigation: [
+      { id: "home", label: { fr: "Accueil", en: "Home", es: "Inicio" }, slug: "" },
+      { id: "services", label: { fr: "Services", en: "Services", es: "Servicios" }, slug: "services" },
+      { id: "gallery", label: { fr: "Réalisations", en: "Gallery", es: "Galería" }, slug: "realisations" },
+      { id: "testimonials", label: { fr: "Témoignages", en: "Testimonials", es: "Testimonios" }, slug: "temoignages" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: { fr: "Accueil", en: "Home", es: "Inicio" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-preview", type: "services", title: { fr: "Nos services", en: "Our Services", es: "Nuestros servicios" } },
+          { id: "testimonials-preview", type: "testimonials", title: { fr: "Clients satisfaits", en: "Satisfied Clients", es: "Clientes satisfechos" } },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "services",
+        title: { fr: "Services", en: "Services", es: "Servicios" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-full", type: "services", title: { fr: "Tous nos services", en: "All Our Services", es: "Todos nuestros servicios" } },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "realisations",
+        title: { fr: "Réalisations", en: "Gallery", es: "Galería" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "portfolio-full", type: "portfolio", title: { fr: "Nos réalisations", en: "Our Work", es: "Nuestro trabajo" } },
+        ],
+      },
+      {
+        slug: "temoignages",
+        title: { fr: "Témoignages", en: "Testimonials", es: "Testimonios" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "testimonials-full", type: "testimonials", title: { fr: "Ce que nos clients disent", en: "What Our Clients Say", es: "Lo que dicen nuestros clientes" } },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
+  },
+  services: [
+    {
+      id: "1",
+      title: { fr: "Ménage résidentiel", en: "Residential Cleaning", es: "Limpieza residencial" },
+      description: { fr: "Nettoyage complet de votre maison ou appartement. Cuisine, salles de bain, chambres et espaces de vie.", en: "Complete cleaning of your house or apartment. Kitchen, bathrooms, bedrooms, and living areas.", es: "Limpieza completa de su casa o apartamento. Cocina, baños, dormitorios y áreas de estar." },
+      price: { fr: "À partir de 120 $", en: "From $120", es: "Desde $120" },
+      features: { fr: ["Produits écologiques", "Personnel vérifié", "Service flexible", "Satisfaction garantie"], en: ["Eco-friendly products", "Verified staff", "Flexible service", "Satisfaction guaranteed"], es: ["Productos ecológicos", "Personal verificado", "Servicio flexible", "Satisfacción garantizada"] },
+    },
+    {
+      id: "2",
+      title: { fr: "Grand ménage", en: "Deep Cleaning", es: "Limpieza profunda" },
+      description: { fr: "Nettoyage en profondeur pour un résultat impeccable. Idéal pour le printemps ou avant/après déménagement.", en: "Thorough deep cleaning for impeccable results. Ideal for spring or before/after moving.", es: "Limpieza profunda para resultados impecables. Ideal para primavera o antes/después de mudanzas." },
+      price: { fr: "Sur devis", en: "Quote on request", es: "Presupuesto a solicitud" },
+      features: { fr: ["Électroménagers inclus", "Intérieur des armoires", "Fenêtres intérieures", "Désinfection complète"], en: ["Appliances included", "Inside cabinets", "Interior windows", "Complete disinfection"], es: ["Electrodomésticos incluidos", "Interior de armarios", "Ventanas interiores", "Desinfección completa"] },
+    },
+    {
+      id: "3",
+      title: { fr: "Entretien commercial", en: "Commercial Cleaning", es: "Limpieza comercial" },
+      description: { fr: "Services d'entretien pour bureaux, commerces et espaces professionnels.", en: "Maintenance services for offices, shops, and professional spaces.", es: "Servicios de mantenimiento para oficinas, tiendas y espacios profesionales." },
+      price: { fr: "Contrat mensuel", en: "Monthly contract", es: "Contrato mensual" },
+      features: { fr: ["Service de soir disponible", "Équipe dédiée", "Fournitures incluses", "Rapport mensuel"], en: ["Evening service available", "Dedicated team", "Supplies included", "Monthly report"], es: ["Servicio nocturno disponible", "Equipo dedicado", "Suministros incluidos", "Informe mensual"] },
+    },
+  ],
+  portfolio: [
+    {
+      id: "1",
+      title: { fr: "Appartement Montcalm", en: "Montcalm Apartment", es: "Apartamento Montcalm" },
+      description: { fr: "Grand ménage avant emménagement", en: "Deep cleaning before move-in", es: "Limpieza profunda antes de mudanza" },
+      category: { fr: "Résidentiel", en: "Residential", es: "Residencial" },
+    },
+    {
+      id: "2",
+      title: { fr: "Bureaux centre-ville", en: "Downtown Offices", es: "Oficinas centro" },
+      description: { fr: "Contrat d'entretien hebdomadaire", en: "Weekly maintenance contract", es: "Contrato de mantenimiento semanal" },
+      category: { fr: "Commercial", en: "Commercial", es: "Comercial" },
+    },
+    {
+      id: "3",
+      title: { fr: "Maison unifamiliale", en: "Single-family Home", es: "Casa unifamiliar" },
+      description: { fr: "Entretien régulier aux 2 semaines", en: "Regular bi-weekly maintenance", es: "Mantenimiento regular quincenal" },
+      category: { fr: "Résidentiel", en: "Residential", es: "Residencial" },
+    },
+  ],
+  testimonials: [
+    {
+      id: "1",
+      name: "Caroline Dubois",
+      role: { fr: "Cliente régulière, Sainte-Foy", en: "Regular client, Sainte-Foy", es: "Cliente regular, Sainte-Foy" },
+      content: { fr: "Ça fait 2 ans que l'équipe vient aux 2 semaines. Toujours ponctuels, toujours impeccables. Je recommande sans hésiter!", en: "The team has been coming every 2 weeks for 2 years. Always punctual, always impeccable. I recommend without hesitation!", es: "El equipo ha venido cada 2 semanas durante 2 años. Siempre puntuales, siempre impecables. ¡Lo recomiendo sin dudarlo!" },
+      rating: 5,
+    },
+    {
+      id: "2",
+      name: "Martin Pelletier",
+      role: { fr: "Gestionnaire d'immeuble, Québec", en: "Building Manager, Quebec", es: "Administrador de edificios, Quebec" },
+      content: { fr: "Nous faisons appel à Nettoyage Brillance pour les aires communes de notre immeuble. Service professionnel et fiable.", en: "We use Brilliance Cleaning for the common areas of our building. Professional and reliable service.", es: "Utilizamos Limpieza Brillantez para las áreas comunes de nuestro edificio. Servicio profesional y confiable." },
+      rating: 5,
+    },
+  ],
+};
+
+// Sports club profile - club de vélo
+export const sportsClubProfile: DemoProfileData = {
+  config: {
+    type: "sports-club",
+    name: {
+      fr: "Vélo Club Portneuf",
+      en: "Portneuf Cycling Club",
+      es: "Club Ciclista Portneuf",
+    },
+    tagline: {
+      fr: "Passion du vélo depuis 1985",
+      en: "Cycling passion since 1985",
+      es: "Pasión por el ciclismo desde 1985",
+    },
+    description: {
+      fr: "Club de cyclisme pour tous les niveaux. Sorties de groupe, formations, événements et communauté passionnée.",
+      en: "Cycling club for all levels. Group rides, training, events, and a passionate community.",
+      es: "Club de ciclismo para todos los niveles. Salidas en grupo, formación, eventos y comunidad apasionada.",
+    },
+    primaryColor: "red",
+    features: {
+      portfolio: true,
+      services: true,
+      testimonials: true,
+      booking: true,
+      properties: false,
+      blog: true,
+      contact: true,
+      newsletter: true,
+      sponsors: true,
+      calendar: true,
+    },
+    navigation: [
+      { id: "home", label: { fr: "Accueil", en: "Home", es: "Inicio" }, slug: "" },
+      { id: "about", label: { fr: "Le club", en: "About", es: "El club" }, slug: "club" },
+      { id: "calendar", label: { fr: "Calendrier", en: "Calendar", es: "Calendario" }, slug: "calendrier" },
+      { id: "membership", label: { fr: "Adhésion", en: "Membership", es: "Membresía" }, slug: "adhesion" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: { fr: "Accueil", en: "Home", es: "Inicio" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-preview", type: "services", title: { fr: "Nos activités", en: "Our Activities", es: "Nuestras actividades" } },
+          { id: "calendar-preview", type: "calendar", title: { fr: "Prochaines sorties", en: "Upcoming Rides", es: "Próximas salidas" } },
+          { id: "sponsors", type: "sponsors", title: { fr: "Nos partenaires", en: "Our Partners", es: "Nuestros socios" } },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "club",
+        title: { fr: "Le club", en: "About", es: "El club" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "portfolio", type: "portfolio", title: { fr: "Nos moments forts", en: "Our Highlights", es: "Nuestros momentos destacados" } },
+          { id: "testimonials", type: "testimonials", title: { fr: "Témoignages de membres", en: "Member Testimonials", es: "Testimonios de miembros" } },
+        ],
+      },
+      {
+        slug: "calendrier",
+        title: { fr: "Calendrier", en: "Calendar", es: "Calendario" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "calendar-full", type: "calendar", title: { fr: "Calendrier 2025", en: "2025 Calendar", es: "Calendario 2025" } },
+        ],
+      },
+      {
+        slug: "adhesion",
+        title: { fr: "Adhésion", en: "Membership", es: "Membresía" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-full", type: "services", title: { fr: "Formules d'adhésion", en: "Membership Options", es: "Opciones de membresía" } },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
+  },
+  services: [
+    {
+      id: "1",
+      title: { fr: "Membre individuel", en: "Individual Member", es: "Miembro individual" },
+      description: { fr: "Accès à toutes les sorties de groupe et événements du club.", en: "Access to all group rides and club events.", es: "Acceso a todas las salidas en grupo y eventos del club." },
+      price: { fr: "75 $/an", en: "$75/year", es: "$75/año" },
+      features: { fr: ["Sorties de groupe", "Événements sociaux", "Rabais partenaires", "Jersey du club"], en: ["Group rides", "Social events", "Partner discounts", "Club jersey"], es: ["Salidas en grupo", "Eventos sociales", "Descuentos de socios", "Jersey del club"] },
+    },
+    {
+      id: "2",
+      title: { fr: "Membre famille", en: "Family Member", es: "Miembro familiar" },
+      description: { fr: "Adhésion pour toute la famille (même adresse).", en: "Membership for the whole family (same address).", es: "Membresía para toda la familia (misma dirección)." },
+      price: { fr: "125 $/an", en: "$125/year", es: "$125/año" },
+      features: { fr: ["Jusqu'à 4 membres", "Sorties familiales", "Camp de jour vélo", "Équipement jeunesse"], en: ["Up to 4 members", "Family rides", "Cycling day camp", "Youth equipment"], es: ["Hasta 4 miembros", "Salidas familiares", "Campamento de día", "Equipo juvenil"] },
+    },
+    {
+      id: "3",
+      title: { fr: "Membre compétition", en: "Competition Member", es: "Miembro competición" },
+      description: { fr: "Pour les cyclistes qui souhaitent participer aux courses.", en: "For cyclists who want to participate in races.", es: "Para ciclistas que desean participar en carreras." },
+      price: { fr: "150 $/an", en: "$150/year", es: "$150/año" },
+      features: { fr: ["Licence FQSC incluse", "Entraînements structurés", "Coach certifié", "Support mécanique"], en: ["FQSC license included", "Structured training", "Certified coach", "Mechanical support"], es: ["Licencia FQSC incluida", "Entrenamientos estructurados", "Entrenador certificado", "Soporte mecánico"] },
+    },
+  ],
+  portfolio: [
+    {
+      id: "1",
+      title: { fr: "Tour de Portneuf 2024", en: "2024 Portneuf Tour", es: "Tour de Portneuf 2024" },
+      description: { fr: "Notre événement annuel avec 300 participants", en: "Our annual event with 300 participants", es: "Nuestro evento anual con 300 participantes" },
+      category: { fr: "Événement", en: "Event", es: "Evento" },
+      date: "2024-08",
+    },
+    {
+      id: "2",
+      title: { fr: "Camp d'entraînement Charlevoix", en: "Charlevoix Training Camp", es: "Campamento Charlevoix" },
+      description: { fr: "Fin de semaine intensive dans les montagnes", en: "Intensive weekend in the mountains", es: "Fin de semana intensivo en las montañas" },
+      category: { fr: "Entraînement", en: "Training", es: "Entrenamiento" },
+      date: "2024-05",
+    },
+    {
+      id: "3",
+      title: { fr: "Fête des 40 ans", en: "40th Anniversary", es: "40 aniversario" },
+      description: { fr: "Célébration avec anciens et nouveaux membres", en: "Celebration with past and present members", es: "Celebración con miembros antiguos y nuevos" },
+      category: { fr: "Social", en: "Social", es: "Social" },
+      date: "2025-06",
+    },
+  ],
+  testimonials: [
+    {
+      id: "1",
+      name: "Pierre Lavoie",
+      role: { fr: "Membre depuis 15 ans", en: "Member for 15 years", es: "Miembro desde hace 15 años" },
+      content: { fr: "Le club m'a permis de découvrir ma passion pour le vélo et de me faire des amis pour la vie.", en: "The club helped me discover my passion for cycling and make lifelong friends.", es: "El club me ayudó a descubrir mi pasión por el ciclismo y hacer amigos para toda la vida." },
+      rating: 5,
+    },
+    {
+      id: "2",
+      name: "Sophie Morin",
+      role: { fr: "Nouvelle membre 2024", en: "New member 2024", es: "Nueva miembro 2024" },
+      content: { fr: "Je cherchais un groupe accueillant pour débuter. L'ambiance est super et tout le monde m'a mise à l'aise!", en: "I was looking for a welcoming group to start. The atmosphere is great and everyone made me feel comfortable!", es: "Buscaba un grupo acogedor para empezar. ¡El ambiente es genial y todos me hicieron sentir cómoda!" },
+      rating: 5,
+    },
+  ],
+  sponsors: [
+    {
+      id: "1",
+      name: "Cycles ABC",
+      category: "technical",
+      description: "Boutique vélo partenaire officielle",
+      websiteUrl: "https://www.cyclesabc.ca",
+    },
+    {
+      id: "2",
+      name: "Caisse Desjardins Portneuf",
+      category: "title",
+      description: "Partenaire principal depuis 2010",
+      websiteUrl: "https://www.desjardins.com",
+    },
+    {
+      id: "3",
+      name: "Ville de Pont-Rouge",
+      category: "support",
+      description: "Soutien aux événements locaux",
+    },
+  ],
+  calendar: [
+    {
+      id: "1",
+      title: "Sortie hebdomadaire - Niveau 1",
+      date: "2025-05-15",
+      location: "Pont-Rouge",
+      type: "training",
+      description: "40 km, rythme modéré",
+    },
+    {
+      id: "2",
+      title: "Sortie hebdomadaire - Niveau 2-3",
+      date: "2025-05-15",
+      location: "Pont-Rouge",
+      type: "training",
+      description: "70 km, rythme soutenu",
+    },
+    {
+      id: "3",
+      title: "Tour de Portneuf",
+      date: "2025-08-17",
+      location: "Pont-Rouge",
+      type: "competition",
+      description: "Événement annuel - 50/100/150 km",
+    },
+    {
+      id: "4",
+      title: "Souper de fin de saison",
+      date: "2025-10-18",
+      location: "Salle communautaire Pont-Rouge",
+      type: "appearance",
+      description: "Remise des prix et célébrations",
+    },
+  ],
+};
+
+// Professional profile - consultant/avocat/comptable
+export const professionalProfile: DemoProfileData = {
+  config: {
+    type: "professional",
+    name: {
+      fr: "Me Catherine Bergeron",
+      en: "Catherine Bergeron, Esq.",
+      es: "Abog. Catherine Bergeron",
+    },
+    tagline: {
+      fr: "Avocate en droit des affaires",
+      en: "Business Law Attorney",
+      es: "Abogada de derecho empresarial",
+    },
+    description: {
+      fr: "Plus de 15 ans d'expérience en droit commercial et corporatif. Accompagnement personnalisé pour entrepreneurs et PME.",
+      en: "Over 15 years of experience in commercial and corporate law. Personalized support for entrepreneurs and SMEs.",
+      es: "Más de 15 años de experiencia en derecho comercial y corporativo. Acompañamiento personalizado para emprendedores y PYMES.",
+    },
+    primaryColor: "slate",
+    features: {
+      portfolio: true,
+      services: true,
+      testimonials: true,
+      booking: true,
+      properties: false,
+      blog: true,
+      contact: true,
+      newsletter: true,
+    },
+    navigation: [
+      { id: "home", label: { fr: "Accueil", en: "Home", es: "Inicio" }, slug: "" },
+      { id: "expertise", label: { fr: "Expertise", en: "Expertise", es: "Experiencia" }, slug: "expertise" },
+      { id: "about", label: { fr: "À propos", en: "About", es: "Acerca de" }, slug: "a-propos" },
+      { id: "contact", label: "Contact", slug: "contact" },
+    ],
+    pages: [
+      {
+        slug: "",
+        title: { fr: "Accueil", en: "Home", es: "Inicio" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-preview", type: "services", title: { fr: "Domaines de pratique", en: "Practice Areas", es: "Áreas de práctica" } },
+          { id: "testimonials-preview", type: "testimonials", title: { fr: "Ce que mes clients disent", en: "Client Testimonials", es: "Testimonios de clientes" } },
+          { id: "cta", type: "cta" },
+        ],
+      },
+      {
+        slug: "expertise",
+        title: { fr: "Expertise", en: "Expertise", es: "Experiencia" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "services-full", type: "services", title: { fr: "Mes domaines d'expertise", en: "My Areas of Expertise", es: "Mis áreas de experiencia" } },
+          { id: "portfolio", type: "portfolio", title: { fr: "Dossiers représentatifs", en: "Representative Cases", es: "Casos representativos" } },
+        ],
+      },
+      {
+        slug: "a-propos",
+        title: { fr: "À propos", en: "About", es: "Acerca de" },
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "richText", type: "richText" },
+          { id: "testimonials-full", type: "testimonials", title: { fr: "Témoignages", en: "Testimonials", es: "Testimonios" } },
+        ],
+      },
+      {
+        slug: "contact",
+        title: "Contact",
+        sections: [
+          { id: "hero", type: "hero" },
+          { id: "contact", type: "contact" },
+        ],
+      },
+    ],
+  },
+  services: [
+    {
+      id: "1",
+      title: { fr: "Droit corporatif", en: "Corporate Law", es: "Derecho corporativo" },
+      description: { fr: "Constitution, réorganisation, fusion et acquisition d'entreprises.", en: "Incorporation, reorganization, merger, and acquisition of businesses.", es: "Constitución, reorganización, fusión y adquisición de empresas." },
+      features: { fr: ["Incorporation", "Convention d'actionnaires", "Gouvernance", "Fusion & acquisition"], en: ["Incorporation", "Shareholder agreement", "Governance", "Merger & acquisition"], es: ["Incorporación", "Convenio de accionistas", "Gobernanza", "Fusión y adquisición"] },
+    },
+    {
+      id: "2",
+      title: { fr: "Droit commercial", en: "Commercial Law", es: "Derecho comercial" },
+      description: { fr: "Contrats commerciaux, distribution, franchises et partenariats.", en: "Commercial contracts, distribution, franchises, and partnerships.", es: "Contratos comerciales, distribución, franquicias y asociaciones." },
+      features: { fr: ["Contrats commerciaux", "Ententes de distribution", "Franchises", "Joint ventures"], en: ["Commercial contracts", "Distribution agreements", "Franchises", "Joint ventures"], es: ["Contratos comerciales", "Acuerdos de distribución", "Franquicias", "Joint ventures"] },
+    },
+    {
+      id: "3",
+      title: { fr: "Transactions immobilières", en: "Real Estate Transactions", es: "Transacciones inmobiliarias" },
+      description: { fr: "Achat, vente et financement de biens immobiliers commerciaux.", en: "Purchase, sale, and financing of commercial real estate.", es: "Compra, venta y financiamiento de bienes raíces comerciales." },
+      features: { fr: ["Achat commercial", "Financement", "Baux commerciaux", "Due diligence"], en: ["Commercial purchase", "Financing", "Commercial leases", "Due diligence"], es: ["Compra comercial", "Financiamiento", "Arrendamientos comerciales", "Due diligence"] },
+    },
+  ],
+  portfolio: [
+    {
+      id: "1",
+      title: { fr: "Acquisition majeure", en: "Major Acquisition", es: "Adquisición importante" },
+      description: { fr: "Accompagnement d'un groupe alimentaire dans l'acquisition d'un concurrent régional.", en: "Supporting a food group in acquiring a regional competitor.", es: "Acompañamiento de un grupo alimentario en la adquisición de un competidor regional." },
+      category: { fr: "Fusion & Acquisition", en: "Merger & Acquisition", es: "Fusión y Adquisición" },
+    },
+    {
+      id: "2",
+      title: { fr: "Restructuration", en: "Restructuring", es: "Reestructuración" },
+      description: { fr: "Réorganisation corporative d'une entreprise manufacturière familiale.", en: "Corporate reorganization of a family manufacturing business.", es: "Reorganización corporativa de una empresa manufacturera familiar." },
+      category: { fr: "Droit corporatif", en: "Corporate Law", es: "Derecho corporativo" },
+    },
+    {
+      id: "3",
+      title: { fr: "Expansion internationale", en: "International Expansion", es: "Expansión internacional" },
+      description: { fr: "Structuration juridique pour l'expansion d'une techno québécoise aux États-Unis.", en: "Legal structuring for a Quebec tech company's expansion to the United States.", es: "Estructuración legal para la expansión de una tecnológica quebequense a Estados Unidos." },
+      category: { fr: "Droit commercial", en: "Commercial Law", es: "Derecho comercial" },
+    },
+  ],
+  testimonials: [
+    {
+      id: "1",
+      name: "François Dupont",
+      role: { fr: "PDG, Groupe Alimentaire FD", en: "CEO, FD Food Group", es: "CEO, Grupo Alimentario FD" },
+      content: { fr: "Me Bergeron nous accompagne depuis 10 ans. Sa rigueur et son approche pragmatique nous ont permis de conclure des transactions complexes en toute confiance.", en: "Ms. Bergeron has been supporting us for 10 years. Her rigor and pragmatic approach have allowed us to close complex transactions with complete confidence.", es: "La Abog. Bergeron nos acompaña desde hace 10 años. Su rigor y enfoque pragmático nos han permitido cerrar transacciones complejas con total confianza." },
+      rating: 5,
+    },
+    {
+      id: "2",
+      name: "Isabelle Morin",
+      role: { fr: "Fondatrice, TechStart", en: "Founder, TechStart", es: "Fundadora, TechStart" },
+      content: { fr: "Excellente avocate qui comprend les réalités des startups. Elle sait adapter ses conseils à notre contexte et notre budget.", en: "Excellent lawyer who understands startup realities. She knows how to adapt her advice to our context and budget.", es: "Excelente abogada que entiende las realidades de las startups. Sabe adaptar sus consejos a nuestro contexto y presupuesto." },
+      rating: 5,
+    },
+  ],
+};
+
 export const demoProfiles: Record<ProfileType, DemoProfileData> = {
   athlete: athleteProfile,
   freelancer: freelancerProfile,
   "rental-host": rentalHostProfile,
+  cleaning: cleaningProfile,
+  "sports-club": sportsClubProfile,
+  professional: professionalProfile,
 };
