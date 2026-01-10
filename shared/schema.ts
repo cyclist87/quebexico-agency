@@ -146,6 +146,30 @@ export const digitalCards = pgTable("digital_cards", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === EMAIL SIGNATURES ===
+
+export const emailSignatures = pgTable("email_signatures", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  jobTitle: text("job_title"),
+  company: text("company"),
+  email: text("email"),
+  phone: text("phone"),
+  website: text("website"),
+  linkedin: text("linkedin"),
+  facebook: text("facebook"),
+  instagram: text("instagram"),
+  twitter: text("twitter"),
+  photoUrl: text("photo_url"),
+  logoUrl: text("logo_url"),
+  template: text("template").default("modern"),
+  primaryColor: text("primary_color").default("#2563eb"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -176,6 +200,7 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: tru
 export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAiUsageSchema = createInsertSchema(aiUsage).omit({ id: true, createdAt: true });
 export const insertDigitalCardSchema = createInsertSchema(digitalCards).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertEmailSignatureSchema = createInsertSchema(emailSignatures).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -214,6 +239,9 @@ export type InsertAiUsage = z.infer<typeof insertAiUsageSchema>;
 
 export type DigitalCard = typeof digitalCards.$inferSelect;
 export type InsertDigitalCard = z.infer<typeof insertDigitalCardSchema>;
+
+export type EmailSignature = typeof emailSignatures.$inferSelect;
+export type InsertEmailSignature = z.infer<typeof insertEmailSignatureSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

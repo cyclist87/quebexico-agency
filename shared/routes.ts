@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, insertSiteSettingSchema, insertDigitalCardSchema, messages, subscribers, projects, blogPosts, blogCategories, siteSettings, digitalCards } from './schema';
+import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, insertSiteSettingSchema, insertDigitalCardSchema, insertEmailSignatureSchema, messages, subscribers, projects, blogPosts, blogCategories, siteSettings, digitalCards, emailSignatures } from './schema';
 
 // ============================================
 // SHARED ERROR SCHEMAS
@@ -220,6 +220,42 @@ export const api = {
       delete: {
         method: 'DELETE' as const,
         path: '/api/admin/digital-cards/:id',
+        responses: {
+          200: z.object({ success: z.boolean() }),
+          404: errorSchemas.notFound,
+        },
+      },
+    },
+    emailSignatures: {
+      list: {
+        method: 'GET' as const,
+        path: '/api/admin/email-signatures',
+        responses: {
+          200: z.array(z.custom<typeof emailSignatures.$inferSelect>()),
+        },
+      },
+      create: {
+        method: 'POST' as const,
+        path: '/api/admin/email-signatures',
+        input: insertEmailSignatureSchema,
+        responses: {
+          201: z.custom<typeof emailSignatures.$inferSelect>(),
+          400: errorSchemas.validation,
+          409: z.object({ message: z.string() }),
+        },
+      },
+      update: {
+        method: 'PUT' as const,
+        path: '/api/admin/email-signatures/:id',
+        input: insertEmailSignatureSchema.partial(),
+        responses: {
+          200: z.custom<typeof emailSignatures.$inferSelect>(),
+          404: errorSchemas.notFound,
+        },
+      },
+      delete: {
+        method: 'DELETE' as const,
+        path: '/api/admin/email-signatures/:id',
         responses: {
           200: z.object({ success: z.boolean() }),
           404: errorSchemas.notFound,

@@ -8,6 +8,7 @@ import {
   siteSettings,
   aiUsage,
   digitalCards,
+  emailSignatures,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -15,6 +16,7 @@ import {
   type InsertBlogCategory,
   type InsertAiUsage,
   type InsertDigitalCard,
+  type InsertEmailSignature,
   type Message,
   type Subscriber,
   type Project,
@@ -22,7 +24,8 @@ import {
   type BlogCategory,
   type SiteSetting,
   type AiUsage,
-  type DigitalCard
+  type DigitalCard,
+  type EmailSignature
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte } from "drizzle-orm";
 
@@ -78,6 +81,14 @@ export interface IStorage {
   createDigitalCard(card: InsertDigitalCard): Promise<DigitalCard>;
   updateDigitalCard(id: number, card: Partial<InsertDigitalCard>): Promise<DigitalCard | undefined>;
   deleteDigitalCard(id: number): Promise<boolean>;
+  
+  // Email Signatures
+  getEmailSignatures(): Promise<EmailSignature[]>;
+  getEmailSignatureById(id: number): Promise<EmailSignature | undefined>;
+  getEmailSignatureBySlug(slug: string): Promise<EmailSignature | undefined>;
+  createEmailSignature(signature: InsertEmailSignature): Promise<EmailSignature>;
+  updateEmailSignature(id: number, signature: Partial<InsertEmailSignature>): Promise<EmailSignature | undefined>;
+  deleteEmailSignature(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -296,6 +307,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDigitalCard(id: number): Promise<boolean> {
     await db.delete(digitalCards).where(eq(digitalCards.id, id));
+    return true;
+  }
+
+  // Email Signatures
+  async getEmailSignatures(): Promise<EmailSignature[]> {
+    return await db.select().from(emailSignatures).orderBy(desc(emailSignatures.createdAt));
+  }
+
+  async getEmailSignatureById(id: number): Promise<EmailSignature | undefined> {
+    const [signature] = await db.select().from(emailSignatures).where(eq(emailSignatures.id, id));
+    return signature;
+  }
+
+  async getEmailSignatureBySlug(slug: string): Promise<EmailSignature | undefined> {
+    const [signature] = await db.select().from(emailSignatures).where(eq(emailSignatures.slug, slug));
+    return signature;
+  }
+
+  async createEmailSignature(signature: InsertEmailSignature): Promise<EmailSignature> {
+    const [newSignature] = await db.insert(emailSignatures).values(signature).returning();
+    return newSignature;
+  }
+
+  async updateEmailSignature(id: number, signature: Partial<InsertEmailSignature>): Promise<EmailSignature | undefined> {
+    const [updated] = await db.update(emailSignatures)
+      .set({ ...signature, updatedAt: new Date() })
+      .where(eq(emailSignatures.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEmailSignature(id: number): Promise<boolean> {
+    await db.delete(emailSignatures).where(eq(emailSignatures.id, id));
     return true;
   }
 }

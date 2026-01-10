@@ -559,48 +559,61 @@ function DigitalCardsTab() {
             <p className="text-muted-foreground text-center py-8">Aucune carte créée</p>
           ) : (
             <div className="space-y-3">
-              {cards.map((card) => (
-                <div
-                  key={card.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{card.fullName}</h3>
-                      {!card.isActive && <Badge variant="secondary">Désactivée</Badge>}
+              {cards.map((card) => {
+                const initials = card.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+                return (
+                  <div
+                    key={card.id}
+                    className="flex items-center gap-4 p-4 border rounded-lg"
+                  >
+                    <div 
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden"
+                      style={{ backgroundColor: card.primaryColor || "#2563eb" }}
+                    >
+                      {card.photoUrl ? (
+                        <img src={card.photoUrl} alt={card.fullName} className="w-full h-full object-cover" />
+                      ) : (
+                        initials
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {card.jobTitle}{card.company ? ` @ ${card.company}` : ""}
-                    </p>
-                    <a
-                      href={`${baseUrl}/c/${card.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      {baseUrl}/c/{card.slug}
-                    </a>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{card.fullName}</h3>
+                        {!card.isActive && <Badge variant="secondary">Désactivée</Badge>}
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {card.jobTitle}{card.company ? ` @ ${card.company}` : ""}
+                      </p>
+                      <a
+                        href={`${baseUrl}/c/${card.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        {baseUrl}/c/{card.slug}
+                      </a>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openEditDialog(card)}
+                        data-testid={`button-edit-card-${card.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => card.id && deleteMutation.mutate(card.id)}
+                        data-testid={`button-delete-card-${card.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => openEditDialog(card)}
-                      data-testid={`button-edit-card-${card.id}`}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => card.id && deleteMutation.mutate(card.id)}
-                      data-testid={`button-delete-card-${card.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

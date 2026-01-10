@@ -485,6 +485,79 @@ Important:
     res.json({ success: true });
   });
 
+  // ==================== EMAIL SIGNATURES ====================
+  
+  // Admin: List all signatures
+  app.get(api.admin.emailSignatures.list.path, requireAdminAuth, async (req, res) => {
+    const signatures = await storage.getEmailSignatures();
+    res.json(signatures);
+  });
+
+  // Admin: Create signature
+  app.post(api.admin.emailSignatures.create.path, requireAdminAuth, async (req, res) => {
+    try {
+      const input = api.admin.emailSignatures.create.input.parse(req.body);
+      
+      // Check for duplicate slug
+      const existing = await storage.getEmailSignatureBySlug(input.slug);
+      if (existing) {
+        return res.status(409).json({ message: "Ce slug existe déjà" });
+      }
+      
+      const signature = await storage.createEmailSignature(input);
+      res.status(201).json(signature);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Update signature
+  app.put(api.admin.emailSignatures.update.path, requireAdminAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const input = api.admin.emailSignatures.update.input.parse(req.body);
+      
+      // If changing slug, check for duplicates
+      if (input.slug) {
+        const existing = await storage.getEmailSignatureBySlug(input.slug);
+        if (existing && existing.id !== id) {
+          return res.status(409).json({ message: "Ce slug existe déjà" });
+        }
+      }
+      
+      const signature = await storage.updateEmailSignature(id, input);
+      if (!signature) {
+        return res.status(404).json({ message: "Signature not found" });
+      }
+      res.json(signature);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Delete signature
+  app.delete(api.admin.emailSignatures.delete.path, requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const signature = await storage.getEmailSignatureById(id);
+    if (!signature) {
+      return res.status(404).json({ message: "Signature not found" });
+    }
+    await storage.deleteEmailSignature(id);
+    res.json({ success: true });
+  });
+
   // Initialize seed data
   await seedDatabase();
 
