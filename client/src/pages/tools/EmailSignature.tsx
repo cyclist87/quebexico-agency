@@ -22,6 +22,7 @@ interface SignatureData {
   instagram: string;
   twitter: string;
   photoUrl: string;
+  logoUrl: string;
   template: "modern" | "classic" | "minimal" | "bold";
   primaryColor: string;
 }
@@ -38,6 +39,7 @@ const defaultData: SignatureData = {
   instagram: "",
   twitter: "",
   photoUrl: "",
+  logoUrl: "",
   template: "modern",
   primaryColor: "#2563eb",
 };
@@ -69,9 +71,14 @@ function generateSignatureHtml(data: SignatureData): string {
     ? `<img src="${data.photoUrl}" alt="${data.fullName}" width="80" height="80" style="border-radius:50%;margin-right:16px;" />`
     : "";
 
+  const logoHtml = data.logoUrl
+    ? `<img src="${data.logoUrl}" alt="${data.company || 'Logo'}" height="40" style="max-width:120px;height:40px;object-fit:contain;" />`
+    : "";
+
   if (data.template === "modern") {
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+  ${data.logoUrl ? `<tr><td colspan="2" style="padding-bottom:12px;">${logoHtml}</td></tr>` : ""}
   <tr>
     <td style="vertical-align:top;padding-right:16px;">
       ${photoHtml}
@@ -93,6 +100,7 @@ function generateSignatureHtml(data: SignatureData): string {
   if (data.template === "classic") {
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Georgia,serif;font-size:14px;color:#333;">
+  ${data.logoUrl ? `<tr><td style="padding-bottom:12px;">${logoHtml}</td></tr>` : ""}
   <tr>
     <td>
       <div style="font-size:16px;font-weight:bold;margin-bottom:2px;">${data.fullName}</div>
@@ -110,6 +118,7 @@ function generateSignatureHtml(data: SignatureData): string {
   if (data.template === "minimal") {
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:13px;color:#555;">
+  ${data.logoUrl ? `<tr><td style="padding-bottom:8px;">${logoHtml}</td></tr>` : ""}
   <tr>
     <td>
       <strong>${data.fullName}</strong> | ${data.jobTitle}<br/>
@@ -122,6 +131,7 @@ function generateSignatureHtml(data: SignatureData): string {
   if (data.template === "bold") {
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:14px;">
+  ${data.logoUrl ? `<tr><td style="padding-bottom:12px;">${logoHtml}</td></tr>` : ""}
   <tr>
     <td style="background:${data.primaryColor};padding:16px;border-radius:8px;">
       <table cellpadding="0" cellspacing="0">
@@ -271,15 +281,27 @@ export default function EmailSignature() {
                     data-testid="input-website"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="photoUrl">URL de la photo (optionnel)</Label>
-                  <Input
-                    id="photoUrl"
-                    value={data.photoUrl}
-                    onChange={(e) => updateField("photoUrl", e.target.value)}
-                    placeholder="https://..."
-                    data-testid="input-photo"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="photoUrl">URL de la photo (optionnel)</Label>
+                    <Input
+                      id="photoUrl"
+                      value={data.photoUrl}
+                      onChange={(e) => updateField("photoUrl", e.target.value)}
+                      placeholder="https://..."
+                      data-testid="input-photo"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="logoUrl">URL du logo (optionnel)</Label>
+                    <Input
+                      id="logoUrl"
+                      value={data.logoUrl}
+                      onChange={(e) => updateField("logoUrl", e.target.value)}
+                      placeholder="https://..."
+                      data-testid="input-logo"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
