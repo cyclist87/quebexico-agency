@@ -42,9 +42,16 @@ function MainRouter() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route path="/booking" component={Booking} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function ToolsRouter() {
+  return (
+    <Switch>
       <Route path="/tools/signature" component={EmailSignature} />
       <Route path="/tools/carte" component={DigitalCard} />
-      <Route component={NotFound} />
     </Switch>
   );
 }
@@ -63,9 +70,14 @@ function DemoRouter() {
 function AppContent() {
   const [location] = useLocation();
   const isDemoPage = location.startsWith("/demo");
+  const isToolsPage = location.startsWith("/tools");
 
   if (isDemoPage) {
     return <DemoRouter />;
+  }
+
+  if (isToolsPage) {
+    return <ToolsRouter />;
   }
 
   return (
