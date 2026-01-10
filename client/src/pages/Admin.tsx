@@ -852,7 +852,7 @@ function EmailSignaturesTab() {
       twitter: sig.twitter,
       photoUrl: sig.photoUrl,
       logoUrl: sig.logoUrl,
-      template: sig.template as "modern" | "classic" | "minimal" | "bold",
+      template: sig.template as "modern" | "classic" | "minimal" | "bold" | "cleaning" | "sports" | "professional",
       primaryColor: sig.primaryColor,
       ctaText: sig.ctaText,
       ctaUrl: sig.ctaUrl,
@@ -1192,6 +1192,9 @@ function EmailSignaturesTab() {
                     <SelectItem value="classic">Classique</SelectItem>
                     <SelectItem value="minimal">Minimaliste</SelectItem>
                     <SelectItem value="bold">Audacieux</SelectItem>
+                    <SelectItem value="cleaning">Entretien ménager</SelectItem>
+                    <SelectItem value="sports">Club sportif</SelectItem>
+                    <SelectItem value="professional">Professionnel</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -11,7 +11,7 @@ export interface SignatureData {
   twitter: string;
   photoUrl: string;
   logoUrl: string;
-  template: "modern" | "classic" | "minimal" | "bold";
+  template: "modern" | "classic" | "minimal" | "bold" | "cleaning" | "sports" | "professional";
   primaryColor: string;
   ctaText: string;
   ctaUrl: string;
@@ -111,6 +111,98 @@ export function generateSignatureHtml(data: SignatureData): string {
             ${data.phone ? `<div style="margin-bottom:4px;">${data.phone}</div>` : ""}
             ${data.website ? `<div><a href="https://${data.website}" style="color:white;text-decoration:underline;">${data.website}</a></div>` : ""}
             ${boldCtaHtml ? `<div style="margin-top:12px;">${boldCtaHtml}</div>` : ""}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+  }
+
+  // Cleaning service template - fresh, clean design with service focus
+  if (data.template === "cleaning") {
+    return `
+<table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+  <tr>
+    <td style="background:linear-gradient(135deg, ${data.primaryColor}15, ${data.primaryColor}05);padding:16px;border-radius:8px;border-left:4px solid ${data.primaryColor};">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          ${data.photoUrl ? `<td style="vertical-align:top;padding-right:16px;"><img src="${data.photoUrl}" alt="${data.fullName}" width="70" height="70" style="border-radius:50%;border:2px solid ${data.primaryColor};" /></td>` : ""}
+          <td style="vertical-align:top;">
+            ${data.logoUrl ? `<div style="margin-bottom:8px;">${logoHtml}</div>` : ""}
+            <div style="font-size:17px;font-weight:bold;color:${data.primaryColor};margin-bottom:2px;">${data.fullName}</div>
+            <div style="font-size:13px;color:#666;margin-bottom:8px;">${data.jobTitle}${data.company ? ` - ${data.company}` : ""}</div>
+            <div style="font-size:13px;">
+              ${data.phone ? `<div style="margin-bottom:3px;">📞 ${data.phone}</div>` : ""}
+              ${data.email ? `<div style="margin-bottom:3px;">✉️ <a href="mailto:${data.email}" style="color:${data.primaryColor};text-decoration:none;">${data.email}</a></div>` : ""}
+              ${data.website ? `<div>🌐 <a href="https://${data.website}" style="color:${data.primaryColor};text-decoration:none;">${data.website}</a></div>` : ""}
+            </div>
+            ${socialLinks.length > 0 ? `<div style="margin-top:8px;">${socialLinks.join("")}</div>` : ""}
+            ${ctaHtml ? `<div style="margin-top:10px;">${ctaHtml}</div>` : ""}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+  }
+
+  // Sports club template - dynamic, energetic design
+  if (data.template === "sports") {
+    const sportCtaHtml = (data.ctaText && data.ctaUrl)
+      ? `<a href="${data.ctaUrl}" style="display:inline-block;background:${data.primaryColor};color:white;padding:10px 20px;border-radius:25px;text-decoration:none;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${data.ctaText}</a>`
+      : "";
+    return `
+<table cellpadding="0" cellspacing="0" style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;">
+  <tr>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          ${data.photoUrl ? `<td style="vertical-align:top;padding-right:16px;"><img src="${data.photoUrl}" alt="${data.fullName}" width="85" height="85" style="border-radius:50%;border:3px solid ${data.primaryColor};" /></td>` : ""}
+          <td style="vertical-align:top;">
+            ${data.logoUrl ? `<div style="margin-bottom:10px;">${logoHtml}</div>` : ""}
+            <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:2px;text-transform:uppercase;letter-spacing:1px;">${data.fullName}</div>
+            <div style="font-size:14px;color:${data.primaryColor};font-weight:600;margin-bottom:10px;">${data.jobTitle}${data.company ? ` | ${data.company}` : ""}</div>
+            <div style="border-top:2px solid ${data.primaryColor};padding-top:10px;font-size:13px;color:#555;">
+              ${data.email ? `<div style="margin-bottom:4px;"><a href="mailto:${data.email}" style="color:#333;text-decoration:none;">${data.email}</a></div>` : ""}
+              ${data.phone ? `<div style="margin-bottom:4px;">${data.phone}</div>` : ""}
+              ${data.website ? `<div><a href="https://${data.website}" style="color:${data.primaryColor};text-decoration:none;font-weight:600;">${data.website}</a></div>` : ""}
+            </div>
+            ${socialLinks.length > 0 ? `<div style="margin-top:10px;">${socialLinks.join("")}</div>` : ""}
+            ${sportCtaHtml ? `<div style="margin-top:12px;">${sportCtaHtml}</div>` : ""}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+  }
+
+  // Professional template - elegant corporate design
+  if (data.template === "professional") {
+    return `
+<table cellpadding="0" cellspacing="0" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;color:#2d2d2d;">
+  <tr>
+    <td style="border-bottom:2px solid ${data.primaryColor};padding-bottom:12px;">
+      ${data.logoUrl ? logoHtml : ""}
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top:12px;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          ${data.photoUrl ? `<td style="vertical-align:top;padding-right:20px;"><img src="${data.photoUrl}" alt="${data.fullName}" width="75" height="75" style="border-radius:4px;" /></td>` : ""}
+          <td style="vertical-align:top;">
+            <div style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${data.fullName}</div>
+            <div style="font-size:14px;color:${data.primaryColor};margin-bottom:10px;">${data.jobTitle}</div>
+            ${data.company ? `<div style="font-size:13px;color:#666;margin-bottom:10px;font-weight:500;">${data.company}</div>` : ""}
+            <table cellpadding="0" cellspacing="0" style="font-size:13px;color:#555;">
+              ${data.email ? `<tr><td style="padding-right:8px;color:#999;">E</td><td><a href="mailto:${data.email}" style="color:#2d2d2d;text-decoration:none;">${data.email}</a></td></tr>` : ""}
+              ${data.phone ? `<tr><td style="padding-right:8px;color:#999;">T</td><td>${data.phone}</td></tr>` : ""}
+              ${data.website ? `<tr><td style="padding-right:8px;color:#999;">W</td><td><a href="https://${data.website}" style="color:${data.primaryColor};text-decoration:none;">${data.website}</a></td></tr>` : ""}
+            </table>
+            ${socialLinks.length > 0 ? `<div style="margin-top:10px;">${socialLinks.join("")}</div>` : ""}
+            ${ctaHtml ? `<div style="margin-top:12px;">${ctaHtml}</div>` : ""}
           </td>
         </tr>
       </table>

@@ -36,6 +36,9 @@ const templates = [
   { id: "classic", name: "Classique", description: "Professionnel et sobre" },
   { id: "minimal", name: "Minimaliste", description: "Texte simple, sans fioritures" },
   { id: "bold", name: "Audacieux", description: "Grande photo, couleurs vives" },
+  { id: "cleaning", name: "Entretien ménager", description: "Design frais pour services à domicile" },
+  { id: "sports", name: "Club sportif", description: "Style dynamique et énergique" },
+  { id: "professional", name: "Professionnel", description: "Élégant et corporatif" },
 ];
 
 const colorPresets = [
