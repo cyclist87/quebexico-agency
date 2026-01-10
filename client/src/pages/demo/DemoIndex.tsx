@@ -264,7 +264,7 @@ export default function DemoIndex() {
           <Card className="inline-block">
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground">
-                Ces pages de démonstration sont des aperçus privés.
+                Ces pages de démonstration sont des aperçus privés et fictifs.
                 Chaque template est entièrement personnalisable selon vos besoins.
               </p>
             </CardContent>
