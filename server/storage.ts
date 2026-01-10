@@ -7,19 +7,22 @@ import {
   blogCategories,
   siteSettings,
   aiUsage,
+  digitalCards,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
   type InsertBlogPost,
   type InsertBlogCategory,
   type InsertAiUsage,
+  type InsertDigitalCard,
   type Message,
   type Subscriber,
   type Project,
   type BlogPost,
   type BlogCategory,
   type SiteSetting,
-  type AiUsage
+  type AiUsage,
+  type DigitalCard
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte } from "drizzle-orm";
 
@@ -67,6 +70,14 @@ export interface IStorage {
     customKeyUsage: number;
     platformKeyUsage: number;
   }>;
+  
+  // Digital Cards
+  getDigitalCards(): Promise<DigitalCard[]>;
+  getDigitalCardById(id: number): Promise<DigitalCard | undefined>;
+  getDigitalCardBySlug(slug: string): Promise<DigitalCard | undefined>;
+  createDigitalCard(card: InsertDigitalCard): Promise<DigitalCard>;
+  updateDigitalCard(id: number, card: Partial<InsertDigitalCard>): Promise<DigitalCard | undefined>;
+  deleteDigitalCard(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -253,6 +264,39 @@ export class DatabaseStorage implements IStorage {
       customKeyUsage,
       platformKeyUsage,
     };
+  }
+
+  // Digital Cards
+  async getDigitalCards(): Promise<DigitalCard[]> {
+    return await db.select().from(digitalCards).orderBy(desc(digitalCards.createdAt));
+  }
+
+  async getDigitalCardById(id: number): Promise<DigitalCard | undefined> {
+    const [card] = await db.select().from(digitalCards).where(eq(digitalCards.id, id));
+    return card;
+  }
+
+  async getDigitalCardBySlug(slug: string): Promise<DigitalCard | undefined> {
+    const [card] = await db.select().from(digitalCards).where(eq(digitalCards.slug, slug));
+    return card;
+  }
+
+  async createDigitalCard(card: InsertDigitalCard): Promise<DigitalCard> {
+    const [newCard] = await db.insert(digitalCards).values(card).returning();
+    return newCard;
+  }
+
+  async updateDigitalCard(id: number, card: Partial<InsertDigitalCard>): Promise<DigitalCard | undefined> {
+    const [updated] = await db.update(digitalCards)
+      .set({ ...card, updatedAt: new Date() })
+      .where(eq(digitalCards.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDigitalCard(id: number): Promise<boolean> {
+    await db.delete(digitalCards).where(eq(digitalCards.id, id));
+    return true;
   }
 }
 

@@ -399,6 +399,88 @@ Important:
     }
   });
 
+  // === DIGITAL CARDS ROUTES ===
+  
+  // Public: Get card by slug
+  app.get(api.digitalCards.getBySlug.path, async (req, res) => {
+    const card = await storage.getDigitalCardBySlug(req.params.slug);
+    if (!card || !card.isActive) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+    res.json(card);
+  });
+
+  // Admin: List all cards
+  app.get(api.admin.digitalCards.list.path, requireAdminAuth, async (req, res) => {
+    const cards = await storage.getDigitalCards();
+    res.json(cards);
+  });
+
+  // Admin: Create card
+  app.post(api.admin.digitalCards.create.path, requireAdminAuth, async (req, res) => {
+    try {
+      const input = api.admin.digitalCards.create.input.parse(req.body);
+      
+      // Check for duplicate slug
+      const existing = await storage.getDigitalCardBySlug(input.slug);
+      if (existing) {
+        return res.status(409).json({ message: "Ce slug existe déjà" });
+      }
+      
+      const card = await storage.createDigitalCard(input);
+      res.status(201).json(card);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Update card
+  app.put(api.admin.digitalCards.update.path, requireAdminAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const input = api.admin.digitalCards.update.input.parse(req.body);
+      
+      // If changing slug, check for duplicates
+      if (input.slug) {
+        const existing = await storage.getDigitalCardBySlug(input.slug);
+        if (existing && existing.id !== id) {
+          return res.status(409).json({ message: "Ce slug existe déjà" });
+        }
+      }
+      
+      const card = await storage.updateDigitalCard(id, input);
+      if (!card) {
+        return res.status(404).json({ message: "Card not found" });
+      }
+      res.json(card);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Delete card
+  app.delete(api.admin.digitalCards.delete.path, requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const card = await storage.getDigitalCardById(id);
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+    await storage.deleteDigitalCard(id);
+    res.json({ success: true });
+  });
+
   // Initialize seed data
   await seedDatabase();
 

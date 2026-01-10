@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, insertSiteSettingSchema, messages, subscribers, projects, blogPosts, blogCategories, siteSettings } from './schema';
+import { insertMessageSchema, insertSubscriberSchema, insertBlogPostSchema, insertBlogCategorySchema, insertSiteSettingSchema, insertDigitalCardSchema, messages, subscribers, projects, blogPosts, blogCategories, siteSettings, digitalCards } from './schema';
 
 // ============================================
 // SHARED ERROR SCHEMAS
@@ -188,6 +188,52 @@ export const api = {
         responses: {
           200: z.custom<typeof siteSettings.$inferSelect>(),
         },
+      },
+    },
+    digitalCards: {
+      list: {
+        method: 'GET' as const,
+        path: '/api/admin/digital-cards',
+        responses: {
+          200: z.array(z.custom<typeof digitalCards.$inferSelect>()),
+        },
+      },
+      create: {
+        method: 'POST' as const,
+        path: '/api/admin/digital-cards',
+        input: insertDigitalCardSchema,
+        responses: {
+          201: z.custom<typeof digitalCards.$inferSelect>(),
+          400: errorSchemas.validation,
+          409: z.object({ message: z.string() }),
+        },
+      },
+      update: {
+        method: 'PUT' as const,
+        path: '/api/admin/digital-cards/:id',
+        input: insertDigitalCardSchema.partial(),
+        responses: {
+          200: z.custom<typeof digitalCards.$inferSelect>(),
+          404: errorSchemas.notFound,
+        },
+      },
+      delete: {
+        method: 'DELETE' as const,
+        path: '/api/admin/digital-cards/:id',
+        responses: {
+          200: z.object({ success: z.boolean() }),
+          404: errorSchemas.notFound,
+        },
+      },
+    },
+  },
+  digitalCards: {
+    getBySlug: {
+      method: 'GET' as const,
+      path: '/api/cards/:slug',
+      responses: {
+        200: z.custom<typeof digitalCards.$inferSelect>(),
+        404: errorSchemas.notFound,
       },
     },
   },

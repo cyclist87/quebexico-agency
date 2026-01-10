@@ -429,6 +429,350 @@ function AiUsageCard() {
   );
 }
 
+interface DigitalCardData {
+  id?: number;
+  slug: string;
+  fullName: string;
+  jobTitle: string;
+  company: string;
+  email: string;
+  phone: string;
+  website: string;
+  linkedin: string;
+  facebook: string;
+  instagram: string;
+  twitter: string;
+  photoUrl: string;
+  logoUrl: string;
+  primaryColor: string;
+  isActive: boolean;
+}
+
+const emptyCard: DigitalCardData = {
+  slug: "",
+  fullName: "",
+  jobTitle: "",
+  company: "",
+  email: "",
+  phone: "",
+  website: "",
+  linkedin: "",
+  facebook: "",
+  instagram: "",
+  twitter: "",
+  photoUrl: "",
+  logoUrl: "",
+  primaryColor: "#2563eb",
+  isActive: true,
+};
+
+function DigitalCardsTab() {
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<DigitalCardData>(emptyCard);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { data: cards = [], isLoading } = useQuery<DigitalCardData[]>({
+    queryKey: ["/api/admin/digital-cards"],
+    queryFn: () => adminRequest<DigitalCardData[]>("GET", "/api/admin/digital-cards"),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: DigitalCardData) => adminRequest<DigitalCardData>("POST", "/api/admin/digital-cards", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/digital-cards"] });
+      setDialogOpen(false);
+      setEditingCard(emptyCard);
+      toast({ title: "Carte créée", description: "La carte a été créée avec succès" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: DigitalCardData) => adminRequest<DigitalCardData>("PUT", `/api/admin/digital-cards/${data.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/digital-cards"] });
+      setDialogOpen(false);
+      setEditingCard(emptyCard);
+      setIsEditing(false);
+      toast({ title: "Carte mise à jour", description: "Les modifications ont été sauvegardées" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminRequest<{ success: boolean }>("DELETE", `/api/admin/digital-cards/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/digital-cards"] });
+      toast({ title: "Carte supprimée" });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!editingCard.slug || !editingCard.fullName) {
+      toast({ title: "Erreur", description: "Le slug et le nom sont requis", variant: "destructive" });
+      return;
+    }
+    if (isEditing) {
+      updateMutation.mutate(editingCard);
+    } else {
+      createMutation.mutate(editingCard);
+    }
+  };
+
+  const openEditDialog = (card: DigitalCardData) => {
+    setEditingCard(card);
+    setIsEditing(true);
+    setDialogOpen(true);
+  };
+
+  const openCreateDialog = () => {
+    setEditingCard(emptyCard);
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
+
+  const baseUrl = window.location.origin;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <div>
+            <CardTitle>Cartes de visite digitales</CardTitle>
+            <CardDescription>Gérez les cartes de visite de vos clients</CardDescription>
+          </div>
+          <Button onClick={openCreateDialog} data-testid="button-add-card">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle carte
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground">Chargement...</p>
+          ) : cards.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Aucune carte créée</p>
+          ) : (
+            <div className="space-y-3">
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{card.fullName}</h3>
+                      {!card.isActive && <Badge variant="secondary">Désactivée</Badge>}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {card.jobTitle}{card.company ? ` @ ${card.company}` : ""}
+                    </p>
+                    <a
+                      href={`${baseUrl}/c/${card.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {baseUrl}/c/{card.slug}
+                    </a>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => openEditDialog(card)}
+                      data-testid={`button-edit-card-${card.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => card.id && deleteMutation.mutate(card.id)}
+                      data-testid={`button-delete-card-${card.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Modifier la carte" : "Nouvelle carte"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Slug (URL)</Label>
+                <Input
+                  placeholder="jean-dupont"
+                  value={editingCard.slug}
+                  onChange={(e) => setEditingCard({ ...editingCard, slug: e.target.value.toLowerCase().replace(/\s/g, "-") })}
+                  data-testid="input-card-slug"
+                />
+                <p className="text-xs text-muted-foreground mt-1">/c/{editingCard.slug || "..."}</p>
+              </div>
+              <div>
+                <Label>Nom complet *</Label>
+                <Input
+                  placeholder="Jean Dupont"
+                  value={editingCard.fullName}
+                  onChange={(e) => setEditingCard({ ...editingCard, fullName: e.target.value })}
+                  data-testid="input-card-fullname"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Titre / Poste</Label>
+                <Input
+                  placeholder="Directeur Marketing"
+                  value={editingCard.jobTitle}
+                  onChange={(e) => setEditingCard({ ...editingCard, jobTitle: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Entreprise</Label>
+                <Input
+                  placeholder="Acme Inc."
+                  value={editingCard.company}
+                  onChange={(e) => setEditingCard({ ...editingCard, company: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="jean@exemple.com"
+                  value={editingCard.email}
+                  onChange={(e) => setEditingCard({ ...editingCard, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Téléphone</Label>
+                <Input
+                  placeholder="(418) 555-1234"
+                  value={editingCard.phone}
+                  onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Site web</Label>
+              <Input
+                placeholder="www.exemple.com"
+                value={editingCard.website}
+                onChange={(e) => setEditingCard({ ...editingCard, website: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>URL Photo</Label>
+                <Input
+                  placeholder="https://..."
+                  value={editingCard.photoUrl}
+                  onChange={(e) => setEditingCard({ ...editingCard, photoUrl: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>URL Logo</Label>
+                <Input
+                  placeholder="https://..."
+                  value={editingCard.logoUrl}
+                  onChange={(e) => setEditingCard({ ...editingCard, logoUrl: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>LinkedIn</Label>
+                <Input
+                  placeholder="https://linkedin.com/in/..."
+                  value={editingCard.linkedin}
+                  onChange={(e) => setEditingCard({ ...editingCard, linkedin: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Facebook</Label>
+                <Input
+                  placeholder="https://facebook.com/..."
+                  value={editingCard.facebook}
+                  onChange={(e) => setEditingCard({ ...editingCard, facebook: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Instagram</Label>
+                <Input
+                  placeholder="https://instagram.com/..."
+                  value={editingCard.instagram}
+                  onChange={(e) => setEditingCard({ ...editingCard, instagram: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Twitter/X</Label>
+                <Input
+                  placeholder="https://x.com/..."
+                  value={editingCard.twitter}
+                  onChange={(e) => setEditingCard({ ...editingCard, twitter: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Couleur principale</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={editingCard.primaryColor}
+                    onChange={(e) => setEditingCard({ ...editingCard, primaryColor: e.target.value })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={editingCard.primaryColor}
+                    onChange={(e) => setEditingCard({ ...editingCard, primaryColor: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="flex items-end">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editingCard.isActive}
+                    onCheckedChange={(checked) => setEditingCard({ ...editingCard, isActive: checked })}
+                  />
+                  <Label>Carte active</Label>
+                </div>
+              </div>
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditing ? "Mettre à jour" : "Créer la carte"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 async function adminRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -863,6 +1207,12 @@ export default function Admin() {
               </TabsTrigger>
             </TabsList>
             <TabsList className="h-auto p-1">
+              <TabsTrigger value="cards" className="gap-2">
+                <Zap className="h-4 w-4" />
+                Cartes digitales
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="h-auto p-1">
               <TabsTrigger value="settings" className="gap-2">
                 <Settings className="h-4 w-4" />
                 Paramètres
@@ -1144,6 +1494,11 @@ export default function Admin() {
                 )}
               </DialogContent>
             </Dialog>
+          </TabsContent>
+
+          {/* Digital Cards Tab */}
+          <TabsContent value="cards">
+            <DigitalCardsTab />
           </TabsContent>
 
           {/* Settings Tab */}
