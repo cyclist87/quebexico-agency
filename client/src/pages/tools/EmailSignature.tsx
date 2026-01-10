@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Download, Mail, Phone, Globe, Linkedin, Facebook, Instagram, Twitter, Check } from "lucide-react";
+import { Copy, Download, Mail, Phone, Globe, Linkedin, Facebook, Instagram, Twitter, Check, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/ImageUpload";
 
@@ -26,6 +26,8 @@ interface SignatureData {
   logoUrl: string;
   template: "modern" | "classic" | "minimal" | "bold";
   primaryColor: string;
+  ctaText: string;
+  ctaUrl: string;
 }
 
 const defaultData: SignatureData = {
@@ -43,6 +45,8 @@ const defaultData: SignatureData = {
   logoUrl: "",
   template: "modern",
   primaryColor: "#2563eb",
+  ctaText: "",
+  ctaUrl: "",
 };
 
 const templates = [
@@ -76,6 +80,10 @@ function generateSignatureHtml(data: SignatureData): string {
     ? `<img src="${data.logoUrl}" alt="${data.company || 'Logo'}" height="40" style="max-width:120px;height:40px;object-fit:contain;" />`
     : "";
 
+  const ctaHtml = (data.ctaText && data.ctaUrl)
+    ? `<a href="${data.ctaUrl}" style="display:inline-block;background:${data.primaryColor};color:white;padding:8px 16px;border-radius:4px;text-decoration:none;font-size:13px;margin-top:12px;">${data.ctaText}</a>`
+    : "";
+
   if (data.template === "modern") {
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
@@ -93,6 +101,7 @@ function generateSignatureHtml(data: SignatureData): string {
         ${data.website ? `<div style="margin-bottom:4px;"><a href="https://${data.website}" style="color:${data.primaryColor};text-decoration:none;">${data.website}</a></div>` : ""}
       </div>
       ${socialLinks.length > 0 ? `<div style="margin-top:8px;">${socialLinks.join("")}</div>` : ""}
+      ${ctaHtml ? `<div style="margin-top:12px;">${ctaHtml}</div>` : ""}
     </td>
   </tr>
 </table>`.trim();
@@ -111,6 +120,7 @@ function generateSignatureHtml(data: SignatureData): string {
         ${data.phone ? `<span>Tél: ${data.phone}</span><br/>` : ""}
         ${data.website ? `<span>Web: <a href="https://${data.website}" style="color:${data.primaryColor};">${data.website}</a></span>` : ""}
       </div>
+      ${ctaHtml ? `<div style="margin-top:12px;">${ctaHtml}</div>` : ""}
     </td>
   </tr>
 </table>`.trim();
@@ -124,12 +134,16 @@ function generateSignatureHtml(data: SignatureData): string {
     <td>
       <strong>${data.fullName}</strong> | ${data.jobTitle}<br/>
       ${[data.email, data.phone, data.website].filter(Boolean).join(" • ")}
+      ${ctaHtml ? `<br/>${ctaHtml}` : ""}
     </td>
   </tr>
 </table>`.trim();
   }
 
   if (data.template === "bold") {
+    const boldCtaHtml = (data.ctaText && data.ctaUrl)
+      ? `<a href="${data.ctaUrl}" style="display:inline-block;background:white;color:${data.primaryColor};padding:8px 16px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:bold;margin-top:12px;">${data.ctaText}</a>`
+      : "";
     return `
 <table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:14px;">
   ${data.logoUrl ? `<tr><td style="padding-bottom:12px;">${logoHtml}</td></tr>` : ""}
@@ -144,6 +158,7 @@ function generateSignatureHtml(data: SignatureData): string {
             ${data.email ? `<div style="margin-bottom:4px;"><a href="mailto:${data.email}" style="color:white;text-decoration:none;">${data.email}</a></div>` : ""}
             ${data.phone ? `<div style="margin-bottom:4px;">${data.phone}</div>` : ""}
             ${data.website ? `<div><a href="https://${data.website}" style="color:white;text-decoration:underline;">${data.website}</a></div>` : ""}
+            ${boldCtaHtml ? `<div style="margin-top:12px;">${boldCtaHtml}</div>` : ""}
           </td>
         </tr>
       </table>
@@ -358,6 +373,40 @@ export default function EmailSignature() {
                       onChange={(e) => updateField("twitter", e.target.value)}
                       placeholder="https://x.com/..."
                       data-testid="input-twitter"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Appel à l'action
+                </CardTitle>
+                <CardDescription>Ajoutez un bouton pour prendre rendez-vous</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ctaText">Texte du bouton</Label>
+                    <Input
+                      id="ctaText"
+                      value={data.ctaText}
+                      onChange={(e) => updateField("ctaText", e.target.value)}
+                      placeholder="Planifier un appel"
+                      data-testid="input-cta-text"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ctaUrl">Lien du bouton</Label>
+                    <Input
+                      id="ctaUrl"
+                      value={data.ctaUrl}
+                      onChange={(e) => updateField("ctaUrl", e.target.value)}
+                      placeholder="https://calendly.com/..."
+                      data-testid="input-cta-url"
                     />
                   </div>
                 </div>

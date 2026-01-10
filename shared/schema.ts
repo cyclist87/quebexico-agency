@@ -165,6 +165,8 @@ export const emailSignatures = pgTable("email_signatures", {
   logoUrl: text("logo_url"),
   template: text("template").default("modern"),
   primaryColor: text("primary_color").default("#2563eb"),
+  ctaText: text("cta_text"),
+  ctaUrl: text("cta_url"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

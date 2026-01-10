@@ -804,6 +804,8 @@ interface EmailSignatureData {
   logoUrl: string;
   primaryColor: string;
   template: string;
+  ctaText: string;
+  ctaUrl: string;
   isActive: boolean;
 }
 
@@ -823,6 +825,8 @@ const emptySignature: EmailSignatureData = {
   logoUrl: "",
   primaryColor: "#2563eb",
   template: "modern",
+  ctaText: "",
+  ctaUrl: "",
   isActive: true,
 };
 
@@ -1148,6 +1152,30 @@ function EmailSignaturesTab() {
                 </Select>
               </div>
             </div>
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-base font-medium">Appel à l'action (CTA)</Label>
+              <p className="text-sm text-muted-foreground mb-3">Ajoutez un bouton pour prendre rendez-vous ou autre</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Texte du bouton</Label>
+                  <Input
+                    placeholder="Planifier un appel"
+                    value={editingSignature.ctaText}
+                    onChange={(e) => setEditingSignature({ ...editingSignature, ctaText: e.target.value })}
+                    data-testid="input-signature-cta-text"
+                  />
+                </div>
+                <div>
+                  <Label>Lien du bouton</Label>
+                  <Input
+                    placeholder="https://calendly.com/..."
+                    value={editingSignature.ctaUrl}
+                    onChange={(e) => setEditingSignature({ ...editingSignature, ctaUrl: e.target.value })}
+                    data-testid="input-signature-cta-url"
+                  />
+                </div>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={editingSignature.isActive}
@@ -1166,6 +1194,43 @@ function EmailSignaturesTab() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Comment installer la signature</CardTitle>
+          <CardDescription>Instructions pour configurer la signature dans votre client email</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="gmail">
+            <TabsList className="grid grid-cols-3 w-full">
+              <TabsTrigger value="gmail">Gmail</TabsTrigger>
+              <TabsTrigger value="outlook">Outlook</TabsTrigger>
+              <TabsTrigger value="apple">Apple Mail</TabsTrigger>
+            </TabsList>
+            <TabsContent value="gmail" className="text-sm space-y-2 mt-4">
+              <p>1. Cliquez sur "Copier la signature" dans l'outil de génération</p>
+              <p>2. Ouvrez Gmail → Paramètres → Voir tous les paramètres</p>
+              <p>3. Descendez à "Signature" et créez une nouvelle</p>
+              <p>4. Collez avec Ctrl+V (ou Cmd+V sur Mac)</p>
+              <p>5. Enregistrez les modifications</p>
+            </TabsContent>
+            <TabsContent value="outlook" className="text-sm space-y-2 mt-4">
+              <p>1. Téléchargez le fichier HTML de la signature</p>
+              <p>2. Ouvrez Outlook → Fichier → Options → Courrier</p>
+              <p>3. Cliquez sur "Signatures..." et créez une nouvelle</p>
+              <p>4. Collez le contenu ou importez le fichier HTML</p>
+              <p>5. Définissez comme signature par défaut</p>
+            </TabsContent>
+            <TabsContent value="apple" className="text-sm space-y-2 mt-4">
+              <p>1. Téléchargez le fichier HTML de la signature</p>
+              <p>2. Ouvrez Mail → Préférences → Signatures</p>
+              <p>3. Créez une nouvelle signature</p>
+              <p>4. Ouvrez le fichier HTML dans Safari, sélectionnez tout et copiez</p>
+              <p>5. Collez dans la nouvelle signature</p>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
