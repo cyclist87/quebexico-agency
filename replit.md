@@ -72,6 +72,24 @@ The application uses a two-layer localization approach for complete FR/EN/ES sup
 **Date Formatting:**
 - CalendarSection uses date-fns with locale-aware formatting (fr/enUS/es locales)
 
+### Client Tools (Value-Added Services)
+The template system includes standalone tools that can be offered to clients:
+
+**Email Signature Generator** (`/tools/signature`)
+- Form-based editor with 4 templates: Modern, Classic, Minimal, Bold
+- Customizable colors, social links, photo support
+- Real-time preview with copy-to-clipboard and HTML download
+- Instructions for Gmail, Outlook, Apple Mail
+- File: `client/src/pages/tools/EmailSignature.tsx`
+
+**Digital Business Card** (`/tools/carte`)
+- QR code generator using qrcode.react library
+- Generates vCard (.vcf) files for instant contact import
+- Customizable profile card preview with theming
+- Share via native Web Share API or link copy
+- QR code downloads as PNG for printing
+- File: `client/src/pages/tools/DigitalCard.tsx`
+
 ### HostPro Integration (Short-Term Rental Booking)
 - **Purpose**: Enables direct booking functionality for property rental sites
 - **API Proxy**: Server-side proxy at `/api/hostpro/*` to centralized HostPro API
