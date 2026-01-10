@@ -1,6 +1,6 @@
 import { freelancerProfile } from "@shared/demo-profiles";
 import { DemoSite } from "./DemoSite";
-import heroImage from "@assets/stock_images/professional_handyma_07e33c7f.jpg";
+import heroImage from "@assets/stock_images/professional_handyma_019040ee.jpg";
 
 export default function DemoFreelancer() {
   return (
