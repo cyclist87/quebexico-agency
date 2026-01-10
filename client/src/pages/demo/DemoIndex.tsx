@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Bike, Hammer, TreePine, ArrowRight, CheckCircle,
-  Globe, Calendar, Mail, FileText, Image, Users, MessageSquare
+  Globe, Calendar, Mail, FileText, Image, Users, MessageSquare,
+  Sparkles, QrCode
 } from "lucide-react";
 import { demoProfiles } from "@shared/demo-profiles";
 import { useProfileLocalization } from "@/hooks/use-profile-localization";
@@ -147,6 +148,67 @@ export default function DemoIndex() {
               </Card>
             );
           })}
+        </div>
+
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <Badge variant="outline" className="mb-4">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Outils inclus
+            </Badge>
+            <h2 className="text-2xl font-bold mb-2">Services additionnels</h2>
+            <p className="text-muted-foreground">
+              Des outils professionnels inclus avec chaque site
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="hover-elevate" data-testid="card-tool-signature">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Mail className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">Signature Email Professionnelle</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Créez des signatures email élégantes avec photo, liens sociaux et coordonnées. 
+                      Compatible Gmail, Outlook et Apple Mail.
+                    </p>
+                    <Button variant="outline" size="sm" asChild data-testid="button-tool-signature">
+                      <Link href="/tools/signature">
+                        Essayer l'outil
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-elevate" data-testid="card-tool-card">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <QrCode className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">Carte de Visite Numérique</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Générez un QR code pour vos cartes de visite. 
+                      Un scan et vos contacts sont enregistrés dans le téléphone.
+                    </p>
+                    <Button variant="outline" size="sm" asChild data-testid="button-tool-card">
+                      <Link href="/tools/carte">
+                        Essayer l'outil
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="mt-12 text-center">

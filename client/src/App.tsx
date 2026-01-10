@@ -23,6 +23,8 @@ import DemoIndex from "@/pages/demo/DemoIndex";
 import DemoAthlete from "@/pages/demo/DemoAthlete";
 import DemoFreelancer from "@/pages/demo/DemoFreelancer";
 import DemoRentalHost from "@/pages/demo/DemoRentalHost";
+import EmailSignature from "@/pages/tools/EmailSignature";
+import DigitalCard from "@/pages/tools/DigitalCard";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -40,6 +42,8 @@ function MainRouter() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route path="/booking" component={Booking} />
+      <Route path="/tools/signature" component={EmailSignature} />
+      <Route path="/tools/carte" component={DigitalCard} />
       <Route component={NotFound} />
     </Switch>
   );
