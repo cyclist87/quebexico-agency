@@ -7,6 +7,7 @@ import {
   Globe, Calendar, Mail, FileText, Image, Users, MessageSquare
 } from "lucide-react";
 import { demoProfiles } from "@shared/demo-profiles";
+import { useProfileLocalization } from "@/hooks/use-profile-localization";
 
 import athletePreview from "@assets/stock_images/professional_road_cy_e42ef465.jpg";
 import freelancerPreview from "@assets/stock_images/professional_handyma_07e33c7f.jpg";
@@ -60,6 +61,8 @@ const profileMeta = {
 };
 
 export default function DemoIndex() {
+  const { getText } = useProfileLocalization();
+  
   return (
     <div className="min-h-screen bg-background py-16 px-4">
       <div className="max-w-6xl mx-auto">
@@ -92,7 +95,7 @@ export default function DemoIndex() {
                     <div className="aspect-video lg:aspect-auto lg:h-full relative overflow-hidden rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none">
                       <img
                         src={meta.preview}
-                        alt={`Aperçu ${profile.config.name}`}
+                        alt={`Aperçu ${getText(profile.config.name)}`}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -101,15 +104,15 @@ export default function DemoIndex() {
                           <Icon className="h-3 w-3 mr-1" />
                           {type === "athlete" ? "Athlète" : type === "freelancer" ? "Travailleur autonome" : "Location"}
                         </Badge>
-                        <h2 className="text-2xl font-bold text-white">{profile.config.name}</h2>
-                        <p className="text-white/80 text-sm">{profile.config.tagline}</p>
+                        <h2 className="text-2xl font-bold text-white">{getText(profile.config.name)}</h2>
+                        <p className="text-white/80 text-sm">{getText(profile.config.tagline)}</p>
                       </div>
                     </div>
                   </div>
                   
                   <CardContent className="lg:w-1/2 p-6 flex flex-col">
                     <p className="text-muted-foreground mb-6">
-                      {profile.config.description}
+                      {getText(profile.config.description)}
                     </p>
                     
                     <div className="mb-6">
