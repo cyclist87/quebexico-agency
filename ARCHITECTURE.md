@@ -101,8 +101,14 @@
 │   │   ├── client.ts           # Client HTTP HostPro
 │   │   └── routes.ts           # Proxy API routes
 │   ├── replit_integrations/    # Intégrations Replit
-│   │   ├── chat.ts             # Routes chatbot IA
-│   │   └── object_storage.ts   # Upload fichiers
+│   │   ├── chat/               # Chatbot IA
+│   │   │   ├── routes.ts       # Routes API chat
+│   │   │   └── storage.ts      # Stockage sessions
+│   │   ├── object_storage/     # Upload fichiers
+│   │   │   ├── routes.ts       # Routes upload
+│   │   │   └── objectStorage.ts # Service Object Storage
+│   │   ├── image/              # Génération images IA
+│   │   └── batch/              # Traitement par lots
 │   ├── utils/
 │   │   └── encryption.ts       # Chiffrement clés API
 │   ├── routes.ts               # Endpoints API principaux
@@ -205,20 +211,62 @@ Toutes les routes `/api/admin/*` utilisent le header `X-Admin-Key` avec la valeu
 | `GET/POST/PUT/DELETE` | `/api/admin/blog/categories/*` | CRUD catégories |
 | `GET` | `/api/admin/settings` | Paramètres site |
 | `PUT` | `/api/admin/settings/:key` | Modifier paramètre |
+| `POST` | `/api/admin/settings/validate-openai-key` | Valider clé OpenAI |
 | `POST` | `/api/admin/translate` | Traduction auto IA (FR→EN/ES) |
 | `GET` | `/api/admin/ai-usage` | Statistiques usage IA |
 | `GET/POST/PUT/DELETE` | `/api/admin/digital-cards/*` | CRUD cartes numériques |
 | `GET/POST/PUT/DELETE` | `/api/admin/email-signatures/*` | CRUD signatures |
-| `GET` | `/api/admin/chat/sessions` | Sessions chatbot |
-| `GET` | `/api/admin/knowledge` | Base connaissances IA |
+| `GET` | `/api/admin/chat/sessions` | Liste sessions chatbot |
+| `GET` | `/api/admin/chat/sessions/:id` | Détails session avec messages |
+| `DELETE` | `/api/admin/chat/sessions/:id` | Supprimer session |
+| `GET` | `/api/admin/knowledge-base` | Liste documents base connaissances |
+| `POST` | `/api/admin/knowledge-base` | Créer document |
+| `PUT` | `/api/admin/knowledge-base/:id` | Modifier document |
+| `DELETE` | `/api/admin/knowledge-base/:id` | Supprimer document |
 
-### Endpoints Chatbot
+### Endpoints Chatbot (Public)
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| `POST` | `/api/chat/start` | Démarrer session chat |
-| `POST` | `/api/chat/message` | Envoyer message |
-| `GET` | `/api/chat/session/:id` | Historique session |
+| `POST` | `/api/chat/sessions` | Créer/récupérer session par visitorId |
+| `POST` | `/api/chat/sessions/:id/messages` | Envoyer message (SSE streaming) |
+
+**Request body (sessions):**
+```json
+{ "visitorId": "uuid-unique", "language": "fr|en|es" }
+```
+
+**Request body (messages):**
+```json
+{ "content": "Message utilisateur", "language": "fr" }
+```
+
+**Response:** Server-Sent Events (SSE) avec chunks du modèle IA
+
+### Endpoints Object Storage (Upload Fichiers)
+
+| Méthode | Endpoint | Auth | Description |
+|---------|----------|------|-------------|
+| `POST` | `/api/uploads/request-url` | Non* | Obtenir URL présignée pour upload |
+| `GET` | `/objects/:objectPath(*)` | Non | Servir fichiers uploadés |
+
+> ⚠️ **Note sécurité:** L'endpoint upload n'a pas d'authentification par défaut. Pour une utilisation production, ajouter un middleware d'auth avant d'exposer publiquement.
+
+**Flow d'upload :**
+1. Client envoie metadata JSON à `/api/uploads/request-url`
+2. Serveur retourne `uploadURL` (URL GCS présignée) + `objectPath`
+3. Client upload fichier directement vers `uploadURL`
+4. Fichier accessible via `/objects/{objectPath}`
+
+**Request body (request-url):**
+```json
+{ "name": "photo.jpg", "size": 123456, "contentType": "image/jpeg" }
+```
+
+**Response:**
+```json
+{ "uploadURL": "https://storage.googleapis.com/...", "objectPath": "/objects/uploads/uuid" }
+```
 
 ### Endpoints Pexels (Proxy)
 
