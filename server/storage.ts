@@ -17,6 +17,7 @@ import {
   couponRedemptions,
   siteConfig,
   contentSections,
+  templateFeatures,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -49,7 +50,8 @@ import {
   type Coupon,
   type CouponRedemption,
   type SiteConfigType,
-  type ContentSection
+  type ContentSection,
+  type TemplateFeature
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
@@ -165,6 +167,11 @@ export interface IStorage {
   createContentSection(section: InsertContentSection): Promise<ContentSection>;
   updateContentSection(id: number, section: Partial<InsertContentSection>): Promise<ContentSection | undefined>;
   deleteContentSection(id: number): Promise<boolean>;
+  
+  // Template Features
+  getTemplateFeatures(): Promise<TemplateFeature[]>;
+  getTemplateFeatureByType(templateType: string): Promise<TemplateFeature | undefined>;
+  upsertTemplateFeature(templateType: string, enabledFeatures: string[]): Promise<TemplateFeature>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -679,6 +686,32 @@ export class DatabaseStorage implements IStorage {
   async deleteContentSection(id: number): Promise<boolean> {
     await db.delete(contentSections).where(eq(contentSections.id, id));
     return true;
+  }
+
+  // Template Features
+  async getTemplateFeatures(): Promise<TemplateFeature[]> {
+    return await db.select().from(templateFeatures);
+  }
+
+  async getTemplateFeatureByType(templateType: string): Promise<TemplateFeature | undefined> {
+    const [feature] = await db.select().from(templateFeatures).where(eq(templateFeatures.templateType, templateType));
+    return feature;
+  }
+
+  async upsertTemplateFeature(templateType: string, enabledFeatures: string[]): Promise<TemplateFeature> {
+    const existing = await this.getTemplateFeatureByType(templateType);
+    if (existing) {
+      const [updated] = await db.update(templateFeatures)
+        .set({ enabledFeatures, updatedAt: new Date() })
+        .where(eq(templateFeatures.templateType, templateType))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(templateFeatures)
+        .values({ templateType, enabledFeatures })
+        .returning();
+      return created;
+    }
   }
 }
 

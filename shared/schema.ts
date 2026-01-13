@@ -377,6 +377,16 @@ export const contentSections = pgTable("content_sections", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === TEMPLATE FEATURE CONFIGURATIONS ===
+
+export const templateFeatures = pgTable("template_features", {
+  id: serial("id").primaryKey(),
+  templateType: text("template_type").notNull().unique(),
+  enabledFeatures: text("enabled_features").array().notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -419,6 +429,7 @@ export const insertCouponRedemptionSchema = createInsertSchema(couponRedemptions
 
 export const insertSiteConfigSchema = createInsertSchema(siteConfig).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContentSectionSchema = createInsertSchema(contentSections).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTemplateFeatureSchema = createInsertSchema(templateFeatures).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -484,6 +495,9 @@ export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
 
 export type ContentSection = typeof contentSections.$inferSelect;
 export type InsertContentSection = z.infer<typeof insertContentSectionSchema>;
+
+export type TemplateFeature = typeof templateFeatures.$inferSelect;
+export type InsertTemplateFeature = z.infer<typeof insertTemplateFeatureSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

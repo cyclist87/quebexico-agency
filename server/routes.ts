@@ -485,6 +485,75 @@ export async function registerRoutes(
     }
   });
 
+  // === TEMPLATE FEATURES ROUTES ===
+
+  const validTemplateTypes = ["str", "freelancer", "sports_club", "cleaning", "agency"] as const;
+  
+  const templateFeaturesSchema = z.object({
+    enabledFeatures: z.array(z.string()),
+  });
+
+  const bulkTemplateFeaturesSchema = z.object({
+    features: z.record(z.enum(validTemplateTypes), z.array(z.string())),
+  });
+
+  // Get all template features
+  app.get("/api/admin/template-features", requireAdminAuth, async (req, res) => {
+    const features = await storage.getTemplateFeatures();
+    res.json(features);
+  });
+
+  // Get template features for a specific template
+  app.get("/api/admin/template-features/:templateType", requireAdminAuth, async (req, res) => {
+    const templateType = req.params.templateType;
+    if (!validTemplateTypes.includes(templateType as typeof validTemplateTypes[number])) {
+      return res.status(400).json({ message: "Invalid template type" });
+    }
+    const feature = await storage.getTemplateFeatureByType(templateType);
+    res.json(feature);
+  });
+
+  // Upsert template features (create or update)
+  app.put("/api/admin/template-features/:templateType", requireAdminAuth, async (req, res) => {
+    try {
+      const templateType = req.params.templateType;
+      if (!validTemplateTypes.includes(templateType as typeof validTemplateTypes[number])) {
+        return res.status(400).json({ message: "Invalid template type" });
+      }
+      
+      const parsed = templateFeaturesSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "enabledFeatures must be an array of strings" });
+      }
+      
+      const result = await storage.upsertTemplateFeature(templateType, parsed.data.enabledFeatures);
+      res.json(result);
+    } catch (err) {
+      console.error("Error saving template features:", err);
+      res.status(500).json({ message: "Failed to save template features" });
+    }
+  });
+
+  // Bulk upsert all template features
+  app.put("/api/admin/template-features", requireAdminAuth, async (req, res) => {
+    try {
+      const parsed = bulkTemplateFeaturesSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid features format" });
+      }
+      
+      const results = [];
+      for (const [templateType, enabledFeatures] of Object.entries(parsed.data.features)) {
+        const result = await storage.upsertTemplateFeature(templateType, enabledFeatures);
+        results.push(result);
+      }
+      res.json(results);
+    } catch (err) {
+      console.error("Error saving template features:", err);
+      res.status(500).json({ message: "Failed to save template features" });
+    }
+  });
+
   // Translation endpoint
   const translateSchema = z.object({
     titleFr: z.string().min(1),

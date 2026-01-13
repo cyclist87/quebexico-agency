@@ -3,14 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TEMPLATE_CONFIGS, useTemplate, type TemplateType } from "@/contexts/TemplateContext";
 import { ADMIN_MODULES, getModuleName } from "@/lib/admin-modules";
-import { Save, Shield, RefreshCw } from "lucide-react";
+import { Save, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type TemplateFeatures = Record<TemplateType, string[]>;
+
+interface TemplateFeatureRecord {
+  id: number;
+  templateType: string;
+  enabledFeatures: string[];
+}
+
+function getAdminKey(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("quebexico_admin_key") || "";
+}
 
 function getDefaultFeatures(): TemplateFeatures {
   const initial: TemplateFeatures = {} as TemplateFeatures;
@@ -20,25 +31,45 @@ function getDefaultFeatures(): TemplateFeatures {
   return initial;
 }
 
-function loadStoredFeatures(): TemplateFeatures {
-  try {
-    const stored = localStorage.getItem("qbx_template_features");
-    if (stored) {
-      return JSON.parse(stored) as TemplateFeatures;
+async function fetchTemplateFeatures(): Promise<TemplateFeatureRecord[]> {
+  const res = await fetch("/api/admin/template-features", {
+    headers: { "x-admin-key": getAdminKey() },
+    credentials: "include",
+  });
+  if (!res.ok) return [];
+  return await res.json();
+}
+
+function serverToLocal(records: TemplateFeatureRecord[]): TemplateFeatures {
+  const defaults = getDefaultFeatures();
+  records.forEach(record => {
+    if (record.templateType in defaults) {
+      defaults[record.templateType as TemplateType] = record.enabledFeatures;
     }
-  } catch (e) {
-    console.error("Failed to parse stored features", e);
-  }
-  return getDefaultFeatures();
+  });
+  return defaults;
 }
 
 export default function AdminSuper() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const { updateTemplateFeatures } = useTemplate();
+  const queryClient = useQueryClient();
+  const { refetchFeatures } = useTemplate();
   const lang = (language === "en" || language === "es" ? language : "fr") as "fr" | "en" | "es";
 
-  const [templateFeatures, setTemplateFeatures] = useState<TemplateFeatures>(() => loadStoredFeatures());
+  const { data: serverRecords = [], isLoading } = useQuery<TemplateFeatureRecord[]>({
+    queryKey: ["/api/admin/template-features"],
+    queryFn: fetchTemplateFeatures,
+  });
+
+  const [templateFeatures, setTemplateFeatures] = useState<TemplateFeatures>(() => getDefaultFeatures());
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (serverRecords.length > 0) {
+      setTemplateFeatures(serverToLocal(serverRecords));
+    }
+  }, [serverRecords]);
 
   const translations = {
     fr: {
@@ -49,7 +80,8 @@ export default function AdminSuper() {
       save: "Enregistrer",
       reset: "Réinitialiser",
       saved: "Configuration sauvegardée",
-      savedDescription: "Les changements prendront effet après rechargement",
+      savedDescription: "Les changements sont maintenant actifs",
+      error: "Erreur lors de la sauvegarde",
     },
     en: {
       title: "Super Admin",
@@ -59,7 +91,8 @@ export default function AdminSuper() {
       save: "Save",
       reset: "Reset",
       saved: "Configuration saved",
-      savedDescription: "Changes will take effect after reload",
+      savedDescription: "Changes are now active",
+      error: "Error saving configuration",
     },
     es: {
       title: "Super Admin",
@@ -69,7 +102,8 @@ export default function AdminSuper() {
       save: "Guardar",
       reset: "Reiniciar",
       saved: "Configuración guardada",
-      savedDescription: "Los cambios tendrán efecto después de recargar",
+      savedDescription: "Los cambios están activos ahora",
+      error: "Error al guardar",
     },
   };
 
@@ -85,7 +119,7 @@ export default function AdminSuper() {
   };
 
   const allModuleIds = ADMIN_MODULES.map(m => m.requiredFeature);
-  const uniqueModuleIds = [...new Set(allModuleIds)];
+  const uniqueModuleIds = Array.from(new Set(allModuleIds));
 
   const toggleFeature = (template: TemplateType, feature: string) => {
     setTemplateFeatures(prev => {
@@ -98,19 +132,68 @@ export default function AdminSuper() {
     });
   };
 
-  const handleSave = () => {
-    updateTemplateFeatures(templateFeatures);
-    toast({
-      title: t.saved,
-      description: t.savedDescription,
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/admin/template-features", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": getAdminKey(),
+        },
+        credentials: "include",
+        body: JSON.stringify({ features: templateFeatures }),
+      });
+
+      if (!res.ok) throw new Error("Save failed");
+
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/template-features"] });
+      refetchFeatures();
+      
+      toast({
+        title: t.saved,
+        description: t.savedDescription,
+      });
+    } catch {
+      toast({
+        title: t.error,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     const defaults = getDefaultFeatures();
     setTemplateFeatures(defaults);
-    updateTemplateFeatures(defaults);
+    
+    setIsSaving(true);
+    try {
+      await fetch("/api/admin/template-features", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": getAdminKey(),
+        },
+        credentials: "include",
+        body: JSON.stringify({ features: defaults }),
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/template-features"] });
+      refetchFeatures();
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -123,11 +206,11 @@ export default function AdminSuper() {
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={handleSave} data-testid="button-save-super">
-          <Save className="w-4 h-4 mr-2" />
+        <Button onClick={handleSave} disabled={isSaving} data-testid="button-save-super">
+          {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           {t.save}
         </Button>
-        <Button variant="outline" onClick={handleReset} data-testid="button-reset-super">
+        <Button variant="outline" onClick={handleReset} disabled={isSaving} data-testid="button-reset-super">
           <RefreshCw className="w-4 h-4 mr-2" />
           {t.reset}
         </Button>

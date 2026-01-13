@@ -1,7 +1,14 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type TemplateType = "str" | "freelancer" | "sports_club" | "cleaning" | "agency";
 type TemplateFeatures = Record<TemplateType, string[]>;
+
+interface TemplateFeatureRecord {
+  id: number;
+  templateType: string;
+  enabledFeatures: string[];
+}
 
 export interface TemplateConfig {
   id: TemplateType;
@@ -70,7 +77,9 @@ interface TemplateContextValue {
   templateFeatures: string[];
   hasFeature: (feature: string) => boolean;
   availableTemplates: TemplateConfig[];
-  updateTemplateFeatures: (features: TemplateFeatures) => void;
+  updateTemplateFeatures: (features: TemplateFeatures) => Promise<void>;
+  isLoading: boolean;
+  refetchFeatures: () => void;
 }
 
 const TemplateContext = createContext<TemplateContextValue | undefined>(undefined);
@@ -80,27 +89,52 @@ interface TemplateProviderProps {
   defaultTemplate?: TemplateType;
 }
 
-function loadFeatureOverrides(): TemplateFeatures | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const stored = localStorage.getItem("qbx_template_features");
-    if (stored) {
-      return JSON.parse(stored) as TemplateFeatures;
-    }
-  } catch (e) {
-    console.error("Failed to parse template features from localStorage", e);
-  }
-  return null;
+function getAdminKey(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("quebexico_admin_key") || "";
 }
 
-function getEffectiveFeatures(template: TemplateType, overrides: TemplateFeatures | null): string[] {
-  if (overrides && overrides[template]) {
-    return overrides[template];
+async function fetchTemplateFeatures(): Promise<TemplateFeatureRecord[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const res = await fetch("/api/admin/template-features", {
+      headers: { "x-admin-key": getAdminKey() },
+      credentials: "include",
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+async function saveTemplateFeatures(features: TemplateFeatures): Promise<void> {
+  if (typeof window === "undefined") return;
+  await fetch("/api/admin/template-features", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-key": getAdminKey(),
+    },
+    credentials: "include",
+    body: JSON.stringify({ features }),
+  });
+}
+
+function getEffectiveFeatures(
+  template: TemplateType,
+  serverFeatures: TemplateFeatureRecord[]
+): string[] {
+  const serverRecord = serverFeatures.find(f => f.templateType === template);
+  if (serverRecord && serverRecord.enabledFeatures.length > 0) {
+    return serverRecord.enabledFeatures;
   }
   return TEMPLATE_CONFIGS[template].features;
 }
 
 export function TemplateProvider({ children, defaultTemplate = "str" }: TemplateProviderProps) {
+  const queryClient = useQueryClient();
+  
   const [currentTemplate, setCurrentTemplate] = useState<TemplateType>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("quebexico_template");
@@ -111,17 +145,11 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
     return defaultTemplate;
   });
 
-  const [featureOverrides, setFeatureOverrides] = useState<TemplateFeatures | null>(() => loadFeatureOverrides());
-
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "qbx_template_features") {
-        setFeatureOverrides(loadFeatureOverrides());
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  const { data: serverFeatures = [], isLoading, refetch } = useQuery<TemplateFeatureRecord[]>({
+    queryKey: ["/api/admin/template-features"],
+    queryFn: fetchTemplateFeatures,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const handleSetTemplate = useCallback((template: TemplateType) => {
     setCurrentTemplate(template);
@@ -130,13 +158,13 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
     }
   }, []);
 
-  const updateTemplateFeatures = useCallback((features: TemplateFeatures) => {
-    setFeatureOverrides(features);
-    localStorage.setItem("qbx_template_features", JSON.stringify(features));
-  }, []);
+  const updateTemplateFeatures = useCallback(async (features: TemplateFeatures) => {
+    await saveTemplateFeatures(features);
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/template-features"] });
+  }, [queryClient]);
 
   const templateConfig = TEMPLATE_CONFIGS[currentTemplate];
-  const templateFeatures = getEffectiveFeatures(currentTemplate, featureOverrides);
+  const templateFeatures = getEffectiveFeatures(currentTemplate, serverFeatures);
 
   const hasFeature = useCallback(
     (feature: string) => templateFeatures.includes(feature),
@@ -155,6 +183,8 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
         hasFeature,
         availableTemplates,
         updateTemplateFeatures,
+        isLoading,
+        refetchFeatures: refetch,
       }}
     >
       {children}
