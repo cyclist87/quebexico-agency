@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminProperties, useAdminReservations, useAdminBlockedDates } from "@/hooks/use-properties";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -203,6 +203,35 @@ interface GanttViewProps {
 }
 
 function GanttView({ properties, days, reservations, blockedDates, lang, currentMonth }: GanttViewProps) {
+  const [startIndex, setStartIndex] = useState(0);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [visibleDays, setVisibleDays] = useState(14);
+
+  React.useEffect(() => {
+    const updateVisibleDays = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const propertyColWidth = 160;
+        const availableWidth = containerWidth - propertyColWidth;
+        const minDayWidth = 36;
+        const calculatedDays = Math.floor(availableWidth / minDayWidth);
+        setVisibleDays(Math.max(7, Math.min(calculatedDays, days.length)));
+      }
+    };
+
+    updateVisibleDays();
+    window.addEventListener('resize', updateVisibleDays);
+    return () => window.removeEventListener('resize', updateVisibleDays);
+  }, [days.length]);
+
+  React.useEffect(() => {
+    setStartIndex(0);
+  }, [currentMonth]);
+
+  const displayedDays = days.slice(startIndex, startIndex + visibleDays);
+  const canGoBack = startIndex > 0;
+  const canGoForward = startIndex + visibleDays < days.length;
+
   const getPropertyName = (prop: Property) => {
     return lang === "en" ? prop.nameEn : lang === "es" ? prop.nameEs : prop.nameFr;
   };
@@ -243,43 +272,79 @@ function GanttView({ properties, days, reservations, blockedDates, lang, current
     return events;
   };
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = days.length;
+  const viewStart = displayedDays[0];
+  const viewEnd = displayedDays[displayedDays.length - 1];
+  const numDisplayedDays = displayedDays.length;
 
   const getEventPosition = (start: Date, end: Date) => {
-    const eventStart = Math.max(start.getTime(), monthStart.getTime());
-    const eventEnd = Math.min(end.getTime(), monthEnd.getTime());
+    if (!viewStart || !viewEnd) return { left: '0%', width: '0%' };
     
-    const startDay = Math.floor((eventStart - monthStart.getTime()) / (1000 * 60 * 60 * 24));
-    let endDay = Math.ceil((eventEnd - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+    const viewStartTime = viewStart.getTime();
+    const viewEndTime = viewEnd.getTime() + (24 * 60 * 60 * 1000);
+    
+    const eventStart = Math.max(start.getTime(), viewStartTime);
+    const eventEnd = Math.min(end.getTime(), viewEndTime);
+    
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const startDay = (eventStart - viewStartTime) / msPerDay;
+    let endDay = (eventEnd - viewStartTime) / msPerDay;
     
     if (endDay <= startDay) {
       endDay = startDay + 1;
     }
     
-    const left = (startDay / daysInMonth) * 100;
-    const width = Math.max(((endDay - startDay) / daysInMonth) * 100, 100 / daysInMonth);
+    const left = (startDay / numDisplayedDays) * 100;
+    const width = Math.max(((endDay - startDay) / numDisplayedDays) * 100, 100 / numDisplayedDays);
     
     return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
   };
 
   const isEventVisible = (start: Date, end: Date) => {
-    return start <= monthEnd && end >= monthStart;
+    if (!viewStart || !viewEnd) return false;
+    const viewEndTime = viewEnd.getTime() + (24 * 60 * 60 * 1000);
+    return start.getTime() < viewEndTime && end.getTime() > viewStart.getTime();
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[800px]">
+    <div ref={containerRef} className="space-y-2">
+      <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+        <span>
+          {format(displayedDays[0] || currentMonth, "d MMM", { locale: lang === "en" ? enUS : lang === "es" ? es : fr })}
+          {" - "}
+          {format(displayedDays[displayedDays.length - 1] || currentMonth, "d MMM", { locale: lang === "en" ? enUS : lang === "es" ? es : fr })}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          disabled={!canGoBack}
+          onClick={() => setStartIndex(Math.max(0, startIndex - Math.floor(visibleDays / 2)))}
+          data-testid="button-gantt-prev"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          disabled={!canGoForward}
+          onClick={() => setStartIndex(Math.min(days.length - visibleDays, startIndex + Math.floor(visibleDays / 2)))}
+          data-testid="button-gantt-next"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div>
         <div className="flex border-b">
-          <div className="w-48 shrink-0 p-2 font-medium border-r bg-muted/30">
+          <div className="w-40 shrink-0 p-2 font-medium border-r bg-muted/30 text-sm">
             {lang === "fr" ? "Propriété" : lang === "es" ? "Propiedad" : "Property"}
           </div>
           <div className="flex-1 flex">
-            {days.map((day, i) => (
+            {displayedDays.map((day, i) => (
               <div 
                 key={i} 
-                className={`flex-1 text-center text-xs py-1 border-r last:border-r-0 ${
+                className={`flex-1 text-center text-xs py-1 border-r last:border-r-0 min-w-[36px] ${
                   day.getDay() === 0 || day.getDay() === 6 ? 'bg-muted/30' : ''
                 }`}
               >
@@ -294,15 +359,15 @@ function GanttView({ properties, days, reservations, blockedDates, lang, current
           const events = getPropertyEvents(property.id);
           return (
             <div key={property.id} className="flex border-b hover:bg-muted/10">
-              <div className="w-48 shrink-0 p-2 border-r text-sm font-medium truncate" title={getPropertyName(property) || ''}>
+              <div className="w-40 shrink-0 p-2 border-r text-sm font-medium truncate" title={getPropertyName(property) || ''}>
                 {getPropertyName(property)}
               </div>
               <div className="flex-1 relative h-12">
                 <div className="absolute inset-0 flex">
-                  {days.map((day, i) => (
+                  {displayedDays.map((day, i) => (
                     <div 
                       key={i} 
-                      className={`flex-1 border-r last:border-r-0 ${
+                      className={`flex-1 border-r last:border-r-0 min-w-[36px] ${
                         day.getDay() === 0 || day.getDay() === 6 ? 'bg-muted/20' : ''
                       }`}
                     />
