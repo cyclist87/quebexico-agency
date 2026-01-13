@@ -96,7 +96,7 @@ export function AdminShell({ children }: AdminShellProps) {
               <SelectTrigger className="w-full" data-testid="select-template-type">
                 <SelectValue placeholder={t.templateSelector} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100]" position="popper" sideOffset={4}>
                 {availableTemplates.map((tmpl) => (
                   <SelectItem key={tmpl.id} value={tmpl.id} data-testid={`select-template-${tmpl.id}`}>
                     {getTemplateName(tmpl)}
