@@ -1735,6 +1735,77 @@ Important:
     res.json({ success: true });
   });
 
+  // === TRANSLATION API ===
+  
+  // Admin: Generate translations using AI
+  app.post("/api/admin/translate", requireAdminAuth, async (req, res) => {
+    try {
+      const { texts, sourceLanguage, targetLanguages } = req.body;
+      
+      if (!texts || !sourceLanguage || !targetLanguages) {
+        return res.status(400).json({ message: "Missing required fields: texts, sourceLanguage, targetLanguages" });
+      }
+      
+      const { client: openaiClient } = await getOpenAIClient();
+      
+      const languageNames: Record<string, string> = {
+        fr: "French",
+        en: "English", 
+        es: "Spanish"
+      };
+      
+      const results: Record<string, Record<string, string>> = {};
+      
+      for (const targetLang of targetLanguages) {
+        if (targetLang === sourceLanguage) continue;
+        
+        const textsToTranslate = Object.entries(texts)
+          .filter(([_, value]) => value && String(value).trim())
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n");
+        
+        if (!textsToTranslate) continue;
+        
+        const response = await openaiClient.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are a professional translator. Translate the following texts from ${languageNames[sourceLanguage]} to ${languageNames[targetLang]}. 
+Maintain the exact same format with "key: translation" on each line.
+Keep proper nouns, brand names, and technical terms as appropriate.
+Return ONLY the translations, one per line, in the exact same format.`
+            },
+            {
+              role: "user",
+              content: textsToTranslate
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.3
+        });
+        
+        const translatedText = response.choices[0]?.message?.content || "";
+        const lines = translatedText.split("\n").filter(line => line.includes(":"));
+        
+        results[targetLang] = {};
+        for (const line of lines) {
+          const colonIndex = line.indexOf(":");
+          if (colonIndex > 0) {
+            const key = line.substring(0, colonIndex).trim();
+            const value = line.substring(colonIndex + 1).trim();
+            results[targetLang][key] = value;
+          }
+        }
+      }
+      
+      res.json({ translations: results });
+    } catch (error) {
+      console.error("Error generating translations:", error);
+      res.status(500).json({ message: "Failed to generate translations" });
+    }
+  });
+
   // Initialize seed data
   await seedDatabase();
 

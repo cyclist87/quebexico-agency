@@ -57,6 +57,7 @@ import { fr } from "date-fns/locale";
 import { Link } from "wouter";
 import type { Property, InsertProperty } from "@shared/schema";
 import { insertPropertySchema } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 const propertyFormSchema = z.object({
   slug: z.string().min(1, "Le slug est requis").regex(/^[a-z0-9-]+$/, "Slug invalide"),
@@ -805,6 +806,8 @@ export default function AdminPropertyEditor() {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const [isTranslating, setIsTranslating] = useState(false);
+  
   const generateTranslations = async () => {
     const primaryLang = formValues.primaryLanguage || "fr";
     const sourceName = primaryLang === "fr" ? formValues.nameFr : 
@@ -813,13 +816,59 @@ export default function AdminPropertyEditor() {
     const sourceDesc = primaryLang === "fr" ? formValues.descriptionFr : 
                        primaryLang === "en" ? formValues.descriptionEn : 
                        formValues.descriptionEs;
+    const sourceAddress = primaryLang === "fr" ? formValues.addressFr : 
+                          primaryLang === "en" ? formValues.addressEn : 
+                          formValues.addressEs;
 
     if (!sourceName) {
       toast({ title: "Entrez d'abord le nom dans la langue principale", variant: "destructive" });
       return;
     }
 
-    toast({ title: "Génération de traductions...", description: "Cette fonctionnalité nécessite une clé API OpenAI" });
+    setIsTranslating(true);
+    toast({ title: "Génération des traductions en cours..." });
+
+    try {
+      const targetLanguages = ["fr", "en", "es"].filter(l => l !== primaryLang);
+      
+      const texts: Record<string, string> = {};
+      if (sourceName) texts.name = sourceName;
+      if (sourceDesc) texts.description = sourceDesc;
+      if (sourceAddress) texts.address = sourceAddress;
+      
+      const response = await apiRequest("POST", "/api/admin/translate", {
+        texts,
+        sourceLanguage: primaryLang,
+        targetLanguages,
+      });
+      
+      const { translations } = await response.json();
+      
+      for (const [lang, fields] of Object.entries(translations) as [string, Record<string, string>][]) {
+        if (fields.name) {
+          if (lang === "fr") form.setValue("nameFr", fields.name);
+          if (lang === "en") form.setValue("nameEn", fields.name);
+          if (lang === "es") form.setValue("nameEs", fields.name);
+        }
+        if (fields.description) {
+          if (lang === "fr") form.setValue("descriptionFr", fields.description);
+          if (lang === "en") form.setValue("descriptionEn", fields.description);
+          if (lang === "es") form.setValue("descriptionEs", fields.description);
+        }
+        if (fields.address) {
+          if (lang === "fr") form.setValue("addressFr", fields.address);
+          if (lang === "en") form.setValue("addressEn", fields.address);
+          if (lang === "es") form.setValue("addressEs", fields.address);
+        }
+      }
+      
+      toast({ title: "Traductions générées avec succès !" });
+    } catch (error) {
+      console.error("Translation error:", error);
+      toast({ title: "Erreur lors de la génération des traductions", variant: "destructive" });
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   if (propertiesLoading && !isNew) {
@@ -1003,9 +1052,9 @@ export default function AdminPropertyEditor() {
                             Définissez la langue principale et générez les traductions
                           </p>
                         </div>
-                        <Button type="button" variant="outline" onClick={generateTranslations}>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Générer traductions
+                        <Button type="button" variant="outline" onClick={generateTranslations} disabled={isTranslating}>
+                          {isTranslating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                          {isTranslating ? "Traduction en cours..." : "Générer traductions"}
                         </Button>
                       </div>
 
