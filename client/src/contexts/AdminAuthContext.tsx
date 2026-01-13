@@ -34,7 +34,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   async function validateKey(key: string): Promise<boolean> {
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch("/api/auth/verify-session", {
         headers: { "x-admin-key": key },
       });
       return response.ok;

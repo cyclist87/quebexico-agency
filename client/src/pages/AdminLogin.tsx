@@ -78,14 +78,15 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Call the dev-only API endpoint to get the admin key
+      // Call the dev-only API endpoint to get a session token
       const response = await fetch("/api/auth/dev-login", { method: "POST" });
       if (!response.ok) {
         setError("Dev login not available");
         return;
       }
       const data = await response.json();
-      const success = await login(data.adminKey);
+      // Use the session token (not the actual secret key)
+      const success = await login(data.sessionToken);
       if (success) {
         setLocation("/admin");
       } else {

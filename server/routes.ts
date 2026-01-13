@@ -123,12 +123,16 @@ export async function getOpenAIClient(): Promise<{ client: OpenAI; usedCustomKey
   return { client: openai, usedCustomKey: false };
 }
 
+// Track dev session tokens (in-memory, cleared on restart)
+const devSessionTokens = new Set<string>();
+
 function requireAdminAuth(req: any, res: any, next: any) {
   const adminKey = req.headers["x-admin-key"];
-  if (adminKey !== ADMIN_SECRET_KEY) {
-    return res.status(401).json({ message: "Unauthorized" });
+  // Accept either the real admin key or a valid dev session token
+  if (adminKey === ADMIN_SECRET_KEY || devSessionTokens.has(adminKey)) {
+    return next();
   }
-  next();
+  return res.status(401).json({ message: "Unauthorized" });
 }
 
 function isDevEnvironment(): boolean {
@@ -141,14 +145,24 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   // Dev-only admin login route - only available in development
-  // Validates dev mode and returns the admin key securely (dev only)
+  // Creates a server-side session without exposing the actual secret key
   app.post("/api/auth/dev-login", (req, res) => {
     if (!isDevEnvironment()) {
       return res.status(404).json({ message: "Not found" });
     }
-    // In dev mode only, provide admin access
-    // This route doesn't exist in production (404)
-    res.json({ adminKey: ADMIN_SECRET_KEY });
+    // Generate a session token that maps to admin access
+    const sessionToken = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    devSessionTokens.add(sessionToken);
+    res.json({ sessionToken });
+  });
+  
+  // Verify session token
+  app.get("/api/auth/verify-session", (req, res) => {
+    const token = req.headers["x-admin-key"] as string;
+    if (devSessionTokens.has(token) || token === ADMIN_SECRET_KEY) {
+      return res.json({ valid: true });
+    }
+    return res.status(401).json({ valid: false });
   });
   
   // Register chatbot routes
