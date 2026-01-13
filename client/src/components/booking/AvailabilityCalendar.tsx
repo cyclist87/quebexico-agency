@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { addDays, isWithinInterval, parseISO, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -66,37 +65,30 @@ export function AvailabilityCalendar({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   return (
-    <Card data-testid="card-availability-calendar">
-      <CardHeader>
-        <CardTitle className="text-lg">Sélectionnez vos dates</CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 sm:p-6">
-        <Calendar
-          mode="range"
-          selected={range}
-          onSelect={handleSelect}
-          disabled={[{ before: new Date() }, ...disabledDays]}
-          numberOfMonths={1}
-          locale={fr}
-          className="rounded-md w-full"
-          data-testid="calendar-availability"
-        />
-        {range?.from && range?.to && (
-          <p className="mt-4 text-sm text-muted-foreground" data-testid="text-selected-dates">
-            Du {format(range.from, "d MMMM yyyy", { locale: fr })} au{" "}
-            {format(range.to, "d MMMM yyyy", { locale: fr })}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <div data-testid="card-availability-calendar">
+      <Calendar
+        mode="range"
+        selected={range}
+        onSelect={handleSelect}
+        disabled={[{ before: new Date() }, ...disabledDays]}
+        numberOfMonths={1}
+        locale={fr}
+        className="rounded-md w-full [&_.rdp-months]:justify-center"
+        data-testid="calendar-availability"
+      />
+      {range?.from && range?.to && (
+        <p className="mt-3 text-sm text-muted-foreground text-center" data-testid="text-selected-dates">
+          Du {format(range.from, "d MMMM yyyy", { locale: fr })} au{" "}
+          {format(range.to, "d MMMM yyyy", { locale: fr })}
+        </p>
+      )}
+    </div>
   );
 }

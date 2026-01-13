@@ -297,41 +297,33 @@ export function BookingFlowLocal({
   } : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col xl:flex-row gap-6">
-        <div className="flex-1 min-w-0">
-          <AvailabilityCalendar
-            availability={availabilityForCalendar}
-            isLoading={availabilityLoading}
-            onDateRangeChange={handleDateRangeChange}
-            selectedRange={selectedRange}
-            setSelectedRange={setSelectedRange}
-          />
-        </div>
+    <div className="space-y-4">
+      <AvailabilityCalendar
+        availability={availabilityForCalendar}
+        isLoading={availabilityLoading}
+        onDateRangeChange={handleDateRangeChange}
+        selectedRange={selectedRange}
+        setSelectedRange={setSelectedRange}
+      />
 
-        <div className="xl:w-80 space-y-4 shrink-0">
-          {pricing ? (
-            <PricingBreakdown pricing={pricing} isLoading={pricingLoading} />
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>{t.selectDates}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Button
-            className="w-full"
-            size="lg"
-            disabled={!checkIn || !checkOut}
-            onClick={handleContinueToInfo}
-            data-testid="button-continue-to-info"
-          >
-            {enableInstantBooking ? t.continueBooking : t.makeRequest}
-          </Button>
+      {pricing ? (
+        <PricingBreakdown pricing={pricing} isLoading={pricingLoading} />
+      ) : (
+        <div className="py-4 text-center text-muted-foreground text-sm">
+          <Calendar className="h-6 w-6 mx-auto mb-2 opacity-50" />
+          <p>{t.selectDates}</p>
         </div>
-      </div>
+      )}
+
+      <Button
+        className="w-full"
+        size="lg"
+        disabled={!checkIn || !checkOut}
+        onClick={handleContinueToInfo}
+        data-testid="button-continue-to-info"
+      >
+        {enableInstantBooking ? t.continueBooking : t.makeRequest}
+      </Button>
     </div>
   );
 }
