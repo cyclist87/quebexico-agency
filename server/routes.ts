@@ -141,15 +141,14 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   // Dev-only admin login route - only available in development
-  // Returns a session token without exposing the actual secret key
+  // Validates dev mode and returns the admin key securely (dev only)
   app.post("/api/auth/dev-login", (req, res) => {
     if (!isDevEnvironment()) {
       return res.status(404).json({ message: "Not found" });
     }
-    // In dev mode, we create a special dev session token
-    // The client will use this token which the server will validate
-    const devToken = `dev_session_${Date.now()}`;
-    res.json({ devToken, adminKey: ADMIN_SECRET_KEY });
+    // In dev mode only, provide admin access
+    // This route doesn't exist in production (404)
+    res.json({ adminKey: ADMIN_SECRET_KEY });
   });
   
   // Register chatbot routes
