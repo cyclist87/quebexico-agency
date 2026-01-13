@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap, Copy, Check } from "lucide-react";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap, Copy, Check, Bed } from "lucide-react";
 import { generateSignatureHtml, copySignatureToClipboard, type SignatureData as SignatureGenData } from "@/lib/signature-generator";
 import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
@@ -1704,6 +1704,12 @@ export default function Admin() {
                 Blog
               </TabsTrigger>
             </TabsList>
+            <Link href="/admin/properties">
+              <Button variant="outline" className="h-auto p-2 gap-2" data-testid="link-admin-properties">
+                <Bed className="h-4 w-4" />
+                Propriétés
+              </Button>
+            </Link>
             <TabsList className="h-auto p-1">
               <div className="flex items-center gap-1 px-2 text-xs text-muted-foreground font-medium">
                 <MessageCircle className="h-3 w-3" />
