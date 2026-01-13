@@ -1,10 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
-import type { HostProPricing } from "@shared/hostpro";
+
+interface PricingData {
+  pricePerNight: number;
+  nights: number;
+  subtotal: number;
+  cleaningFee: number;
+  serviceFee?: number;
+  taxes: number;
+  total: number;
+  currency: string;
+}
 
 interface PricingBreakdownProps {
-  pricing: HostProPricing | null;
+  pricing: PricingData | null;
   isLoading?: boolean;
   error?: string;
 }
@@ -66,6 +76,13 @@ export function PricingBreakdown({ pricing, isLoading, error }: PricingBreakdown
           <div className="flex justify-between text-sm">
             <span>Frais de ménage</span>
             <span data-testid="text-cleaning-fee">{formatCurrency(pricing.cleaningFee, pricing.currency)}</span>
+          </div>
+        )}
+
+        {pricing.serviceFee && pricing.serviceFee > 0 && (
+          <div className="flex justify-between text-sm">
+            <span>Frais de service</span>
+            <span data-testid="text-service-fee">{formatCurrency(pricing.serviceFee, pricing.currency)}</span>
           </div>
         )}
 
