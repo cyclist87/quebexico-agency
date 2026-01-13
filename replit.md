@@ -131,6 +131,42 @@ The application includes a complete autonomous property management and booking s
 - Amenities, house rules: Array fields per language
 - Access codes: Separate columns for localized instructions
 
+### Modular Admin Architecture
+The admin dashboard uses a modular architecture that dynamically shows features based on the selected template type.
+
+**Key Files:**
+- `client/src/contexts/TemplateContext.tsx`: Defines 5 template types (str, freelancer, sports_club, cleaning, agency) with feature lists
+- `client/src/lib/admin-modules.ts`: Module registry mapping features to icons, routes, and translations
+- `client/src/components/admin/AdminShell.tsx`: Sidebar layout with dynamic navigation based on active template
+
+**Template Types:**
+- STR (Short-term rental): properties, reservations, coupons
+- Freelancer, Sports Club, Cleaning, Agency: coupons (other modules deferred for future)
+
+**Admin Routes:**
+- `/admin` - Dashboard overview
+- `/admin/properties` - Property management (STR only)
+- `/admin/reservations` - Reservation management (STR only)
+- `/admin/coupons` - Coupon/promotion system (all templates)
+
+**Design Principles:**
+- Template configs only list features with implemented routes to prevent broken navigation
+- Modules use `templates: "all"` for cross-template features (e.g., coupons)
+- Template selection persists to localStorage
+- Future modules should be added alongside their routes/components
+
+### Email Confirmation System
+Transactional emails are sent via Resend after successful reservations.
+
+**Key Files:**
+- `server/email.ts`: Email service with HTML templates for FR/EN/ES
+- `server/routes.ts`: Sends confirmation after reservation creation (non-blocking)
+
+**Features:**
+- Language validation: Normalizes input and defaults to 'fr' for invalid codes
+- Email includes: reservation details, pricing breakdown, coupon discounts
+- Sending is non-blocking (uses .catch) to not delay API responses
+
 ### HostPro Integration (Legacy/Optional)
 - **Purpose**: Optional sync for properties/availability from external HostPro API
 - **Status**: Reduced scope - local database is primary, HostPro sync is P3 priority
