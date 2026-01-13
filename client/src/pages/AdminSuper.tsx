@@ -228,8 +228,11 @@ export default function AdminSuper() {
                 const module = ADMIN_MODULES.find(m => m.requiredFeature === moduleId);
                 if (!module) return null;
                 
-                const isEnabled = templateFeatures[template]?.includes(moduleId) || false;
                 const isApplicable = module.templates === "all" || module.templates.includes(template);
+                
+                if (!isApplicable || !module.implemented) return null;
+                
+                const isEnabled = templateFeatures[template]?.includes(moduleId) || false;
 
                 return (
                   <div key={moduleId} className="flex items-center gap-3">
@@ -237,15 +240,10 @@ export default function AdminSuper() {
                       id={`${template}-${moduleId}`}
                       checked={isEnabled}
                       onCheckedChange={() => toggleFeature(template, moduleId)}
-                      disabled={!isApplicable}
                       data-testid={`checkbox-${template}-${moduleId}`}
                     />
-                    <Label
-                      htmlFor={`${template}-${moduleId}`}
-                      className={!isApplicable ? "text-muted-foreground" : ""}
-                    >
+                    <Label htmlFor={`${template}-${moduleId}`}>
                       {getModuleName(module, lang)}
-                      {!isApplicable && " (N/A)"}
                     </Label>
                   </div>
                 );

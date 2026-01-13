@@ -35,6 +35,7 @@ export interface AdminModule {
   templates: TemplateType[] | "all";
   order: number;
   category: "main" | "settings" | "analytics";
+  implemented: boolean;
 }
 
 export const ADMIN_MODULES: AdminModule[] = [
@@ -49,6 +50,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["str"],
     order: 1,
     category: "main",
+    implemented: true,
   },
   {
     id: "reservations",
@@ -61,6 +63,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["str"],
     order: 2,
     category: "main",
+    implemented: true,
   },
   {
     id: "coupons",
@@ -73,6 +76,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 10,
     category: "main",
+    implemented: true,
   },
   {
     id: "services",
@@ -85,6 +89,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["freelancer", "cleaning"],
     order: 1,
     category: "main",
+    implemented: false,
   },
   {
     id: "appointments",
@@ -97,6 +102,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["freelancer"],
     order: 2,
     category: "main",
+    implemented: false,
   },
   {
     id: "portfolio",
@@ -109,6 +115,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["freelancer", "agency"],
     order: 3,
     category: "main",
+    implemented: false,
   },
   {
     id: "members",
@@ -121,6 +128,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["sports_club"],
     order: 1,
     category: "main",
+    implemented: false,
   },
   {
     id: "events",
@@ -133,6 +141,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["sports_club"],
     order: 2,
     category: "main",
+    implemented: false,
   },
   {
     id: "registrations",
@@ -145,6 +154,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["sports_club"],
     order: 3,
     category: "main",
+    implemented: false,
   },
   {
     id: "bookings",
@@ -157,6 +167,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["cleaning"],
     order: 2,
     category: "main",
+    implemented: false,
   },
   {
     id: "service_areas",
@@ -169,6 +180,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["cleaning"],
     order: 3,
     category: "main",
+    implemented: false,
   },
   {
     id: "pricing",
@@ -181,6 +193,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["cleaning", "freelancer"],
     order: 4,
     category: "main",
+    implemented: false,
   },
   {
     id: "projects",
@@ -193,6 +206,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["agency"],
     order: 1,
     category: "main",
+    implemented: false,
   },
   {
     id: "team",
@@ -205,6 +219,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: ["agency"],
     order: 2,
     category: "main",
+    implemented: false,
   },
   {
     id: "content",
@@ -217,6 +232,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 18,
     category: "settings",
+    implemented: true,
   },
   {
     id: "appearance",
@@ -229,6 +245,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 19,
     category: "settings",
+    implemented: true,
   },
   {
     id: "integrations",
@@ -241,6 +258,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 20,
     category: "settings",
+    implemented: true,
   },
   {
     id: "tools",
@@ -253,6 +271,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 21,
     category: "settings",
+    implemented: true,
   },
   {
     id: "settings",
@@ -265,6 +284,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 22,
     category: "settings",
+    implemented: true,
   },
   {
     id: "super_admin",
@@ -277,6 +297,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     templates: "all",
     order: 99,
     category: "settings",
+    implemented: true,
   },
 ];
 
