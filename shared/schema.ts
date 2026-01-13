@@ -316,6 +316,67 @@ export const couponRedemptions = pgTable("coupon_redemptions", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === SITE CONFIGURATION (CMS) ===
+
+export const siteConfig = pgTable("site_config", {
+  id: serial("id").primaryKey(),
+  templateType: text("template_type").notNull().default("str"),
+  siteName: text("site_name").notNull().default("Mon Site"),
+  siteDescription: text("site_description"),
+  logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
+  primaryColor: text("primary_color").default("#2563eb"),
+  secondaryColor: text("secondary_color").default("#64748b"),
+  accentColor: text("accent_color").default("#f59e0b"),
+  fontFamily: text("font_family").default("Inter"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  addressFr: text("address_fr"),
+  addressEn: text("address_en"),
+  addressEs: text("address_es"),
+  footerTextFr: text("footer_text_fr"),
+  footerTextEn: text("footer_text_en"),
+  footerTextEs: text("footer_text_es"),
+  socialFacebook: text("social_facebook"),
+  socialInstagram: text("social_instagram"),
+  socialLinkedin: text("social_linkedin"),
+  socialTwitter: text("social_twitter"),
+  socialYoutube: text("social_youtube"),
+  metaTitleFr: text("meta_title_fr"),
+  metaTitleEn: text("meta_title_en"),
+  metaTitleEs: text("meta_title_es"),
+  metaDescriptionFr: text("meta_description_fr"),
+  metaDescriptionEn: text("meta_description_en"),
+  metaDescriptionEs: text("meta_description_es"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const contentSections = pgTable("content_sections", {
+  id: serial("id").primaryKey(),
+  sectionType: text("section_type").notNull(),
+  isEnabled: boolean("is_enabled").default(true),
+  orderIndex: integer("order_index").default(0),
+  titleFr: text("title_fr"),
+  titleEn: text("title_en"),
+  titleEs: text("title_es"),
+  subtitleFr: text("subtitle_fr"),
+  subtitleEn: text("subtitle_en"),
+  subtitleEs: text("subtitle_es"),
+  contentFr: text("content_fr"),
+  contentEn: text("content_en"),
+  contentEs: text("content_es"),
+  imageUrl: text("image_url"),
+  videoUrl: text("video_url"),
+  buttonTextFr: text("button_text_fr"),
+  buttonTextEn: text("button_text_en"),
+  buttonTextEs: text("button_text_es"),
+  buttonUrl: text("button_url"),
+  customData: text("custom_data"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -355,6 +416,9 @@ export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true
 
 export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, currentRedemptions: true, createdAt: true, updatedAt: true });
 export const insertCouponRedemptionSchema = createInsertSchema(couponRedemptions).omit({ id: true, createdAt: true });
+
+export const insertSiteConfigSchema = createInsertSchema(siteConfig).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertContentSectionSchema = createInsertSchema(contentSections).omit({ id: true, createdAt: true, updatedAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -414,6 +478,12 @@ export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 
 export type CouponRedemption = typeof couponRedemptions.$inferSelect;
 export type InsertCouponRedemption = z.infer<typeof insertCouponRedemptionSchema>;
+
+export type SiteConfigType = typeof siteConfig.$inferSelect;
+export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
+
+export type ContentSection = typeof contentSections.$inferSelect;
+export type InsertContentSection = z.infer<typeof insertContentSectionSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;
