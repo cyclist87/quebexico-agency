@@ -12,6 +12,8 @@ export interface TemplateConfig {
   features: string[];
 }
 
+const COMMON_FEATURES = ["coupons", "integrations", "tools", "settings", "super_admin"];
+
 export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
   str: {
     id: "str",
@@ -20,7 +22,7 @@ export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
     nameEs: "Alquiler a corto plazo",
     description: "Gestion de propriétés, réservations, calendrier",
     icon: "Home",
-    features: ["properties", "reservations", "coupons"],
+    features: ["properties", "reservations", ...COMMON_FEATURES],
   },
   freelancer: {
     id: "freelancer",
@@ -29,7 +31,7 @@ export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
     nameEs: "Freelancer / Consultor",
     description: "Portfolio, services, rendez-vous",
     icon: "Briefcase",
-    features: ["coupons"],
+    features: [...COMMON_FEATURES],
   },
   sports_club: {
     id: "sports_club",
@@ -38,7 +40,7 @@ export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
     nameEs: "Club deportivo",
     description: "Membres, événements, inscriptions",
     icon: "Trophy",
-    features: ["coupons"],
+    features: [...COMMON_FEATURES],
   },
   cleaning: {
     id: "cleaning",
@@ -47,7 +49,7 @@ export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
     nameEs: "Servicio de limpieza",
     description: "Réservations, zones de service, tarifs",
     icon: "Sparkles",
-    features: ["coupons"],
+    features: [...COMMON_FEATURES],
   },
   agency: {
     id: "agency",
@@ -56,7 +58,7 @@ export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
     nameEs: "Agencia creativa",
     description: "Portfolio, projets, équipe",
     icon: "Palette",
-    features: ["coupons"],
+    features: [...COMMON_FEATURES],
   },
 };
 
