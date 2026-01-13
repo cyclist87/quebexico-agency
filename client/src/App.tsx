@@ -4,9 +4,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { TemplateProvider } from "@/contexts/TemplateContext";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
+import { AdminShell } from "@/components/admin/AdminShell";
 import Home from "@/pages/Home";
 import Contact from "@/pages/Contact";
 import BookDiscovery from "@/pages/BookDiscovery";
@@ -17,7 +19,7 @@ import Terms from "@/pages/Terms";
 import Cookies from "@/pages/Cookies";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
-import Admin from "@/pages/Admin";
+import AdminDashboard from "@/pages/Admin";
 import Booking from "@/pages/Booking";
 import DemoIndex from "@/pages/demo/DemoIndex";
 import DemoAthlete from "@/pages/demo/DemoAthlete";
@@ -34,6 +36,7 @@ import PropertyDetail from "@/pages/PropertyDetail";
 import Properties from "@/pages/Properties";
 import AdminProperties from "@/pages/AdminProperties";
 import AdminCoupons from "@/pages/AdminCoupons";
+import AdminReservations from "@/pages/AdminReservations";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -49,14 +52,27 @@ function MainRouter() {
       <Route path="/cookies" component={Cookies} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/admin/properties" component={AdminProperties} />
-      <Route path="/admin/coupons" component={AdminCoupons} />
       <Route path="/booking" component={Booking} />
       <Route path="/properties" component={Properties} />
       <Route path="/properties/:slug" component={PropertyDetail} />
       <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function AdminRouter() {
+  return (
+    <TemplateProvider>
+      <AdminShell>
+        <Switch>
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/properties" component={AdminProperties} />
+          <Route path="/admin/reservations" component={AdminReservations} />
+          <Route path="/admin/coupons" component={AdminCoupons} />
+          <Route component={NotFound} />
+        </Switch>
+      </AdminShell>
+    </TemplateProvider>
   );
 }
 
@@ -87,6 +103,7 @@ function AppContent() {
   const [location] = useLocation();
   const isDemoPage = location.startsWith("/demo");
   const isToolsPage = location.startsWith("/tools");
+  const isAdminPage = location.startsWith("/admin");
   const isOffrePage = location === "/offre";
   const isCardPage = location.startsWith("/c/");
 
@@ -96,6 +113,10 @@ function AppContent() {
 
   if (isToolsPage) {
     return <ToolsRouter />;
+  }
+
+  if (isAdminPage) {
+    return <AdminRouter />;
   }
 
   if (isOffrePage) {
