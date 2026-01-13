@@ -10,6 +10,7 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { DynamicTheme } from "@/components/DynamicTheme";
 import Home from "@/pages/Home";
 import HomeSTR from "@/pages/HomeSTR";
 import { useQuery } from "@tanstack/react-query";
@@ -206,6 +207,7 @@ function App() {
       <LanguageProvider>
         <AdminAuthProvider>
           <TooltipProvider>
+            <DynamicTheme />
             <AppContent />
             <Toaster />
           </TooltipProvider>

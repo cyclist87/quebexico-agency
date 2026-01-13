@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw, Upload, Eye, X, ExternalLink, Search } from "lucide-react";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw, Upload, Eye, X, ExternalLink, Search, LayoutTemplate } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SiteConfigType } from "@shared/schema";
 
 const DEFAULT_CONFIG: Partial<SiteConfigType> = {
@@ -196,13 +197,7 @@ export default function AdminAppearance() {
 
   const mutation = useMutation({
     mutationFn: async (data: Partial<SiteConfigType>) => {
-      const response = await fetch("/api/admin/site-config", {
-        method: "PUT",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to save");
+      const response = await apiRequest("PUT", "/api/admin/site-config", data);
       return response.json();
     },
     onSuccess: () => {
@@ -321,6 +316,38 @@ export default function AdminAppearance() {
           </TabsList>
 
           <TabsContent value="branding" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Type de site</CardTitle>
+                <CardDescription>
+                  Choisissez le type de template pour votre site
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="templateType">Template</Label>
+                  <Select
+                    value={formData.templateType || "agency"}
+                    onValueChange={(value) => handleInputChange("templateType", value)}
+                  >
+                    <SelectTrigger id="templateType" data-testid="select-template-type">
+                      <SelectValue placeholder="Sélectionnez un type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="agency">Agence créative</SelectItem>
+                      <SelectItem value="str">Location courte durée (STR)</SelectItem>
+                      <SelectItem value="freelancer">Freelancer</SelectItem>
+                      <SelectItem value="sports_club">Club sportif</SelectItem>
+                      <SelectItem value="cleaning">Service de nettoyage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Ce paramètre détermine les modules disponibles et la page d'accueil
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Logo et identité</CardTitle>

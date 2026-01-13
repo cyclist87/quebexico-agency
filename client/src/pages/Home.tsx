@@ -5,6 +5,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/ServiceCard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteConfig } from "@/hooks/use-site-config";
+import { useContentSections } from "@/hooks/use-content-sections";
 import wordCloudImage from "@assets/quebexico-trim_1767029606319.png";
 import heroBackground from "@assets/IMG_4491_1767057213854.JPG";
 
@@ -15,18 +17,32 @@ const fadeIn = {
   transition: { duration: 0.6 }
 };
 
-const pageTitles = {
-  fr: "QUEBEXICO | Agence Créative Stratégique | Québec",
-  en: "QUEBEXICO | Strategic Creative Agency | Quebec",
-  es: "QUEBEXICO | Agencia Creativa Estratégica | Quebec",
-};
-
 export default function Home() {
   const { t, language } = useLanguage();
+  const { siteName, footerText } = useSiteConfig();
+  const { sections } = useContentSections();
+  
+  const heroSection = sections.find(s => s.sectionType === "hero" && s.isEnabled);
+  const aboutSection = sections.find(s => s.sectionType === "about" && s.isEnabled);
+  const servicesSection = sections.find(s => s.sectionType === "services" && s.isEnabled);
+  const quoteSection = sections.find(s => s.sectionType === "cta" && s.isEnabled);
+
+  const getLocalizedText = (fr: string | null, en: string | null, es: string | null, fallback: string) => {
+    if (language === "en" && en) return en;
+    if (language === "es" && es) return es;
+    if (fr) return fr;
+    return fallback;
+  };
+
+  const pageTitles = {
+    fr: `${siteName} | Agence Créative Stratégique | Québec`,
+    en: `${siteName} | Strategic Creative Agency | Quebec`,
+    es: `${siteName} | Agencia Creativa Estratégica | Quebec`,
+  };
 
   useEffect(() => {
     document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
-  }, [language]);
+  }, [language, siteName]);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -58,8 +74,11 @@ export default function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="font-display font-extrabold text-5xl md:text-7xl lg:text-8xl tracking-tight mb-6"
           >
-            {t.hero.title1}<br />
-            <span className="text-gradient">{t.hero.title2}</span>
+            {heroSection ? (
+              getLocalizedText(heroSection.titleFr, heroSection.titleEn, heroSection.titleEs, t.hero.title1)
+            ) : (
+              <>{t.hero.title1}<br /><span className="text-gradient">{t.hero.title2}</span></>
+            )}
           </motion.h1>
           
           <motion.p 
@@ -68,7 +87,10 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10"
           >
-            {t.hero.subtitle}
+            {heroSection 
+              ? getLocalizedText(heroSection.subtitleFr, heroSection.subtitleEn, heroSection.subtitleEs, t.hero.subtitle)
+              : t.hero.subtitle
+            }
           </motion.p>
           
           <motion.div 
@@ -96,15 +118,31 @@ export default function Home() {
         <div className="container-padding max-w-7xl mx-auto">
           <motion.div {...fadeIn} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold mb-6">{t.about.title}</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                {t.about.p1.split("QUEBEXICO")[0]}
-                <span className="font-bold text-foreground">QUEBEXICO</span>
-                {t.about.p1.split("QUEBEXICO")[1]}
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                {t.about.p2}
-              </p>
+              <h2 className="font-display text-4xl font-bold mb-6">
+                {aboutSection 
+                  ? getLocalizedText(aboutSection.titleFr, aboutSection.titleEn, aboutSection.titleEs, t.about.title)
+                  : t.about.title
+                }
+              </h2>
+              {aboutSection ? (
+                <div 
+                  className="text-lg text-muted-foreground leading-relaxed mb-6"
+                  dangerouslySetInnerHTML={{ 
+                    __html: getLocalizedText(aboutSection.contentFr, aboutSection.contentEn, aboutSection.contentEs, t.about.p1) 
+                  }}
+                />
+              ) : (
+                <>
+                  <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                    {t.about.p1.split("QUEBEXICO")[0]}
+                    <span className="font-bold text-foreground">QUEBEXICO</span>
+                    {t.about.p1.split("QUEBEXICO")[1]}
+                  </p>
+                  <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                    {t.about.p2}
+                  </p>
+                </>
+              )}
               <div className="flex items-center gap-4">
                 {t.about.list.map((item, index) => (
                   <div key={item} className="flex items-center gap-2">
@@ -208,7 +246,10 @@ export default function Home() {
         <div className="container-padding max-w-4xl mx-auto text-center">
           <Quote className="w-12 h-12 text-primary/20 mx-auto mb-8" />
           <blockquote className="font-display text-3xl md:text-4xl font-medium leading-tight">
-            "{t.quote.text}"
+            "{quoteSection 
+              ? getLocalizedText(quoteSection.contentFr, quoteSection.contentEn, quoteSection.contentEs, t.quote.text)
+              : t.quote.text
+            }"
           </blockquote>
         </div>
       </section>
