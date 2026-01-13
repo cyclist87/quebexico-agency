@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type { ContentSection, InsertContentSection } from "@shared/schema";
 
@@ -40,13 +40,7 @@ export default function AdminContent() {
 
   const createMutation = useMutation({
     mutationFn: async (data: Partial<InsertContentSection>) => {
-      const response = await fetch("/api/admin/content-sections", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to create");
+      const response = await apiRequest("POST", "/api/admin/content-sections", data);
       return response.json();
     },
     onSuccess: () => {
@@ -62,13 +56,7 @@ export default function AdminContent() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<InsertContentSection> }) => {
-      const response = await fetch(`/api/admin/content-sections/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to update");
+      const response = await apiRequest("PUT", `/api/admin/content-sections/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -85,11 +73,7 @@ export default function AdminContent() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/admin/content-sections/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to delete");
+      const response = await apiRequest("DELETE", `/api/admin/content-sections/${id}`);
       return response.json();
     },
     onSuccess: () => {
@@ -103,13 +87,7 @@ export default function AdminContent() {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, isEnabled }: { id: number; isEnabled: boolean }) => {
-      const response = await fetch(`/api/admin/content-sections/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ isEnabled }),
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to toggle");
+      const response = await apiRequest("PUT", `/api/admin/content-sections/${id}`, { isEnabled });
       return response.json();
     },
     onSuccess: () => {
@@ -166,12 +144,7 @@ export default function AdminContent() {
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: number; orderIndex: number }[]) => {
       for (const update of updates) {
-        await fetch(`/api/admin/content-sections/${update.id}`, {
-          method: "PUT",
-          body: JSON.stringify({ orderIndex: update.orderIndex }),
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
+        await apiRequest("PUT", `/api/admin/content-sections/${update.id}`, { orderIndex: update.orderIndex });
       }
     },
     onSuccess: () => {
