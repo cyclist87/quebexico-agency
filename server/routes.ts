@@ -562,6 +562,402 @@ Important:
     res.json({ success: true });
   });
 
+  // ============================================================
+  // PROPERTIES API (PUBLIC - STR Autonomous)
+  // ============================================================
+
+  // Public: Get all active properties
+  app.get("/api/properties", async (req, res) => {
+    const properties = await storage.getProperties(true);
+    res.json(properties);
+  });
+
+  // Public: Get property by slug
+  app.get("/api/properties/:slug", async (req, res) => {
+    const property = await storage.getPropertyBySlug(req.params.slug);
+    if (!property || !property.isActive) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    res.json(property);
+  });
+
+  // Public: Get availability (blocked dates + reservations) for a property
+  app.get("/api/properties/:slug/availability", async (req, res) => {
+    const property = await storage.getPropertyBySlug(req.params.slug);
+    if (!property || !property.isActive) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    
+    const startDate = req.query.startDate ? new Date(req.query.startDate as string) : new Date();
+    const endDate = req.query.endDate 
+      ? new Date(req.query.endDate as string) 
+      : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+    
+    const blockedDates = await storage.getBlockedDates(property.id, startDate, endDate);
+    const reservations = await storage.getReservations(property.id);
+    
+    const reservedRanges = reservations
+      .filter(r => r.status !== "cancelled")
+      .map(r => ({
+        start: r.checkIn.toISOString().split("T")[0],
+        end: r.checkOut.toISOString().split("T")[0],
+        source: "reservation"
+      }));
+    
+    const blockedRanges = blockedDates.map(bd => ({
+      start: bd.startDate.toISOString().split("T")[0],
+      end: bd.endDate.toISOString().split("T")[0],
+      source: bd.source || "blocked"
+    }));
+    
+    res.json({
+      propertyId: property.id,
+      blockedDates: [...blockedRanges, ...reservedRanges]
+    });
+  });
+
+  // Public: Calculate pricing for a date range
+  app.get("/api/properties/:slug/pricing", async (req, res) => {
+    const property = await storage.getPropertyBySlug(req.params.slug);
+    if (!property || !property.isActive) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    
+    const { checkIn, checkOut, guests } = req.query;
+    if (!checkIn || !checkOut) {
+      return res.status(400).json({ message: "checkIn and checkOut are required" });
+    }
+    
+    const start = new Date(checkIn as string);
+    const end = new Date(checkOut as string);
+    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (nights < (property.minNights || 1)) {
+      return res.status(400).json({ message: `Minimum ${property.minNights} nights required` });
+    }
+    if (nights > (property.maxNights || 30)) {
+      return res.status(400).json({ message: `Maximum ${property.maxNights} nights allowed` });
+    }
+    
+    const pricePerNight = property.pricePerNight;
+    const subtotal = nights * pricePerNight;
+    const cleaningFee = property.cleaningFee || 0;
+    const serviceFee = Math.round(subtotal * 0.10);
+    const taxes = Math.round((subtotal + cleaningFee + serviceFee) * 0.15);
+    const total = subtotal + cleaningFee + serviceFee + taxes;
+    
+    res.json({
+      propertyId: property.id,
+      checkIn: checkIn as string,
+      checkOut: checkOut as string,
+      nights,
+      pricePerNight,
+      subtotal,
+      cleaningFee,
+      serviceFee,
+      taxes,
+      total,
+      currency: property.currency || "CAD"
+    });
+  });
+
+  // Public: Create reservation
+  app.post("/api/reservations", async (req, res) => {
+    try {
+      const schema = z.object({
+        propertySlug: z.string(),
+        checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        guests: z.number().min(1),
+        guestFirstName: z.string().min(1),
+        guestLastName: z.string().min(1),
+        guestEmail: z.string().email(),
+        guestPhone: z.string().optional(),
+        guestMessage: z.string().optional(),
+        language: z.string().optional()
+      });
+      
+      const input = schema.parse(req.body);
+      const property = await storage.getPropertyBySlug(input.propertySlug);
+      if (!property || !property.isActive) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+      
+      if (input.guests > (property.maxGuests || 4)) {
+        return res.status(400).json({ message: `Maximum ${property.maxGuests} guests allowed` });
+      }
+      
+      const checkInDate = new Date(input.checkIn);
+      const checkOutDate = new Date(input.checkOut);
+      const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const pricePerNight = property.pricePerNight;
+      const subtotal = nights * pricePerNight;
+      const cleaningFee = property.cleaningFee || 0;
+      const serviceFee = Math.round(subtotal * 0.10);
+      const taxes = Math.round((subtotal + cleaningFee + serviceFee) * 0.15);
+      const total = subtotal + cleaningFee + serviceFee + taxes;
+      
+      const confirmationCode = `QBX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      
+      const reservation = await storage.createReservation({
+        propertyId: property.id,
+        confirmationCode,
+        status: "pending",
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+        nights,
+        guests: input.guests,
+        guestFirstName: input.guestFirstName,
+        guestLastName: input.guestLastName,
+        guestEmail: input.guestEmail,
+        guestPhone: input.guestPhone,
+        guestMessage: input.guestMessage,
+        pricePerNight,
+        subtotal,
+        cleaningFee,
+        serviceFee,
+        taxes,
+        total,
+        currency: property.currency || "CAD",
+        language: input.language || "fr"
+      });
+      
+      res.status(201).json({
+        id: reservation.id,
+        confirmationCode: reservation.confirmationCode,
+        status: reservation.status,
+        propertyId: reservation.propertyId,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        total: reservation.total,
+        currency: reservation.currency
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Public: Create inquiry
+  app.post("/api/inquiries", async (req, res) => {
+    try {
+      const schema = z.object({
+        propertySlug: z.string().optional(),
+        checkIn: z.string().optional(),
+        checkOut: z.string().optional(),
+        guests: z.number().optional(),
+        guestFirstName: z.string().min(1),
+        guestLastName: z.string().min(1),
+        guestEmail: z.string().email(),
+        guestPhone: z.string().optional(),
+        message: z.string().min(1),
+        language: z.string().optional()
+      });
+      
+      const input = schema.parse(req.body);
+      
+      let propertyId: number | null = null;
+      if (input.propertySlug) {
+        const property = await storage.getPropertyBySlug(input.propertySlug);
+        propertyId = property?.id || null;
+      }
+      
+      const inquiry = await storage.createInquiry({
+        propertyId,
+        status: "new",
+        guestFirstName: input.guestFirstName,
+        guestLastName: input.guestLastName,
+        guestEmail: input.guestEmail,
+        guestPhone: input.guestPhone,
+        message: input.message,
+        checkIn: input.checkIn ? new Date(input.checkIn) : undefined,
+        checkOut: input.checkOut ? new Date(input.checkOut) : undefined,
+        guests: input.guests,
+        language: input.language || "fr"
+      });
+      
+      res.status(201).json({
+        id: inquiry.id,
+        status: inquiry.status,
+        createdAt: inquiry.createdAt
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // ============================================================
+  // ADMIN PROPERTIES API
+  // ============================================================
+
+  // Admin: Get all properties (including inactive)
+  app.get("/api/admin/properties", requireAdminAuth, async (req, res) => {
+    const properties = await storage.getProperties(false);
+    res.json(properties);
+  });
+
+  // Admin: Get property by ID
+  app.get("/api/admin/properties/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const property = await storage.getPropertyById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    res.json(property);
+  });
+
+  // Admin: Create property
+  app.post("/api/admin/properties", requireAdminAuth, async (req, res) => {
+    try {
+      const existing = await storage.getPropertyBySlug(req.body.slug);
+      if (existing) {
+        return res.status(409).json({ message: "Ce slug existe déjà" });
+      }
+      
+      const property = await storage.createProperty(req.body);
+      res.status(201).json(property);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Update property
+  app.put("/api/admin/properties/:id", requireAdminAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      
+      if (req.body.slug) {
+        const existing = await storage.getPropertyBySlug(req.body.slug);
+        if (existing && existing.id !== id) {
+          return res.status(409).json({ message: "Ce slug existe déjà" });
+        }
+      }
+      
+      const property = await storage.updateProperty(id, req.body);
+      if (!property) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+      res.json(property);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Delete property
+  app.delete("/api/admin/properties/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const property = await storage.getPropertyById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    await storage.deleteProperty(id);
+    res.json({ success: true });
+  });
+
+  // Admin: Get blocked dates for a property
+  app.get("/api/admin/properties/:id/blocked-dates", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const blockedDates = await storage.getBlockedDates(id);
+    res.json(blockedDates);
+  });
+
+  // Admin: Add blocked dates
+  app.post("/api/admin/properties/:id/blocked-dates", requireAdminAuth, async (req, res) => {
+    try {
+      const propertyId = parseInt(req.params.id, 10);
+      const schema = z.object({
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        reason: z.string().optional()
+      });
+      
+      const input = schema.parse(req.body);
+      
+      const blockedDate = await storage.createBlockedDate({
+        propertyId,
+        startDate: new Date(input.startDate),
+        endDate: new Date(input.endDate),
+        source: "manual",
+        reason: input.reason
+      });
+      
+      res.status(201).json(blockedDate);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Delete blocked date
+  app.delete("/api/admin/blocked-dates/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    await storage.deleteBlockedDate(id);
+    res.json({ success: true });
+  });
+
+  // Admin: Get all reservations
+  app.get("/api/admin/reservations", requireAdminAuth, async (req, res) => {
+    const propertyId = req.query.propertyId ? parseInt(req.query.propertyId as string, 10) : undefined;
+    const reservations = await storage.getReservations(propertyId);
+    res.json(reservations);
+  });
+
+  // Admin: Update reservation status
+  app.put("/api/admin/reservations/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const reservation = await storage.updateReservation(id, req.body);
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+    res.json(reservation);
+  });
+
+  // Admin: Get all inquiries
+  app.get("/api/admin/inquiries", requireAdminAuth, async (req, res) => {
+    const propertyId = req.query.propertyId ? parseInt(req.query.propertyId as string, 10) : undefined;
+    const inquiries = await storage.getInquiries(propertyId);
+    res.json(inquiries);
+  });
+
+  // Admin: Update inquiry
+  app.put("/api/admin/inquiries/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const inquiry = await storage.updateInquiry(id, req.body);
+    if (!inquiry) {
+      return res.status(404).json({ message: "Inquiry not found" });
+    }
+    res.json(inquiry);
+  });
+
   // Initialize seed data
   await seedDatabase();
 
