@@ -87,23 +87,25 @@ export function AdminShell({ children }: AdminShellProps) {
     <SidebarProvider style={sidebarStyle}>
       <div className="flex h-screen w-full">
         <Sidebar className="border-r">
-          <SidebarHeader className="p-4">
+          <SidebarHeader className="p-4 overflow-visible">
             <div className="flex items-center gap-2 mb-4">
               <Settings className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg">{t.admin}</span>
             </div>
-            <Select value={currentTemplate} onValueChange={(v) => setCurrentTemplate(v as TemplateType)}>
-              <SelectTrigger className="w-full" data-testid="select-template-type">
-                <SelectValue placeholder={t.templateSelector} />
-              </SelectTrigger>
-              <SelectContent className="z-[100]" position="popper" sideOffset={4}>
-                {availableTemplates.map((tmpl) => (
-                  <SelectItem key={tmpl.id} value={tmpl.id} data-testid={`select-template-${tmpl.id}`}>
-                    {getTemplateName(tmpl)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <Select value={currentTemplate} onValueChange={(v) => setCurrentTemplate(v as TemplateType)}>
+                <SelectTrigger className="w-full" data-testid="select-template-type">
+                  <SelectValue placeholder={t.templateSelector} />
+                </SelectTrigger>
+                <SelectContent position="popper" side="bottom" align="start">
+                  {availableTemplates.map((tmpl) => (
+                    <SelectItem key={tmpl.id} value={tmpl.id} data-testid={`select-template-${tmpl.id}`}>
+                      {getTemplateName(tmpl)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </SidebarHeader>
 
           <SidebarContent>
