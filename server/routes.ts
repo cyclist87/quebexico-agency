@@ -12,6 +12,96 @@ import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
 
+interface CouponValidationParams {
+  coupon: {
+    id: number;
+    code: string;
+    isActive: boolean | null;
+    validFrom: Date | null;
+    validUntil: Date | null;
+    maxRedemptions: number | null;
+    currentRedemptions: number | null;
+    minSubtotal: number | null;
+    maxNights: number | null;
+    minNights: number | null;
+    applicablePropertyIds: number[] | null;
+    maxPerGuest: number | null;
+    discountType: string;
+    discountValue: number;
+    maxDiscount: number | null;
+  };
+  subtotal?: number;
+  nights?: number;
+  propertyId?: number;
+  guestEmail?: string;
+  getRedemptionsByEmail: (email: string, couponId: number) => Promise<any[]>;
+}
+
+interface CouponValidationResult {
+  valid: boolean;
+  errorMessage?: string;
+  discountAmount?: number;
+}
+
+async function validateCouponForReservation(params: CouponValidationParams): Promise<CouponValidationResult> {
+  const { coupon, subtotal, nights, propertyId, guestEmail, getRedemptionsByEmail } = params;
+
+  if (!coupon.isActive) {
+    return { valid: false, errorMessage: "Code inactif" };
+  }
+
+  const now = new Date();
+  if (coupon.validFrom && new Date(coupon.validFrom) > now) {
+    return { valid: false, errorMessage: "Code pas encore valide" };
+  }
+  if (coupon.validUntil && new Date(coupon.validUntil) < now) {
+    return { valid: false, errorMessage: "Code expiré" };
+  }
+
+  const currentRedemptions = coupon.currentRedemptions ?? 0;
+  if (coupon.maxRedemptions && currentRedemptions >= coupon.maxRedemptions) {
+    return { valid: false, errorMessage: "Limite d'utilisation atteinte" };
+  }
+
+  if (subtotal !== undefined && coupon.minSubtotal && subtotal < coupon.minSubtotal) {
+    return { valid: false, errorMessage: `Minimum ${coupon.minSubtotal}$ requis` };
+  }
+
+  if (nights !== undefined && coupon.minNights && nights < coupon.minNights) {
+    return { valid: false, errorMessage: `Minimum ${coupon.minNights} nuits requis` };
+  }
+
+  if (nights !== undefined && coupon.maxNights && nights > coupon.maxNights) {
+    return { valid: false, errorMessage: `Maximum ${coupon.maxNights} nuits` };
+  }
+
+  if (propertyId !== undefined && coupon.applicablePropertyIds && coupon.applicablePropertyIds.length > 0) {
+    if (!coupon.applicablePropertyIds.includes(propertyId)) {
+      return { valid: false, errorMessage: "Code non applicable à cette propriété" };
+    }
+  }
+
+  if (guestEmail && coupon.maxPerGuest) {
+    const redemptions = await getRedemptionsByEmail(guestEmail, coupon.id);
+    if (redemptions.length >= coupon.maxPerGuest) {
+      return { valid: false, errorMessage: "Limite par client atteinte" };
+    }
+  }
+
+  let discountAmount = 0;
+  const effectiveSubtotal = subtotal ?? 0;
+  if (coupon.discountType === "percentage") {
+    discountAmount = Math.round(effectiveSubtotal * coupon.discountValue / 100);
+  } else {
+    discountAmount = coupon.discountValue;
+  }
+  if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+    discountAmount = coupon.maxDiscount;
+  }
+
+  return { valid: true, discountAmount };
+}
+
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -704,20 +794,29 @@ Important:
       
       if (input.couponCode) {
         const coupon = await storage.getCouponByCode(input.couponCode);
-        if (coupon && coupon.isActive) {
-          if (coupon.discountType === "percentage") {
-            discountAmount = Math.round(subtotal * coupon.discountValue / 100);
-          } else {
-            discountAmount = coupon.discountValue;
+        if (coupon) {
+          const validationResult = await validateCouponForReservation({
+            coupon,
+            subtotal,
+            nights,
+            propertyId: property.id,
+            guestEmail: input.guestEmail,
+            getRedemptionsByEmail: storage.getRedemptionsByEmail.bind(storage),
+          });
+          
+          if (validationResult.valid && validationResult.discountAmount) {
+            discountAmount = validationResult.discountAmount;
+            const maxAllowedDiscount = subtotal + cleaningFee + serviceFee;
+            if (discountAmount > maxAllowedDiscount) {
+              discountAmount = maxAllowedDiscount;
+            }
+            validatedCouponCode = coupon.code;
           }
-          if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-            discountAmount = coupon.maxDiscount;
-          }
-          validatedCouponCode = coupon.code;
         }
       }
       
-      const total = subtotal + cleaningFee + serviceFee + taxes - discountAmount;
+      const totalBeforeDiscount = subtotal + cleaningFee + serviceFee + taxes;
+      const total = Math.max(taxes, totalBeforeDiscount - discountAmount);
       
       const confirmationCode = `QBX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       
@@ -1013,57 +1112,17 @@ Important:
       return res.status(404).json({ valid: false, message: "Code invalide" });
     }
 
-    if (!coupon.isActive) {
-      return res.status(400).json({ valid: false, message: "Code inactif" });
-    }
+    const validationResult = await validateCouponForReservation({
+      coupon,
+      subtotal: subtotal !== undefined ? subtotal : undefined,
+      nights: nights !== undefined ? nights : undefined,
+      propertyId: propertyId !== undefined ? propertyId : undefined,
+      guestEmail: guestEmail || undefined,
+      getRedemptionsByEmail: storage.getRedemptionsByEmail.bind(storage),
+    });
 
-    const now = new Date();
-    if (coupon.validFrom && new Date(coupon.validFrom) > now) {
-      return res.status(400).json({ valid: false, message: "Code pas encore valide" });
-    }
-    if (coupon.validUntil && new Date(coupon.validUntil) < now) {
-      return res.status(400).json({ valid: false, message: "Code expiré" });
-    }
-
-    if (coupon.maxRedemptions && coupon.currentRedemptions && coupon.currentRedemptions >= coupon.maxRedemptions) {
-      return res.status(400).json({ valid: false, message: "Limite d'utilisation atteinte" });
-    }
-
-    if (coupon.minSubtotal && subtotal && subtotal < coupon.minSubtotal) {
-      return res.status(400).json({ valid: false, message: `Minimum ${coupon.minSubtotal}$ requis` });
-    }
-
-    if (coupon.minNights && nights && nights < coupon.minNights) {
-      return res.status(400).json({ valid: false, message: `Minimum ${coupon.minNights} nuits requis` });
-    }
-
-    if (coupon.maxNights && nights && nights > coupon.maxNights) {
-      return res.status(400).json({ valid: false, message: `Maximum ${coupon.maxNights} nuits` });
-    }
-
-    if (coupon.applicablePropertyIds && coupon.applicablePropertyIds.length > 0 && propertyId) {
-      if (!coupon.applicablePropertyIds.includes(propertyId)) {
-        return res.status(400).json({ valid: false, message: "Code non applicable à cette propriété" });
-      }
-    }
-
-    if (guestEmail && coupon.maxPerGuest) {
-      const redemptions = await storage.getRedemptionsByEmail(guestEmail, coupon.id);
-      if (redemptions.length >= coupon.maxPerGuest) {
-        return res.status(400).json({ valid: false, message: "Limite par client atteinte" });
-      }
-    }
-
-    let discountAmount = 0;
-    if (subtotal) {
-      if (coupon.discountType === "percentage") {
-        discountAmount = Math.round(subtotal * coupon.discountValue / 100);
-      } else {
-        discountAmount = coupon.discountValue;
-      }
-      if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-        discountAmount = coupon.maxDiscount;
-      }
+    if (!validationResult.valid) {
+      return res.status(400).json({ valid: false, message: validationResult.errorMessage });
     }
 
     res.json({
@@ -1078,7 +1137,7 @@ Important:
         discountValue: coupon.discountValue,
         maxDiscount: coupon.maxDiscount,
       },
-      discountAmount,
+      discountAmount: validationResult.discountAmount || 0,
     });
   });
 
