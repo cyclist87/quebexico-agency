@@ -63,6 +63,14 @@ const propertyFormSchema = z.object({
   addressEs: z.string().optional(),
   city: z.string().optional(),
   region: z.string().optional(),
+  latitude: z.string().optional().refine(
+    (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= -90 && parseFloat(val) <= 90),
+    { message: "Latitude invalide (doit être entre -90 et 90)" }
+  ),
+  longitude: z.string().optional().refine(
+    (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= -180 && parseFloat(val) <= 180),
+    { message: "Longitude invalide (doit être entre -180 et 180)" }
+  ),
   pricePerNight: z.coerce.number().min(1, "Prix requis"),
   cleaningFee: z.coerce.number().min(0).optional(),
   maxGuests: z.coerce.number().min(1).optional(),
@@ -79,7 +87,17 @@ const propertyFormSchema = z.object({
   wifiPassword: z.string().optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
-});
+}).refine(
+  (data) => {
+    const hasLat = data.latitude && data.latitude.trim() !== "";
+    const hasLng = data.longitude && data.longitude.trim() !== "";
+    return (hasLat && hasLng) || (!hasLat && !hasLng);
+  },
+  {
+    message: "Les deux coordonnées (latitude et longitude) doivent être fournies ensemble",
+    path: ["latitude"],
+  }
+);
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
 
@@ -137,6 +155,8 @@ function PropertyForm({
       addressEs: property?.addressEs || "",
       city: property?.city || "",
       region: property?.region || "",
+      latitude: property?.latitude || "",
+      longitude: property?.longitude || "",
       pricePerNight: property?.pricePerNight || 100,
       cleaningFee: property?.cleaningFee || 0,
       maxGuests: property?.maxGuests || 4,
@@ -368,6 +388,46 @@ function PropertyForm({
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Separator className="my-4" />
+            
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Coordonnées GPS</Label>
+              <p className="text-sm text-muted-foreground">
+                Pour afficher la propriété sur la carte. Vous pouvez trouver les coordonnées sur Google Maps.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="latitude"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Latitude</FormLabel>
+                    <FormControl>
+                      <Input placeholder="45.5017" {...field} />
+                    </FormControl>
+                    <FormDescription>Ex: 45.5017</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Longitude</FormLabel>
+                    <FormControl>
+                      <Input placeholder="-73.5673" {...field} />
+                    </FormControl>
+                    <FormDescription>Ex: -73.5673</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

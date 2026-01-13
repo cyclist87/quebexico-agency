@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useProperties } from "@/hooks/use-properties";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Users, Bed, Bath, Star } from "lucide-react";
-import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { MapPin, Users, Bed, Star, Map, LayoutGrid } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import type { Property } from "@shared/schema";
+import { PropertyMap } from "@/components/booking/PropertyMap";
 
 type Language = "fr" | "en" | "es";
 
@@ -19,6 +22,8 @@ const translations = {
     bedrooms: "Chambres",
     viewDetails: "Voir les détails",
     featured: "En vedette",
+    mapView: "Carte",
+    gridView: "Grille",
   },
   en: {
     title: "Our Properties",
@@ -29,6 +34,8 @@ const translations = {
     bedrooms: "Bedrooms",
     viewDetails: "View details",
     featured: "Featured",
+    mapView: "Map",
+    gridView: "Grid",
   },
   es: {
     title: "Nuestras propiedades",
@@ -39,6 +46,8 @@ const translations = {
     bedrooms: "Habitaciones",
     viewDetails: "Ver detalles",
     featured: "Destacado",
+    mapView: "Mapa",
+    gridView: "Cuadrícula",
   },
 };
 
@@ -146,18 +155,47 @@ export default function Properties() {
   const { language } = useLanguage();
   const lang = language as Language;
   const t = translations[lang] || translations.fr;
+  const [, setLocation] = useLocation();
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const { data: properties, isLoading, error } = useProperties();
+
+  const handlePropertyClick = (property: Property) => {
+    setLocation(`/properties/${property.slug}`);
+  };
 
   return (
     <div className="min-h-screen bg-background pt-24" data-testid="page-properties">
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-3" data-testid="text-page-title">
             {t.title}
           </h1>
           <p className="text-muted-foreground text-lg">{t.subtitle}</p>
         </div>
+
+        {!isLoading && !error && properties && properties.length > 0 && (
+          <div className="flex justify-center gap-2 mb-8">
+            <Button
+              variant={viewMode === "grid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              data-testid="button-grid-view"
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              {t.gridView}
+            </Button>
+            <Button
+              variant={viewMode === "map" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("map")}
+              data-testid="button-map-view"
+            >
+              <Map className="h-4 w-4 mr-2" />
+              {t.mapView}
+            </Button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -172,11 +210,27 @@ export default function Properties() {
             </CardContent>
           </Card>
         ) : properties && properties.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
+          viewMode === "map" ? (
+            <div className="space-y-6">
+              <PropertyMap 
+                properties={properties} 
+                height="500px" 
+                zoom={6}
+                onPropertyClick={handlePropertyClick}
+              />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {properties.map((property) => (
+                  <PropertyCard key={property.id} property={property} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {properties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+          )
         ) : (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
