@@ -57,7 +57,7 @@ function DynamicHome() {
     queryKey: ["/api/site-config"],
   });
 
-  const templateType = siteConfig?.templateType || "str";
+  const templateType = siteConfig?.templateType || "agency";
   
   if (templateType === "str") {
     return <HomeSTR />;
