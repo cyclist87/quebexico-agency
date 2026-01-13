@@ -53,17 +53,17 @@ export default function AdminTools() {
   const translations = {
     fr: {
       title: "Outils",
-      subtitle: "Outils à valeur ajoutée pour vos clients",
+      subtitle: "Outils à valeur ajoutée pour les hôtes",
       open: "Ouvrir",
     },
     en: {
       title: "Tools",
-      subtitle: "Value-added tools for your clients",
+      subtitle: "Value-added tools for hosts",
       open: "Open",
     },
     es: {
       title: "Herramientas",
-      subtitle: "Herramientas de valor agregado para tus clientes",
+      subtitle: "Herramientas de valor agregado para anfitriones",
       open: "Abrir",
     },
   };
