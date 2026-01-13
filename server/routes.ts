@@ -10,6 +10,7 @@ import pexelsRouter from "./pexels";
 import OpenAI from "openai";
 import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
 import { sendReservationConfirmation } from "./email";
+import { isStripeConfigured } from "./stripeClient";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
 
@@ -176,6 +177,16 @@ export async function registerRoutes(
   
   // Register Pexels API routes
   app.use("/api/pexels", pexelsRouter);
+  
+  // Check Stripe integration status
+  app.get("/api/integrations/stripe/status", async (req, res) => {
+    try {
+      const configured = await isStripeConfigured();
+      res.json({ configured });
+    } catch (error) {
+      res.json({ configured: false });
+    }
+  });
   
   // Projects
   app.get(api.projects.list.path, async (req, res) => {
