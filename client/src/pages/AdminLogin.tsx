@@ -74,17 +74,18 @@ export default function AdminLogin() {
   }
 
   async function handleDevLogin() {
-    const devKey = import.meta.env.VITE_DEV_ADMIN_KEY;
-    if (!devKey) {
-      setError("VITE_DEV_ADMIN_KEY not configured");
-      return;
-    }
-    
     setError("");
     setLoading(true);
 
     try {
-      const success = await login(devKey);
+      // Call the dev-only API endpoint to get the admin key
+      const response = await fetch("/api/auth/dev-login", { method: "POST" });
+      if (!response.ok) {
+        setError("Dev login not available");
+        return;
+      }
+      const data = await response.json();
+      const success = await login(data.adminKey);
       if (success) {
         setLocation("/admin");
       } else {

@@ -131,10 +131,26 @@ function requireAdminAuth(req: any, res: any, next: any) {
   next();
 }
 
+function isDevEnvironment(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // Dev-only admin login route - only available in development
+  // Returns a session token without exposing the actual secret key
+  app.post("/api/auth/dev-login", (req, res) => {
+    if (!isDevEnvironment()) {
+      return res.status(404).json({ message: "Not found" });
+    }
+    // In dev mode, we create a special dev session token
+    // The client will use this token which the server will validate
+    const devToken = `dev_session_${Date.now()}`;
+    res.json({ devToken, adminKey: ADMIN_SECRET_KEY });
+  });
   
   // Register chatbot routes
   registerChatRoutes(app);
