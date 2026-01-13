@@ -41,7 +41,10 @@ import {
   Plus,
   Trash2,
   Loader2,
+  LayoutGrid,
+  GanttChartSquare,
 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, parseISO } from "date-fns";
 import { fr, enUS, es } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
@@ -87,6 +90,8 @@ const translations = {
     nights: "nuits",
     guest: "voyageur(s)",
     basePrice: "Prix de base",
+    viewCalendar: "Vue calendrier",
+    viewGantt: "Vue Gantt",
   },
   en: {
     title: "Calendar",
@@ -127,6 +132,8 @@ const translations = {
     nights: "nights",
     guest: "guest(s)",
     basePrice: "Base price",
+    viewCalendar: "Calendar view",
+    viewGantt: "Gantt view",
   },
   es: {
     title: "Calendario",
@@ -167,6 +174,8 @@ const translations = {
     nights: "noches",
     guest: "huésped(es)",
     basePrice: "Precio base",
+    viewCalendar: "Vista calendario",
+    viewGantt: "Vista Gantt",
   },
 };
 
@@ -184,6 +193,153 @@ function usePricingRules(propertyId?: number) {
   });
 }
 
+interface GanttViewProps {
+  properties: Property[];
+  days: Date[];
+  reservations: Reservation[];
+  blockedDates: BlockedDate[];
+  lang: "fr" | "en" | "es";
+  currentMonth: Date;
+}
+
+function GanttView({ properties, days, reservations, blockedDates, lang, currentMonth }: GanttViewProps) {
+  const getPropertyName = (prop: Property) => {
+    return lang === "en" ? prop.nameEn : lang === "es" ? prop.nameEs : prop.nameFr;
+  };
+
+  const getPropertyEvents = (propertyId: number) => {
+    const events: Array<{
+      type: 'reservation' | 'blocked';
+      start: Date;
+      end: Date;
+      label: string;
+      data: Reservation | BlockedDate;
+    }> = [];
+
+    reservations
+      .filter(r => r.propertyId === propertyId && r.status !== 'cancelled')
+      .forEach(r => {
+        events.push({
+          type: 'reservation',
+          start: new Date(r.checkIn),
+          end: new Date(r.checkOut),
+          label: `${r.guestFirstName} ${r.guestLastName}`,
+          data: r,
+        });
+      });
+
+    blockedDates
+      .filter(b => b.propertyId === propertyId)
+      .forEach(b => {
+        events.push({
+          type: 'blocked',
+          start: new Date(b.startDate),
+          end: new Date(b.endDate),
+          label: b.reason || '',
+          data: b,
+        });
+      });
+
+    return events;
+  };
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = days.length;
+
+  const getEventPosition = (start: Date, end: Date) => {
+    const eventStart = Math.max(start.getTime(), monthStart.getTime());
+    const eventEnd = Math.min(end.getTime(), monthEnd.getTime());
+    
+    const startDay = Math.floor((eventStart - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+    let endDay = Math.ceil((eventEnd - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (endDay <= startDay) {
+      endDay = startDay + 1;
+    }
+    
+    const left = (startDay / daysInMonth) * 100;
+    const width = Math.max(((endDay - startDay) / daysInMonth) * 100, 100 / daysInMonth);
+    
+    return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
+  };
+
+  const isEventVisible = (start: Date, end: Date) => {
+    return start <= monthEnd && end >= monthStart;
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[800px]">
+        <div className="flex border-b">
+          <div className="w-48 shrink-0 p-2 font-medium border-r bg-muted/30">
+            {lang === "fr" ? "Propriété" : lang === "es" ? "Propiedad" : "Property"}
+          </div>
+          <div className="flex-1 flex">
+            {days.map((day, i) => (
+              <div 
+                key={i} 
+                className={`flex-1 text-center text-xs py-1 border-r last:border-r-0 ${
+                  day.getDay() === 0 || day.getDay() === 6 ? 'bg-muted/30' : ''
+                }`}
+              >
+                <div className="font-medium">{format(day, "d")}</div>
+                <div className="text-muted-foreground">{format(day, "EEE", { locale: lang === "en" ? enUS : lang === "es" ? es : fr }).slice(0, 2)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {properties.map((property) => {
+          const events = getPropertyEvents(property.id);
+          return (
+            <div key={property.id} className="flex border-b hover:bg-muted/10">
+              <div className="w-48 shrink-0 p-2 border-r text-sm font-medium truncate" title={getPropertyName(property) || ''}>
+                {getPropertyName(property)}
+              </div>
+              <div className="flex-1 relative h-12">
+                <div className="absolute inset-0 flex">
+                  {days.map((day, i) => (
+                    <div 
+                      key={i} 
+                      className={`flex-1 border-r last:border-r-0 ${
+                        day.getDay() === 0 || day.getDay() === 6 ? 'bg-muted/20' : ''
+                      }`}
+                    />
+                  ))}
+                </div>
+                {events.filter(e => isEventVisible(e.start, e.end)).map((event, i) => {
+                  const pos = getEventPosition(event.start, event.end);
+                  return (
+                    <div
+                      key={i}
+                      className={`absolute top-1 h-10 rounded px-1 flex items-center text-xs truncate cursor-default ${
+                        event.type === 'reservation' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-400 text-white'
+                      }`}
+                      style={{ left: pos.left, width: pos.width }}
+                      title={`${event.label} (${format(event.start, "d MMM")} - ${format(event.end, "d MMM")})`}
+                    >
+                      <span className="truncate">{event.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+        
+        {properties.length === 0 && (
+          <div className="p-8 text-center text-muted-foreground">
+            {lang === "fr" ? "Aucune propriété" : lang === "es" ? "Sin propiedades" : "No properties"}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCalendar() {
   const { language } = useLanguage();
   const lang = (language === "en" || language === "es" ? language : "fr") as "fr" | "en" | "es";
@@ -193,6 +349,7 @@ export default function AdminCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("calendar");
+  const [viewMode, setViewMode] = useState<"calendar" | "gantt">("gantt");
 
   const { data: properties = [], isLoading: propertiesLoading } = useAdminProperties();
   const { data: reservations = [], isLoading: reservationsLoading } = useAdminReservations();
@@ -301,7 +458,7 @@ export default function AdminCalendar() {
 
         <TabsContent value="calendar" className="mt-4">
           <Card>
-            <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 pb-4">
+            <CardHeader className="flex-row flex-wrap items-center justify-between gap-4 space-y-0 pb-4">
               <div className="flex items-center gap-2">
                 <Button 
                   variant="outline" 
@@ -322,6 +479,23 @@ export default function AdminCalendar() {
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+              </div>
+              <div className="flex items-center gap-4">
+                <ToggleGroup 
+                  type="single" 
+                  value={viewMode} 
+                  onValueChange={(v) => v && setViewMode(v as "calendar" | "gantt")}
+                  data-testid="toggle-view-mode"
+                >
+                  <ToggleGroupItem value="calendar" aria-label={t.viewCalendar} className="gap-1.5">
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t.viewCalendar}</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="gantt" aria-label={t.viewGantt} className="gap-1.5">
+                    <GanttChartSquare className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t.viewGantt}</span>
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
@@ -345,6 +519,15 @@ export default function AdminCalendar() {
                     <Skeleton key={i} className="h-20 w-full" />
                   ))}
                 </div>
+              ) : viewMode === "gantt" ? (
+                <GanttView 
+                  properties={selectedPropertyId === "all" ? properties : properties.filter(p => p.id.toString() === selectedPropertyId)}
+                  days={days}
+                  reservations={filteredReservations}
+                  blockedDates={blockedDates}
+                  lang={lang}
+                  currentMonth={currentMonth}
+                />
               ) : selectedPropertyId === "all" ? (
                 <div className="space-y-4">
                   {properties.map((property) => (
