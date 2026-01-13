@@ -82,6 +82,8 @@ export default function AdminSettingsPage() {
       siteName: "Nom du site",
       siteDescription: "Description",
       contactEmail: "Email de contact",
+      customDomain: "Domaine personnalisé",
+      customDomainHelp: "Ex: monsite.com - Configurez le DNS dans les paramètres de déploiement Replit",
       save: "Enregistrer",
       darkMode: "Mode sombre",
       primaryColor: "Couleur principale",
@@ -122,6 +124,8 @@ export default function AdminSettingsPage() {
       siteName: "Site name",
       siteDescription: "Description",
       contactEmail: "Contact email",
+      customDomain: "Custom domain",
+      customDomainHelp: "Ex: mysite.com - Configure DNS in Replit deployment settings",
       save: "Save",
       darkMode: "Dark mode",
       primaryColor: "Primary color",
@@ -162,6 +166,8 @@ export default function AdminSettingsPage() {
       siteName: "Nombre del sitio",
       siteDescription: "Descripción",
       contactEmail: "Email de contacto",
+      customDomain: "Dominio personalizado",
+      customDomainHelp: "Ej: misitio.com - Configure DNS en los ajustes de despliegue de Replit",
       save: "Guardar",
       darkMode: "Modo oscuro",
       primaryColor: "Color principal",
@@ -268,6 +274,14 @@ function GeneralSettingsCard({ t }: { t: Record<string, string> }) {
         <div className="space-y-2">
           <Label htmlFor="contactEmail">{t.contactEmail}</Label>
           <Input id="contactEmail" type="email" placeholder="contact@example.com" data-testid="input-contact-email" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="customDomain">{t.customDomain}</Label>
+          </div>
+          <Input id="customDomain" placeholder="monsite.com" data-testid="input-custom-domain" />
+          <p className="text-sm text-muted-foreground">{t.customDomainHelp}</p>
         </div>
         <Button data-testid="button-save-general">
           <Save className="w-4 h-4 mr-2" />

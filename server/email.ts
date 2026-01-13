@@ -55,6 +55,8 @@ interface ReservationEmailData {
   couponCode?: string;
   total: number;
   language: 'fr' | 'en' | 'es';
+  siteName?: string;
+  siteUrl?: string;
 }
 
 const translations = {
@@ -125,6 +127,8 @@ const translations = {
 
 function generateReservationEmailHtml(data: ReservationEmailData): string {
   const t = translations[data.language];
+  const siteName = data.siteName || 'QUEBEXICO';
+  const teamName = data.siteName ? `${data.siteName}` : t.team;
   
   const discountRow = data.discountAmount && data.discountAmount > 0 
     ? `<tr>
@@ -132,6 +136,10 @@ function generateReservationEmailHtml(data: ReservationEmailData): string {
         <td style="padding: 8px 0; text-align: right; color: #059669;">-${data.discountAmount}$</td>
       </tr>`
     : '';
+
+  const siteLink = data.siteUrl 
+    ? `<a href="${data.siteUrl}" style="color: white; text-decoration: none;">${siteName}</a>`
+    : siteName;
 
   return `
 <!DOCTYPE html>
@@ -144,7 +152,7 @@ function generateReservationEmailHtml(data: ReservationEmailData): string {
   <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
       <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">QUEBEXICO</h1>
+        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">${siteLink}</h1>
       </div>
       
       <div style="padding: 32px;">
@@ -206,7 +214,7 @@ function generateReservationEmailHtml(data: ReservationEmailData): string {
         </div>
         
         <p style="color: #52525b; margin: 24px 0 0 0; font-size: 16px;">${t.footer}</p>
-        <p style="color: #18181b; margin: 8px 0 0 0; font-size: 16px; font-weight: 600;">${t.team}</p>
+        <p style="color: #18181b; margin: 8px 0 0 0; font-size: 16px; font-weight: 600;">${teamName}</p>
       </div>
     </div>
   </div>

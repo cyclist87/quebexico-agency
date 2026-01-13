@@ -1198,6 +1198,13 @@ Important:
                            lang === "es" ? property.nameEs || property.nameFr :
                            property.nameFr;
       
+      // Fetch site config for email branding
+      const siteConfig = await storage.getSiteConfig();
+      const siteName = siteConfig?.siteName || undefined;
+      const siteUrl = siteConfig?.customDomain 
+        ? `https://${siteConfig.customDomain}` 
+        : undefined;
+      
       sendReservationConfirmation({
         guestName: `${input.guestFirstName} ${input.guestLastName}`,
         guestEmail: input.guestEmail,
@@ -1215,6 +1222,8 @@ Important:
         couponCode: validatedCouponCode,
         total,
         language: lang,
+        siteName,
+        siteUrl,
       }).catch((err) => {
         console.error("Failed to send confirmation email:", err);
       });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw } from "lucide-react";
+import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw, Upload, Eye, X, ExternalLink } from "lucide-react";
 import type { SiteConfigType } from "@shared/schema";
 
 const DEFAULT_CONFIG: Partial<SiteConfigType> = {
@@ -23,6 +23,167 @@ const DEFAULT_CONFIG: Partial<SiteConfigType> = {
   footerTextEn: "",
   footerTextEs: "",
 };
+
+function LogoUploader({ 
+  logoUrl, 
+  onLogoChange 
+}: { 
+  logoUrl: string; 
+  onLogoChange: (url: string) => void;
+}) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlValue, setUrlValue] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    setIsUploading(true);
+    
+    try {
+      const response = await fetch("/api/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `logo-${Date.now()}-${file.name}`,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to get upload URL");
+      
+      const { uploadURL, objectPath } = await response.json();
+      
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      
+      if (!uploadResponse.ok) throw new Error("Upload failed");
+      
+      onLogoChange(objectPath);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Erreur lors du téléversement. Veuillez réessayer.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDropZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    handleFileUpload(e.dataTransfer.files);
+  };
+
+  const handleUrlSubmit = () => {
+    if (urlValue.trim()) {
+      onLogoChange(urlValue.trim());
+      setUrlValue("");
+      setShowUrlInput(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {logoUrl ? (
+        <div className="relative inline-block">
+          <div className="p-4 border rounded-lg bg-muted/50">
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="max-h-24 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='40'%3E%3Crect fill='%23f3f4f6' width='100' height='40'/%3E%3Ctext x='50' y='25' text-anchor='middle' fill='%239ca3af' font-size='12'%3ELogo%3C/text%3E%3C/svg%3E";
+              }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute -top-2 -right-2 h-6 w-6"
+            onClick={() => onLogoChange("")}
+            data-testid="button-remove-logo"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      ) : (
+        <div 
+          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover-elevate transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDropZone}
+          data-testid="dropzone-logo-upload"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileUpload(e.target.files)}
+          />
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Téléversement en cours...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm font-medium">Cliquez ou glissez votre logo ici</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, SVG (max 2MB)</p>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <div className="flex gap-2">
+        {logoUrl && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            data-testid="button-change-logo"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Changer
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowUrlInput(!showUrlInput)}
+          data-testid="button-toggle-url-input"
+        >
+          Utiliser une URL
+        </Button>
+      </div>
+      
+      {showUrlInput && (
+        <div className="flex gap-2">
+          <Input
+            value={urlValue}
+            onChange={(e) => setUrlValue(e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="flex-1"
+            data-testid="input-logo-url"
+          />
+          <Button type="button" size="sm" onClick={handleUrlSubmit} data-testid="button-apply-url">
+            Appliquer
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminAppearance() {
   const { toast } = useToast();
@@ -149,6 +310,10 @@ export default function AdminAppearance() {
               <FileText className="h-4 w-4 mr-2" />
               Pied de page
             </TabsTrigger>
+            <TabsTrigger value="preview" data-testid="tab-preview">
+              <Eye className="h-4 w-4 mr-2" />
+              Aperçu
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="branding" className="space-y-4">
@@ -171,31 +336,12 @@ export default function AdminAppearance() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="logoUrl">URL du logo</Label>
-                  <Input
-                    id="logoUrl"
-                    value={formData.logoUrl || ""}
-                    onChange={(e) => handleInputChange("logoUrl", e.target.value)}
-                    placeholder="https://example.com/logo.png"
-                    data-testid="input-logo-url"
+                  <Label>Logo</Label>
+                  <LogoUploader
+                    logoUrl={formData.logoUrl || ""}
+                    onLogoChange={(url) => handleInputChange("logoUrl", url)}
                   />
-                  <p className="text-sm text-muted-foreground">
-                    Entrez l'URL de votre logo ou téléversez-le dans le stockage d'objets
-                  </p>
                 </div>
-                {formData.logoUrl && (
-                  <div className="p-4 border rounded-lg bg-muted/50">
-                    <Label className="mb-2 block">Aperçu</Label>
-                    <img
-                      src={formData.logoUrl}
-                      alt="Logo preview"
-                      className="max-h-20 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -369,6 +515,96 @@ export default function AdminAppearance() {
               </CardContent>
             </Card>
 
+          </TabsContent>
+
+          <TabsContent value="preview" className="space-y-4">
+            <Card>
+              <CardHeader className="flex-row flex-wrap items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Aperçu du site</CardTitle>
+                  <CardDescription>
+                    Visualisez l'apparence de votre site avec les paramètres actuels
+                  </CardDescription>
+                </div>
+                <Button variant="outline" asChild data-testid="button-open-site">
+                  <a href="/" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Ouvrir le site
+                  </a>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg overflow-hidden">
+                  <div 
+                    className="p-4 flex items-center gap-4"
+                    style={{ backgroundColor: formData.primaryColor || "#2563eb" }}
+                  >
+                    {formData.logoUrl ? (
+                      <img
+                        src={formData.logoUrl}
+                        alt="Logo"
+                        className="h-10 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 bg-white/20 rounded flex items-center justify-center">
+                        <Image className="h-5 w-5 text-white" />
+                      </div>
+                    )}
+                    <span 
+                      className="text-white font-bold text-lg"
+                      style={{ fontFamily: formData.fontFamily || "Inter" }}
+                    >
+                      {formData.siteName || "Mon Site"}
+                    </span>
+                    <div className="ml-auto flex gap-2">
+                      <div className="px-3 py-1 rounded text-sm text-white/80">Accueil</div>
+                      <div className="px-3 py-1 rounded text-sm text-white/80">Propriétés</div>
+                      <div className="px-3 py-1 rounded text-sm text-white/80">Contact</div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-8 bg-background min-h-[200px]">
+                    <div className="max-w-2xl mx-auto text-center space-y-4">
+                      <h1 
+                        className="text-3xl font-bold"
+                        style={{ fontFamily: formData.fontFamily || "Inter" }}
+                      >
+                        Bienvenue sur {formData.siteName || "notre site"}
+                      </h1>
+                      <p className="text-muted-foreground">
+                        Découvrez nos propriétés exceptionnelles
+                      </p>
+                      <div className="flex justify-center gap-3">
+                        <Button
+                          style={{ backgroundColor: formData.primaryColor || "#2563eb" }}
+                          className="text-white"
+                        >
+                          Voir les propriétés
+                        </Button>
+                        <Button
+                          variant="outline"
+                          style={{ borderColor: formData.secondaryColor || "#64748b", color: formData.secondaryColor || "#64748b" }}
+                        >
+                          En savoir plus
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="p-4 text-center text-sm"
+                    style={{ backgroundColor: formData.secondaryColor || "#64748b" }}
+                  >
+                    <span className="text-white/80" style={{ fontFamily: formData.fontFamily || "Inter" }}>
+                      {formData.footerTextFr || `© ${new Date().getFullYear()} ${formData.siteName || "Mon Site"}. Tous droits réservés.`}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

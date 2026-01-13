@@ -370,6 +370,7 @@ export const siteConfig = pgTable("site_config", {
   metaDescriptionFr: text("meta_description_fr"),
   metaDescriptionEn: text("meta_description_en"),
   metaDescriptionEs: text("meta_description_es"),
+  customDomain: text("custom_domain"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
