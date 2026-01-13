@@ -1,10 +1,11 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TemplateProvider } from "@/contexts/TemplateContext";
+import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -20,6 +21,7 @@ import Cookies from "@/pages/Cookies";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import AdminDashboard from "@/pages/Admin";
+import AdminLogin from "@/pages/AdminLogin";
 import Booking from "@/pages/Booking";
 import DemoIndex from "@/pages/demo/DemoIndex";
 import DemoAthlete from "@/pages/demo/DemoAthlete";
@@ -60,7 +62,13 @@ function MainRouter() {
   );
 }
 
-function AdminRouter() {
+function ProtectedAdminRouter() {
+  const { isAuthenticated } = useAdminAuth();
+  
+  if (!isAuthenticated) {
+    return <Redirect to="/admin/login" />;
+  }
+
   return (
     <TemplateProvider>
       <AdminShell>
@@ -74,6 +82,16 @@ function AdminRouter() {
       </AdminShell>
     </TemplateProvider>
   );
+}
+
+function AdminRouter() {
+  const [location] = useLocation();
+  
+  if (location === "/admin/login") {
+    return <AdminLogin />;
+  }
+  
+  return <ProtectedAdminRouter />;
 }
 
 function ToolsRouter() {
@@ -145,10 +163,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <TooltipProvider>
-          <AppContent />
-          <Toaster />
-        </TooltipProvider>
+        <AdminAuthProvider>
+          <TooltipProvider>
+            <AppContent />
+            <Toaster />
+          </TooltipProvider>
+        </AdminAuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
