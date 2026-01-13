@@ -937,11 +937,9 @@ function BlockedDatesManager({ property }: { property: Property }) {
 
 function PropertyListItem({ 
   property, 
-  onEdit,
   onManageCalendar,
 }: { 
   property: Property;
-  onEdit: () => void;
   onManageCalendar: () => void;
 }) {
   const { toast } = useToast();
@@ -1000,10 +998,12 @@ function PropertyListItem({
           <Button 
             size="icon" 
             variant="ghost" 
-            onClick={onEdit}
+            asChild
             data-testid={`button-edit-${property.id}`}
           >
-            <Pencil className="h-4 w-4" />
+            <Link href={`/admin/properties/${property.id}/edit`}>
+              <Pencil className="h-4 w-4" />
+            </Link>
           </Button>
           
           <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
@@ -1046,8 +1046,6 @@ function PropertyListItem({
 
 export default function AdminProperties() {
   const { data: properties, isLoading } = useAdminProperties();
-  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [managingCalendar, setManagingCalendar] = useState<Property | null>(null);
 
   return (
@@ -1068,20 +1066,12 @@ export default function AdminProperties() {
             </div>
           </div>
 
-          <Dialog open={isCreating} onOpenChange={setIsCreating}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-create-property">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle propriété
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Nouvelle propriété</DialogTitle>
-              </DialogHeader>
-              <PropertyForm onClose={() => setIsCreating(false)} />
-            </DialogContent>
-          </Dialog>
+          <Button asChild data-testid="button-create-property">
+            <Link href="/admin/properties/new/edit">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle propriété
+            </Link>
+          </Button>
         </div>
 
         {isLoading ? (
@@ -1092,7 +1082,6 @@ export default function AdminProperties() {
               <PropertyListItem
                 key={property.id}
                 property={property}
-                onEdit={() => setEditingProperty(property)}
                 onManageCalendar={() => setManagingCalendar(property)}
               />
             ))}
@@ -1105,25 +1094,15 @@ export default function AdminProperties() {
               <p className="text-sm text-muted-foreground mb-4">
                 Commencez par ajouter votre première propriété
               </p>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter une propriété
+              <Button asChild>
+                <Link href="/admin/properties/new/edit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une propriété
+                </Link>
               </Button>
             </CardContent>
           </Card>
         )}
-
-        <Dialog open={!!editingProperty} onOpenChange={(open) => !open && setEditingProperty(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Modifier la propriété</DialogTitle>
-            </DialogHeader>
-            <PropertyForm 
-              property={editingProperty} 
-              onClose={() => setEditingProperty(null)} 
-            />
-          </DialogContent>
-        </Dialog>
 
         <Dialog open={!!managingCalendar} onOpenChange={(open) => !open && setManagingCalendar(null)}>
           <DialogContent className="max-w-lg">

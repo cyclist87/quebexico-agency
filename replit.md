@@ -106,7 +106,8 @@ The application includes a complete autonomous property management and booking s
 **Frontend Pages:**
 - `/properties` - Public listing of all active properties
 - `/properties/:slug` - Property detail with booking calendar and instant reservation
-- `/admin/properties` - Admin property management with CRUD and blocked dates
+- `/admin/properties` - Admin property list with links to editor
+- `/admin/properties/:id/edit` - Full-page property editor with 7 tabs (General, Languages, Location, Details, Photos, Rules, Calendar) and completion indicators
 
 **Key Components:**
 - `BookingFlowLocal.tsx`: Complete booking workflow with multilingual support (FR/EN/ES)

@@ -37,6 +37,7 @@ import PublicCard from "@/pages/PublicCard";
 import PropertyDetail from "@/pages/PropertyDetail";
 import Properties from "@/pages/Properties";
 import AdminProperties from "@/pages/AdminProperties";
+import AdminPropertyEditor from "@/pages/AdminPropertyEditor";
 import AdminCoupons from "@/pages/AdminCoupons";
 import AdminReservations from "@/pages/AdminReservations";
 import AdminIntegrations from "@/pages/AdminIntegrations";
@@ -89,6 +90,7 @@ function ProtectedAdminRouter() {
         <Switch>
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/properties" component={AdminProperties} />
+          <Route path="/admin/properties/:id/edit" component={AdminPropertyEditor} />
           <Route path="/admin/reservations" component={AdminReservations} />
           <Route path="/admin/coupons" component={AdminCoupons} />
           <Route path="/admin/integrations" component={AdminIntegrations} />

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
+import { insertPropertySchema } from "@shared/schema";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerHostProRoutes } from "./hostpro/routes";
@@ -1321,7 +1322,34 @@ Important:
         return res.status(409).json({ message: "Ce slug existe déjà" });
       }
       
-      const property = await storage.createProperty(req.body);
+      // Normalize the input: convert empty strings to null for nullable fields
+      const normalizedData = { ...req.body };
+      const nullableFields = [
+        'descriptionFr', 'descriptionEn', 'descriptionEs',
+        'addressFr', 'addressEn', 'addressEs',
+        'city', 'region', 'country', 'latitude', 'longitude',
+        'houseRulesFr', 'houseRulesEn', 'houseRulesEs',
+        'wifiName', 'wifiPassword', 'icalUrl',
+        'accessCodeFr', 'accessCodeEn', 'accessCodeEs'
+      ];
+      for (const field of nullableFields) {
+        if (normalizedData[field] === '' || normalizedData[field] === undefined) {
+          normalizedData[field] = null;
+        }
+      }
+      
+      // Ensure required fields exist
+      if (!normalizedData.nameFr) {
+        return res.status(400).json({ message: "Le nom en français est requis", field: "nameFr" });
+      }
+      if (!normalizedData.pricePerNight) {
+        return res.status(400).json({ message: "Le prix par nuit est requis", field: "pricePerNight" });
+      }
+      
+      // Validate with insertPropertySchema
+      const validatedData = insertPropertySchema.parse(normalizedData);
+      
+      const property = await storage.createProperty(validatedData);
       res.status(201).json(property);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -1346,7 +1374,26 @@ Important:
         }
       }
       
-      const property = await storage.updateProperty(id, req.body);
+      // Normalize the input: convert empty strings to null for nullable fields
+      const normalizedData = { ...req.body };
+      const nullableFields = [
+        'descriptionFr', 'descriptionEn', 'descriptionEs',
+        'addressFr', 'addressEn', 'addressEs',
+        'city', 'region', 'country', 'latitude', 'longitude',
+        'houseRulesFr', 'houseRulesEn', 'houseRulesEs',
+        'wifiName', 'wifiPassword', 'icalUrl',
+        'accessCodeFr', 'accessCodeEn', 'accessCodeEs'
+      ];
+      for (const field of nullableFields) {
+        if (normalizedData[field] === '') {
+          normalizedData[field] = null;
+        }
+      }
+      
+      // Validate with partial schema for updates
+      const validatedData = insertPropertySchema.partial().parse(normalizedData);
+      
+      const property = await storage.updateProperty(id, validatedData);
       if (!property) {
         return res.status(404).json({ message: "Property not found" });
       }
