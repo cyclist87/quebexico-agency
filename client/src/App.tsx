@@ -11,6 +11,9 @@ import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { AdminShell } from "@/components/admin/AdminShell";
 import Home from "@/pages/Home";
+import HomeSTR from "@/pages/HomeSTR";
+import { useQuery } from "@tanstack/react-query";
+import type { SiteConfigType } from "@shared/schema";
 import Contact from "@/pages/Contact";
 import BookDiscovery from "@/pages/BookDiscovery";
 import BookExpert from "@/pages/BookExpert";
@@ -49,10 +52,24 @@ import AdminContent from "@/pages/AdminContent";
 import AdminCalendar from "@/pages/AdminCalendar";
 import NotFound from "@/pages/not-found";
 
+function DynamicHome() {
+  const { data: siteConfig } = useQuery<SiteConfigType | null>({
+    queryKey: ["/api/site-config"],
+  });
+
+  const templateType = siteConfig?.templateType || "str";
+  
+  if (templateType === "str") {
+    return <HomeSTR />;
+  }
+  
+  return <Home />;
+}
+
 function MainRouter() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={DynamicHome} />
       <Route path="/contact" component={Contact} />
       <Route path="/book/discovery" component={BookDiscovery} />
       <Route path="/book/expert" component={BookExpert} />

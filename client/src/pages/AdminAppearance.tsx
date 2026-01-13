@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw, Upload, Eye, X, ExternalLink } from "lucide-react";
+import { Loader2, Palette, Image, Type, FileText, Save, RotateCcw, Upload, Eye, X, ExternalLink, Search } from "lucide-react";
 import type { SiteConfigType } from "@shared/schema";
 
 const DEFAULT_CONFIG: Partial<SiteConfigType> = {
@@ -310,6 +310,10 @@ export default function AdminAppearance() {
               <FileText className="h-4 w-4 mr-2" />
               Pied de page
             </TabsTrigger>
+            <TabsTrigger value="seo" data-testid="tab-seo">
+              <Search className="h-4 w-4 mr-2" />
+              SEO
+            </TabsTrigger>
             <TabsTrigger value="preview" data-testid="tab-preview">
               <Eye className="h-4 w-4 mr-2" />
               Aperçu
@@ -515,6 +519,121 @@ export default function AdminAppearance() {
               </CardContent>
             </Card>
 
+          </TabsContent>
+
+          <TabsContent value="seo" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Référencement (SEO)</CardTitle>
+                <CardDescription>
+                  Optimisez votre site pour les moteurs de recherche
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Français</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaTitleFr">Titre de la page (FR)</Label>
+                    <Input
+                      id="metaTitleFr"
+                      value={formData.metaTitleFr || ""}
+                      onChange={(e) => handleInputChange("metaTitleFr", e.target.value)}
+                      placeholder="Mon Site | Location de vacances"
+                      data-testid="input-meta-title-fr"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Apparaît dans l'onglet du navigateur et les résultats de recherche (max 60 caractères)
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaDescriptionFr">Description (FR)</Label>
+                    <Textarea
+                      id="metaDescriptionFr"
+                      value={formData.metaDescriptionFr || ""}
+                      onChange={(e) => handleInputChange("metaDescriptionFr", e.target.value)}
+                      placeholder="Découvrez nos hébergements uniques pour vos vacances..."
+                      rows={3}
+                      data-testid="input-meta-desc-fr"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Résumé affiché dans les résultats de recherche (max 160 caractères)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">English</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaTitleEn">Page Title (EN)</Label>
+                    <Input
+                      id="metaTitleEn"
+                      value={formData.metaTitleEn || ""}
+                      onChange={(e) => handleInputChange("metaTitleEn", e.target.value)}
+                      placeholder="My Site | Vacation Rentals"
+                      data-testid="input-meta-title-en"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaDescriptionEn">Description (EN)</Label>
+                    <Textarea
+                      id="metaDescriptionEn"
+                      value={formData.metaDescriptionEn || ""}
+                      onChange={(e) => handleInputChange("metaDescriptionEn", e.target.value)}
+                      placeholder="Discover our unique accommodations for your vacation..."
+                      rows={3}
+                      data-testid="input-meta-desc-en"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Español</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaTitleEs">Título de la página (ES)</Label>
+                    <Input
+                      id="metaTitleEs"
+                      value={formData.metaTitleEs || ""}
+                      onChange={(e) => handleInputChange("metaTitleEs", e.target.value)}
+                      placeholder="Mi Sitio | Alquiler vacacional"
+                      data-testid="input-meta-title-es"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaDescriptionEs">Descripción (ES)</Label>
+                    <Textarea
+                      id="metaDescriptionEs"
+                      value={formData.metaDescriptionEs || ""}
+                      onChange={(e) => handleInputChange("metaDescriptionEs", e.target.value)}
+                      placeholder="Descubre nuestros alojamientos únicos para tus vacaciones..."
+                      rows={3}
+                      data-testid="input-meta-desc-es"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Aperçu Google</CardTitle>
+                <CardDescription>
+                  Voici comment votre site apparaîtra dans les résultats de recherche
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg p-4 bg-white">
+                  <div className="text-blue-600 text-lg hover:underline cursor-pointer">
+                    {formData.metaTitleFr || formData.siteName || "Mon Site"}
+                  </div>
+                  <div className="text-green-700 text-sm">
+                    {formData.customDomain ? `https://${formData.customDomain}` : "https://monsite.replit.app"}
+                  </div>
+                  <div className="text-gray-600 text-sm mt-1">
+                    {formData.metaDescriptionFr || "Aucune description définie. Ajoutez une description pour améliorer votre référencement."}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="preview" className="space-y-4">

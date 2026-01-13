@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useProperties } from "@/hooks/use-properties";
+import { useSEO } from "@/hooks/use-seo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -159,6 +160,8 @@ export default function Properties() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const { data: properties, isLoading, error } = useProperties();
+  
+  useSEO({ title: t.title });
 
   const handlePropertyClick = (property: Property) => {
     setLocation(`/properties/${property.slug}`);

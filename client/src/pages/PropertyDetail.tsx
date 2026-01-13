@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
+import { useSEO } from "@/hooks/use-seo";
 import type { Property } from "@shared/schema";
 
 type Language = "fr" | "en" | "es";
@@ -251,6 +252,12 @@ export default function PropertyDetail() {
   const houseRules = houseRulesText ? houseRulesText.split("\n").filter(Boolean) : [];
   const photos = property.photos;
   const images = Array.isArray(photos) ? photos.filter((p): p is string => typeof p === "string") : [];
+
+  useSEO({ 
+    title: location ? `${name} - ${location}` : name,
+    description: description?.substring(0, 160),
+    image: images[0],
+  });
 
   return (
     <div className="min-h-screen bg-background pt-24" data-testid="page-property-detail">
