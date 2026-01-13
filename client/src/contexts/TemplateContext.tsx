@@ -13,7 +13,7 @@ export interface TemplateConfig {
   features: string[];
 }
 
-const COMMON_FEATURES = ["coupons", "integrations", "tools", "settings", "super_admin"];
+const COMMON_FEATURES = ["coupons", "content", "appearance", "integrations", "tools", "settings", "super_admin"];
 
 export const TEMPLATE_CONFIGS: Record<TemplateType, TemplateConfig> = {
   str: {

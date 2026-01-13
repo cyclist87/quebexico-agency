@@ -43,6 +43,8 @@ import AdminIntegrations from "@/pages/AdminIntegrations";
 import AdminTools from "@/pages/AdminTools";
 import AdminSettingsPage from "@/pages/AdminSettingsPage";
 import AdminSuper from "@/pages/AdminSuper";
+import AdminAppearance from "@/pages/AdminAppearance";
+import AdminContent from "@/pages/AdminContent";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -84,6 +86,8 @@ function ProtectedAdminRouter() {
           <Route path="/admin/integrations" component={AdminIntegrations} />
           <Route path="/admin/tools" component={AdminTools} />
           <Route path="/admin/settings" component={AdminSettingsPage} />
+          <Route path="/admin/appearance" component={AdminAppearance} />
+          <Route path="/admin/content" component={AdminContent} />
           <Route path="/admin/super" component={AdminSuper} />
           <Route component={NotFound} />
         </Switch>

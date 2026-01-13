@@ -148,6 +148,12 @@ The admin dashboard uses a modular architecture that dynamically shows features 
 - `/admin/properties` - Property management (STR only)
 - `/admin/reservations` - Reservation management (STR only)
 - `/admin/coupons` - Coupon/promotion system (all templates)
+- `/admin/content` - Content sections editor (all templates)
+- `/admin/appearance` - Site appearance settings (all templates)
+- `/admin/integrations` - Third-party integrations (all templates)
+- `/admin/tools` - Value-added tools (all templates)
+- `/admin/settings` - General settings (all templates)
+- `/admin/super` - Super Admin module configuration (all templates)
 
 **Design Principles:**
 - Template configs only list features with implemented routes to prevent broken navigation
@@ -166,6 +172,33 @@ Transactional emails are sent via Resend after successful reservations.
 - Language validation: Normalizes input and defaults to 'fr' for invalid codes
 - Email includes: reservation details, pricing breakdown, coupon discounts
 - Sending is non-blocking (uses .catch) to not delay API responses
+
+### CMS System (Content Management)
+The application includes a CMS system for managing site appearance and content sections.
+
+**Database Tables (shared/schema.ts):**
+- `siteConfig`: Global settings (logo, colors, fonts, contact info, social links, SEO meta, footer text)
+- `contentSections`: Multilingual editable sections (hero, about, services, etc.) with enable/disable, ordering
+
+**API Routes (server/routes.ts):**
+- Public: `GET /api/site-config`, `GET /api/content-sections`
+- Admin: `PUT /api/admin/site-config`, CRUD `/api/admin/content-sections/*`
+
+**Admin Pages:**
+- `/admin/appearance` - Logo, colors, fonts, footer text (multilingual)
+- `/admin/content` - Create/edit/delete content sections with multilingual fields
+
+**Frontend Hooks (client/src/hooks/):**
+- `useSiteConfig()`: Returns site configuration with helper methods for multilingual fields
+- `useContentSections()`: Returns content sections ordered by index
+- `useContentSection(type)`: Returns specific section with helper methods (getTitle, getContent, etc.)
+
+**Key Features:**
+- All modules available across all template types (in COMMON_FEATURES)
+- Multilingual support (FR/EN/ES) for all text fields
+- Section types: hero, about, services, portfolio, testimonials, contact, cta, features, custom
+- Toggle sections on/off without deleting
+- Order sections by index
 
 ### HostPro Integration (Legacy/Optional)
 - **Purpose**: Optional sync for properties/availability from external HostPro API
