@@ -9,6 +9,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import pexelsRouter from "./pexels";
 import OpenAI from "openai";
 import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
+import { sendReservationConfirmation } from "./email";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
 
@@ -855,11 +856,35 @@ Important:
             discountApplied: discountAmount,
             currency: property.currency || "CAD",
           });
-          await storage.updateCoupon(coupon.id, {
-            currentRedemptions: (coupon.currentRedemptions || 0) + 1,
-          });
+          await storage.incrementCouponRedemption(coupon.id);
         }
       }
+      
+      const lang = (input.language || "fr") as "fr" | "en" | "es";
+      const propertyName = lang === "en" ? property.nameEn || property.nameFr :
+                           lang === "es" ? property.nameEs || property.nameFr :
+                           property.nameFr;
+      
+      sendReservationConfirmation({
+        guestName: `${input.guestFirstName} ${input.guestLastName}`,
+        guestEmail: input.guestEmail,
+        propertyName: propertyName || "Propriété",
+        checkIn: input.checkIn,
+        checkOut: input.checkOut,
+        nights,
+        guests: input.guests,
+        confirmationCode,
+        subtotal,
+        serviceFee,
+        cleaningFee,
+        taxes,
+        discountAmount: discountAmount > 0 ? discountAmount : undefined,
+        couponCode: validatedCouponCode,
+        total,
+        language: lang,
+      }).catch((err) => {
+        console.error("Failed to send confirmation email:", err);
+      });
       
       res.status(201).json({
         id: reservation.id,
