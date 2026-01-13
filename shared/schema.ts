@@ -172,6 +172,109 @@ export const emailSignatures = pgTable("email_signatures", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === STR PROPERTIES (Autonomous Rental) ===
+
+export const properties = pgTable("properties", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  nameFr: text("name_fr").notNull(),
+  nameEn: text("name_en").notNull(),
+  nameEs: text("name_es").notNull(),
+  descriptionFr: text("description_fr"),
+  descriptionEn: text("description_en"),
+  descriptionEs: text("description_es"),
+  addressFr: text("address_fr"),
+  addressEn: text("address_en"),
+  addressEs: text("address_es"),
+  city: text("city"),
+  region: text("region"),
+  country: text("country").default("CA"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  photos: text("photos").array(),
+  amenitiesFr: text("amenities_fr").array(),
+  amenitiesEn: text("amenities_en").array(),
+  amenitiesEs: text("amenities_es").array(),
+  maxGuests: integer("max_guests").default(4),
+  bedrooms: integer("bedrooms").default(1),
+  bathrooms: integer("bathrooms").default(1),
+  pricePerNight: integer("price_per_night").notNull(),
+  cleaningFee: integer("cleaning_fee").default(0),
+  currency: text("currency").default("CAD"),
+  minNights: integer("min_nights").default(1),
+  maxNights: integer("max_nights").default(30),
+  checkInTime: text("check_in_time").default("15:00"),
+  checkOutTime: text("check_out_time").default("11:00"),
+  houseRulesFr: text("house_rules_fr"),
+  houseRulesEn: text("house_rules_en"),
+  houseRulesEs: text("house_rules_es"),
+  wifiName: text("wifi_name"),
+  wifiPassword: text("wifi_password"),
+  accessCodeFr: text("access_code_fr"),
+  accessCodeEn: text("access_code_en"),
+  accessCodeEs: text("access_code_es"),
+  icalUrl: text("ical_url"),
+  isActive: boolean("is_active").default(true),
+  isFeatured: boolean("is_featured").default(false),
+  orderIndex: integer("order_index").default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const blockedDates = pgTable("blocked_dates", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  source: text("source").default("manual"),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const reservations = pgTable("reservations", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  confirmationCode: text("confirmation_code").notNull().unique(),
+  status: text("status").default("pending"),
+  checkIn: timestamp("check_in").notNull(),
+  checkOut: timestamp("check_out").notNull(),
+  nights: integer("nights").notNull(),
+  guests: integer("guests").notNull(),
+  guestFirstName: text("guest_first_name").notNull(),
+  guestLastName: text("guest_last_name").notNull(),
+  guestEmail: text("guest_email").notNull(),
+  guestPhone: text("guest_phone"),
+  guestMessage: text("guest_message"),
+  pricePerNight: integer("price_per_night").notNull(),
+  subtotal: integer("subtotal").notNull(),
+  cleaningFee: integer("cleaning_fee").default(0),
+  serviceFee: integer("service_fee").default(0),
+  taxes: integer("taxes").default(0),
+  total: integer("total").notNull(),
+  currency: text("currency").default("CAD"),
+  language: text("language").default("fr"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const inquiries = pgTable("inquiries", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "set null" }),
+  status: text("status").default("new"),
+  guestFirstName: text("guest_first_name").notNull(),
+  guestLastName: text("guest_last_name").notNull(),
+  guestEmail: text("guest_email").notNull(),
+  guestPhone: text("guest_phone"),
+  message: text("message").notNull(),
+  checkIn: timestamp("check_in"),
+  checkOut: timestamp("check_out"),
+  guests: integer("guests"),
+  language: text("language").default("fr"),
+  repliedAt: timestamp("replied_at"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -203,6 +306,11 @@ export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ i
 export const insertAiUsageSchema = createInsertSchema(aiUsage).omit({ id: true, createdAt: true });
 export const insertDigitalCardSchema = createInsertSchema(digitalCards).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEmailSignatureSchema = createInsertSchema(emailSignatures).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertPropertySchema = createInsertSchema(properties).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBlockedDateSchema = createInsertSchema(blockedDates).omit({ id: true, createdAt: true });
+export const insertReservationSchema = createInsertSchema(reservations).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true, createdAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -244,6 +352,18 @@ export type InsertDigitalCard = z.infer<typeof insertDigitalCardSchema>;
 
 export type EmailSignature = typeof emailSignatures.$inferSelect;
 export type InsertEmailSignature = z.infer<typeof insertEmailSignatureSchema>;
+
+export type Property = typeof properties.$inferSelect;
+export type InsertProperty = z.infer<typeof insertPropertySchema>;
+
+export type BlockedDate = typeof blockedDates.$inferSelect;
+export type InsertBlockedDate = z.infer<typeof insertBlockedDateSchema>;
+
+export type Reservation = typeof reservations.$inferSelect;
+export type InsertReservation = z.infer<typeof insertReservationSchema>;
+
+export type Inquiry = typeof inquiries.$inferSelect;
+export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

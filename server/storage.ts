@@ -9,6 +9,10 @@ import {
   aiUsage,
   digitalCards,
   emailSignatures,
+  properties,
+  blockedDates,
+  reservations,
+  inquiries,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -17,6 +21,10 @@ import {
   type InsertAiUsage,
   type InsertDigitalCard,
   type InsertEmailSignature,
+  type InsertProperty,
+  type InsertBlockedDate,
+  type InsertReservation,
+  type InsertInquiry,
   type Message,
   type Subscriber,
   type Project,
@@ -25,9 +33,13 @@ import {
   type SiteSetting,
   type AiUsage,
   type DigitalCard,
-  type EmailSignature
+  type EmailSignature,
+  type Property,
+  type BlockedDate,
+  type Reservation,
+  type Inquiry
 } from "@shared/schema";
-import { eq, desc, asc, and, sql, gte } from "drizzle-orm";
+import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
 export interface IStorage {
   // Messages
@@ -89,6 +101,32 @@ export interface IStorage {
   createEmailSignature(signature: InsertEmailSignature): Promise<EmailSignature>;
   updateEmailSignature(id: number, signature: Partial<InsertEmailSignature>): Promise<EmailSignature | undefined>;
   deleteEmailSignature(id: number): Promise<boolean>;
+  
+  // Properties (STR)
+  getProperties(activeOnly?: boolean): Promise<Property[]>;
+  getPropertyById(id: number): Promise<Property | undefined>;
+  getPropertyBySlug(slug: string): Promise<Property | undefined>;
+  createProperty(property: InsertProperty): Promise<Property>;
+  updateProperty(id: number, property: Partial<InsertProperty>): Promise<Property | undefined>;
+  deleteProperty(id: number): Promise<boolean>;
+  
+  // Blocked Dates
+  getBlockedDates(propertyId: number, startDate?: Date, endDate?: Date): Promise<BlockedDate[]>;
+  createBlockedDate(blockedDate: InsertBlockedDate): Promise<BlockedDate>;
+  deleteBlockedDate(id: number): Promise<boolean>;
+  
+  // Reservations
+  getReservations(propertyId?: number): Promise<Reservation[]>;
+  getReservationById(id: number): Promise<Reservation | undefined>;
+  getReservationByCode(code: string): Promise<Reservation | undefined>;
+  createReservation(reservation: InsertReservation): Promise<Reservation>;
+  updateReservation(id: number, reservation: Partial<InsertReservation>): Promise<Reservation | undefined>;
+  
+  // Inquiries
+  getInquiries(propertyId?: number): Promise<Inquiry[]>;
+  getInquiryById(id: number): Promise<Inquiry | undefined>;
+  createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
+  updateInquiry(id: number, inquiry: Partial<InsertInquiry>): Promise<Inquiry | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -341,6 +379,135 @@ export class DatabaseStorage implements IStorage {
   async deleteEmailSignature(id: number): Promise<boolean> {
     await db.delete(emailSignatures).where(eq(emailSignatures.id, id));
     return true;
+  }
+
+  // Properties (STR)
+  async getProperties(activeOnly = false): Promise<Property[]> {
+    if (activeOnly) {
+      return await db.select().from(properties)
+        .where(eq(properties.isActive, true))
+        .orderBy(asc(properties.orderIndex), desc(properties.createdAt));
+    }
+    return await db.select().from(properties).orderBy(asc(properties.orderIndex), desc(properties.createdAt));
+  }
+
+  async getPropertyById(id: number): Promise<Property | undefined> {
+    const [property] = await db.select().from(properties).where(eq(properties.id, id));
+    return property;
+  }
+
+  async getPropertyBySlug(slug: string): Promise<Property | undefined> {
+    const [property] = await db.select().from(properties).where(eq(properties.slug, slug));
+    return property;
+  }
+
+  async createProperty(property: InsertProperty): Promise<Property> {
+    const [newProperty] = await db.insert(properties).values(property).returning();
+    return newProperty;
+  }
+
+  async updateProperty(id: number, property: Partial<InsertProperty>): Promise<Property | undefined> {
+    const [updated] = await db.update(properties)
+      .set({ ...property, updatedAt: new Date() })
+      .where(eq(properties.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProperty(id: number): Promise<boolean> {
+    await db.delete(properties).where(eq(properties.id, id));
+    return true;
+  }
+
+  // Blocked Dates
+  async getBlockedDates(propertyId: number, startDate?: Date, endDate?: Date): Promise<BlockedDate[]> {
+    let query = db.select().from(blockedDates).where(eq(blockedDates.propertyId, propertyId));
+    
+    if (startDate && endDate) {
+      return await db.select().from(blockedDates).where(
+        and(
+          eq(blockedDates.propertyId, propertyId),
+          or(
+            and(gte(blockedDates.startDate, startDate), lte(blockedDates.startDate, endDate)),
+            and(gte(blockedDates.endDate, startDate), lte(blockedDates.endDate, endDate)),
+            and(lte(blockedDates.startDate, startDate), gte(blockedDates.endDate, endDate))
+          )
+        )
+      ).orderBy(asc(blockedDates.startDate));
+    }
+    
+    return await query.orderBy(asc(blockedDates.startDate));
+  }
+
+  async createBlockedDate(blockedDate: InsertBlockedDate): Promise<BlockedDate> {
+    const [newBlocked] = await db.insert(blockedDates).values(blockedDate).returning();
+    return newBlocked;
+  }
+
+  async deleteBlockedDate(id: number): Promise<boolean> {
+    await db.delete(blockedDates).where(eq(blockedDates.id, id));
+    return true;
+  }
+
+  // Reservations
+  async getReservations(propertyId?: number): Promise<Reservation[]> {
+    if (propertyId) {
+      return await db.select().from(reservations)
+        .where(eq(reservations.propertyId, propertyId))
+        .orderBy(desc(reservations.createdAt));
+    }
+    return await db.select().from(reservations).orderBy(desc(reservations.createdAt));
+  }
+
+  async getReservationById(id: number): Promise<Reservation | undefined> {
+    const [reservation] = await db.select().from(reservations).where(eq(reservations.id, id));
+    return reservation;
+  }
+
+  async getReservationByCode(code: string): Promise<Reservation | undefined> {
+    const [reservation] = await db.select().from(reservations).where(eq(reservations.confirmationCode, code));
+    return reservation;
+  }
+
+  async createReservation(reservation: InsertReservation): Promise<Reservation> {
+    const [newReservation] = await db.insert(reservations).values(reservation).returning();
+    return newReservation;
+  }
+
+  async updateReservation(id: number, reservation: Partial<InsertReservation>): Promise<Reservation | undefined> {
+    const [updated] = await db.update(reservations)
+      .set({ ...reservation, updatedAt: new Date() })
+      .where(eq(reservations.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Inquiries
+  async getInquiries(propertyId?: number): Promise<Inquiry[]> {
+    if (propertyId) {
+      return await db.select().from(inquiries)
+        .where(eq(inquiries.propertyId, propertyId))
+        .orderBy(desc(inquiries.createdAt));
+    }
+    return await db.select().from(inquiries).orderBy(desc(inquiries.createdAt));
+  }
+
+  async getInquiryById(id: number): Promise<Inquiry | undefined> {
+    const [inquiry] = await db.select().from(inquiries).where(eq(inquiries.id, id));
+    return inquiry;
+  }
+
+  async createInquiry(inquiry: InsertInquiry): Promise<Inquiry> {
+    const [newInquiry] = await db.insert(inquiries).values(inquiry).returning();
+    return newInquiry;
+  }
+
+  async updateInquiry(id: number, inquiry: Partial<InsertInquiry>): Promise<Inquiry | undefined> {
+    const [updated] = await db.update(inquiries)
+      .set(inquiry)
+      .where(eq(inquiries.id, id))
+      .returning();
+    return updated;
   }
 }
 
