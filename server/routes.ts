@@ -14,6 +14,76 @@ import { isStripeConfigured } from "./stripeClient";
 
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
 
+interface ICalEvent {
+  uid?: string;
+  summary?: string;
+  start?: Date;
+  end?: Date;
+}
+
+function parseICalEvents(icalData: string): ICalEvent[] {
+  const events: ICalEvent[] = [];
+  const lines = icalData.replace(/\r\n /g, "").split(/\r?\n/);
+  
+  let currentEvent: ICalEvent | null = null;
+  
+  for (const line of lines) {
+    if (line === "BEGIN:VEVENT") {
+      currentEvent = {};
+    } else if (line === "END:VEVENT" && currentEvent) {
+      if (currentEvent.start && currentEvent.end) {
+        events.push(currentEvent);
+      }
+      currentEvent = null;
+    } else if (currentEvent) {
+      const colonIndex = line.indexOf(":");
+      if (colonIndex > 0) {
+        const key = line.substring(0, colonIndex);
+        const value = line.substring(colonIndex + 1);
+        
+        if (key === "UID") {
+          currentEvent.uid = value;
+        } else if (key === "SUMMARY") {
+          currentEvent.summary = value;
+        } else if (key.startsWith("DTSTART")) {
+          currentEvent.start = parseICalDate(value);
+        } else if (key.startsWith("DTEND")) {
+          currentEvent.end = parseICalDate(value);
+        }
+      }
+    }
+  }
+  
+  return events;
+}
+
+function parseICalDate(value: string): Date | undefined {
+  try {
+    if (value.length === 8) {
+      const year = parseInt(value.substring(0, 4));
+      const month = parseInt(value.substring(4, 6)) - 1;
+      const day = parseInt(value.substring(6, 8));
+      return new Date(year, month, day);
+    }
+    if (value.length >= 15) {
+      const year = parseInt(value.substring(0, 4));
+      const month = parseInt(value.substring(4, 6)) - 1;
+      const day = parseInt(value.substring(6, 8));
+      const hour = parseInt(value.substring(9, 11));
+      const minute = parseInt(value.substring(11, 13));
+      const second = parseInt(value.substring(13, 15));
+      
+      if (value.endsWith("Z")) {
+        return new Date(Date.UTC(year, month, day, hour, minute, second));
+      }
+      return new Date(year, month, day, hour, minute, second);
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 interface CouponValidationParams {
   coupon: {
     id: number;
@@ -861,6 +931,143 @@ Important:
     });
   });
 
+  // Public: Export iCal calendar for a property
+  app.get("/api/properties/:slug/calendar.ics", async (req, res) => {
+    try {
+      const property = await storage.getPropertyBySlug(req.params.slug);
+      if (!property) {
+        return res.status(404).send("Property not found");
+      }
+      
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endDate = new Date(now.getFullYear() + 1, now.getMonth() + 1, 0);
+      
+      const blockedDates = await storage.getBlockedDates(property.id, startDate, endDate);
+      const reservations = await storage.getReservations(property.id);
+      
+      const formatDate = (date: Date): string => {
+        return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+      };
+      
+      const formatDateOnly = (date: Date): string => {
+        return date.toISOString().split("T")[0].replace(/-/g, "");
+      };
+      
+      const addOneDay = (date: Date): Date => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + 1);
+        return result;
+      };
+      
+      let icalContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//QUEBEXICO//STR Calendar//FR",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        `X-WR-CALNAME:${property.nameFr}`,
+      ];
+      
+      reservations
+        .filter(r => r.status !== "cancelled")
+        .forEach(reservation => {
+          const checkIn = new Date(reservation.checkIn);
+          const checkOut = new Date(reservation.checkOut);
+          
+          icalContent.push(
+            "BEGIN:VEVENT",
+            `UID:reservation-${reservation.id}@quebexico`,
+            `DTSTAMP:${formatDate(new Date())}`,
+            `DTSTART;VALUE=DATE:${formatDateOnly(checkIn)}`,
+            `DTEND;VALUE=DATE:${formatDateOnly(checkOut)}`,
+            `SUMMARY:Réservé - ${reservation.guestFirstName} ${reservation.guestLastName.charAt(0)}.`,
+            `DESCRIPTION:Réservation ${reservation.confirmationCode}`,
+            "STATUS:CONFIRMED",
+            "TRANSP:OPAQUE",
+            "END:VEVENT"
+          );
+        });
+      
+      blockedDates.forEach(blocked => {
+        const start = new Date(blocked.startDate);
+        const end = new Date(blocked.endDate);
+        
+        icalContent.push(
+          "BEGIN:VEVENT",
+          `UID:blocked-${blocked.id}@quebexico`,
+          `DTSTAMP:${formatDate(new Date())}`,
+          `DTSTART;VALUE=DATE:${formatDateOnly(start)}`,
+          `DTEND;VALUE=DATE:${formatDateOnly(end)}`,
+          `SUMMARY:Bloqué${blocked.reason ? ` - ${blocked.reason}` : ""}`,
+          `DESCRIPTION:${blocked.source === "ical_sync" ? "Importé depuis calendrier externe" : "Blocage manuel"}`,
+          "STATUS:CONFIRMED",
+          "TRANSP:OPAQUE",
+          "END:VEVENT"
+        );
+      });
+      
+      icalContent.push("END:VCALENDAR");
+      
+      res.set({
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${property.slug}-calendar.ics"`,
+      });
+      res.send(icalContent.join("\r\n"));
+    } catch (error) {
+      console.error("Error generating iCal:", error);
+      res.status(500).send("Error generating calendar");
+    }
+  });
+
+  // Admin: Sync iCal from external URL
+  app.post("/api/admin/properties/:id/sync-ical", requireAdminAuth, async (req, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const property = await storage.getPropertyById(propertyId);
+      if (!property) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+      
+      if (!property.icalUrl) {
+        return res.status(400).json({ message: "No iCal URL configured for this property" });
+      }
+      
+      const response = await fetch(property.icalUrl);
+      if (!response.ok) {
+        return res.status(400).json({ message: "Failed to fetch iCal URL" });
+      }
+      
+      const icalData = await response.text();
+      const events = parseICalEvents(icalData);
+      
+      await storage.clearBlockedDatesBySource(propertyId, "ical_sync");
+      
+      let importedCount = 0;
+      for (const event of events) {
+        if (event.start && event.end && event.end > event.start) {
+          await storage.createBlockedDate({
+            propertyId,
+            startDate: event.start,
+            endDate: event.end,
+            source: "ical_sync",
+            reason: event.summary || "External calendar",
+          });
+          importedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Imported ${importedCount} blocked dates from external calendar`,
+        importedCount 
+      });
+    } catch (error) {
+      console.error("Error syncing iCal:", error);
+      res.status(500).json({ message: "Failed to sync calendar" });
+    }
+  });
+
   // Public: Create reservation
   app.post("/api/reservations", async (req, res) => {
     try {
@@ -892,6 +1099,22 @@ Important:
       const checkInDate = new Date(input.checkIn);
       const checkOutDate = new Date(input.checkOut);
       const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const blockedDates = await storage.getBlockedDates(property.id, checkInDate, checkOutDate);
+      for (const blocked of blockedDates) {
+        if (checkInDate < blocked.endDate && checkOutDate > blocked.startDate) {
+          return res.status(400).json({ message: "Selected dates are not available" });
+        }
+      }
+      
+      const existingReservations = await storage.getReservations(property.id);
+      for (const reservation of existingReservations) {
+        if (reservation.status !== "cancelled") {
+          if (checkInDate < reservation.checkOut && checkOutDate > reservation.checkIn) {
+            return res.status(400).json({ message: "Selected dates overlap with an existing reservation" });
+          }
+        }
+      }
       
       const pricePerNight = property.pricePerNight;
       const subtotal = nights * pricePerNight;
@@ -1154,7 +1377,17 @@ Important:
   app.get("/api/admin/properties/:id/blocked-dates", requireAdminAuth, async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const blockedDates = await storage.getBlockedDates(id);
-    res.json(blockedDates);
+    
+    const transformedDates = blockedDates.map(bd => {
+      const inclusiveEnd = new Date(bd.endDate);
+      inclusiveEnd.setDate(inclusiveEnd.getDate() - 1);
+      return {
+        ...bd,
+        endDate: inclusiveEnd
+      };
+    });
+    
+    res.json(transformedDates);
   });
 
   // Admin: Add blocked dates
@@ -1169,10 +1402,13 @@ Important:
       
       const input = schema.parse(req.body);
       
+      const endDateExclusive = new Date(input.endDate);
+      endDateExclusive.setDate(endDateExclusive.getDate() + 1);
+      
       const blockedDate = await storage.createBlockedDate({
         propertyId,
         startDate: new Date(input.startDate),
-        endDate: new Date(input.endDate),
+        endDate: endDateExclusive,
         source: "manual",
         reason: input.reason
       });

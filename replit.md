@@ -131,6 +131,18 @@ The application includes a complete autonomous property management and booking s
 - Amenities, house rules: Array fields per language
 - Access codes: Separate columns for localized instructions
 
+**iCal Calendar Synchronization:**
+- Export: GET /api/properties/:slug/calendar.ics - Share with Airbnb, Booking.com, etc.
+- Import: POST /api/admin/properties/:id/sync-ical - Sync external calendars as blocked dates
+- Properties can store icalUrl field for configuring external calendar sync URLs
+- Date Convention: ALL end dates stored as EXCLUSIVE (iCal RFC 5545 standard)
+  - Manual blocks: User enters inclusive → +1 day before storage
+  - iCal import: Stores exclusive dates as-is
+  - iCal export: Uses stored exclusive dates directly
+  - Admin UI: Subtracts 1 day for inclusive display to users
+  - Availability API: Returns exclusive dates for booking logic
+  - Server validates conflicts using exclusive comparison: `checkIn < blocked.endDate && checkOut > blocked.startDate`
+
 ### Modular Admin Architecture
 The admin dashboard uses a modular architecture that dynamically shows features based on the selected template type.
 

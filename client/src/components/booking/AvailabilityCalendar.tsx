@@ -18,7 +18,8 @@ function isDateBlocked(date: Date, blockedDates: BlockedDate[]): boolean {
   return blockedDates.some((blocked) => {
     const start = parseISO(blocked.start);
     const end = parseISO(blocked.end);
-    return isWithinInterval(date, { start, end });
+    // end is exclusive (iCal convention): blocked period is [start, end)
+    return date >= start && date < end;
   });
 }
 
@@ -42,7 +43,8 @@ export function AvailabilityCalendar({
       const start = parseISO(blocked.start);
       const end = parseISO(blocked.end);
       let current = start;
-      while (current <= end) {
+      // end is exclusive (iCal convention): iterate [start, end)
+      while (current < end) {
         disabled.push(new Date(current));
         current = addDays(current, 1);
       }

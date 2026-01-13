@@ -128,6 +128,7 @@ export interface IStorage {
   getBlockedDates(propertyId: number, startDate?: Date, endDate?: Date): Promise<BlockedDate[]>;
   createBlockedDate(blockedDate: InsertBlockedDate): Promise<BlockedDate>;
   deleteBlockedDate(id: number): Promise<boolean>;
+  clearBlockedDatesBySource(propertyId: number, source: string): Promise<void>;
   
   // Reservations
   getReservations(propertyId?: number): Promise<Reservation[]>;
@@ -492,6 +493,15 @@ export class DatabaseStorage implements IStorage {
   async deleteBlockedDate(id: number): Promise<boolean> {
     await db.delete(blockedDates).where(eq(blockedDates.id, id));
     return true;
+  }
+
+  async clearBlockedDatesBySource(propertyId: number, source: string): Promise<void> {
+    await db.delete(blockedDates).where(
+      and(
+        eq(blockedDates.propertyId, propertyId),
+        eq(blockedDates.source, source)
+      )
+    );
   }
 
   // Reservations

@@ -85,6 +85,7 @@ const propertyFormSchema = z.object({
   houseRulesEs: z.string().optional(),
   wifiName: z.string().optional(),
   wifiPassword: z.string().optional(),
+  icalUrl: z.string().url("URL invalide").optional().or(z.literal("")),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 }).refine(
@@ -171,6 +172,7 @@ function PropertyForm({
       houseRulesEs: property?.houseRulesEs || "",
       wifiName: property?.wifiName || "",
       wifiPassword: property?.wifiPassword || "",
+      icalUrl: property?.icalUrl || "",
       isActive: property?.isActive ?? true,
       isFeatured: property?.isFeatured ?? false,
     },
@@ -595,6 +597,28 @@ function PropertyForm({
                 )}
               />
             </div>
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="icalUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL iCal externe (optionnel)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://www.airbnb.com/calendar/ical/..." 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Collez l'URL iCal d'Airbnb, Booking.com ou autre plateforme pour synchroniser les disponibilités
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </TabsContent>
 
           <TabsContent value="rules" className="space-y-4 mt-4">
@@ -656,10 +680,55 @@ function PropertyForm({
 
 function BlockedDatesManager({ property }: { property: Property }) {
   const [isAdding, setIsAdding] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-  const { data: blockedDates, isLoading } = useAdminBlockedDates(property.id);
+  const { data: blockedDates, isLoading, refetch } = useAdminBlockedDates(property.id);
   const createMutation = useCreateBlockedDate();
   const deleteMutation = useDeleteBlockedDate();
+  
+  const icalExportUrl = `${window.location.origin}/api/properties/${property.slug}/calendar.ics`;
+  
+  const copyIcalUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(icalExportUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({ title: "Lien copié" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de copier", variant: "destructive" });
+    }
+  };
+  
+  const syncIcal = async () => {
+    if (!property.icalUrl) {
+      toast({ title: "Aucune URL iCal configurée", variant: "destructive" });
+      return;
+    }
+    
+    setIsSyncing(true);
+    try {
+      const adminKey = localStorage.getItem("quebexico_admin_key") || "";
+      const res = await fetch(`/api/admin/properties/${property.id}/sync-ical`, {
+        method: "POST",
+        headers: { "x-admin-key": adminKey },
+        credentials: "include",
+      });
+      
+      if (!res.ok) throw new Error("Sync failed");
+      
+      const result = await res.json();
+      toast({ 
+        title: "Calendrier synchronisé", 
+        description: `${result.importedCount} dates importées` 
+      });
+      refetch();
+    } catch {
+      toast({ title: "Erreur de synchronisation", variant: "destructive" });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const form = useForm<BlockedDateFormData>({
     resolver: zodResolver(blockedDateSchema),
@@ -705,7 +774,53 @@ function BlockedDatesManager({ property }: { property: Property }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Synchronisation iCal</CardTitle>
+          <CardDescription>Partagez ou importez des calendriers externes (Airbnb, Booking.com, etc.)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium">Exporter votre calendrier</Label>
+            <p className="text-xs text-muted-foreground mb-2">Copiez ce lien dans Airbnb, Booking.com ou autre plateforme</p>
+            <div className="flex gap-2">
+              <Input 
+                readOnly 
+                value={icalExportUrl} 
+                className="text-xs font-mono"
+                data-testid="input-ical-export-url"
+              />
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={copyIcalUrl}
+                data-testid="button-copy-ical"
+              >
+                {copied ? "Copié!" : "Copier"}
+              </Button>
+            </div>
+          </div>
+          
+          {property.icalUrl && (
+            <div>
+              <Label className="text-sm font-medium">Importer un calendrier externe</Label>
+              <p className="text-xs text-muted-foreground mb-2">URL configurée: {property.icalUrl.substring(0, 50)}...</p>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={syncIcal}
+                disabled={isSyncing}
+                data-testid="button-sync-ical"
+              >
+                {isSyncing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Synchroniser maintenant
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Dates bloquées</h3>
         <Button 
