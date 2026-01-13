@@ -5,25 +5,40 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { TEMPLATE_CONFIGS, type TemplateType } from "@/contexts/TemplateContext";
+import { TEMPLATE_CONFIGS, useTemplate, type TemplateType } from "@/contexts/TemplateContext";
 import { ADMIN_MODULES, getModuleName } from "@/lib/admin-modules";
 import { Save, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type TemplateFeatures = Record<TemplateType, string[]>;
 
+function getDefaultFeatures(): TemplateFeatures {
+  const initial: TemplateFeatures = {} as TemplateFeatures;
+  Object.entries(TEMPLATE_CONFIGS).forEach(([key, config]) => {
+    initial[key as TemplateType] = [...config.features];
+  });
+  return initial;
+}
+
+function loadStoredFeatures(): TemplateFeatures {
+  try {
+    const stored = localStorage.getItem("qbx_template_features");
+    if (stored) {
+      return JSON.parse(stored) as TemplateFeatures;
+    }
+  } catch (e) {
+    console.error("Failed to parse stored features", e);
+  }
+  return getDefaultFeatures();
+}
+
 export default function AdminSuper() {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { updateTemplateFeatures } = useTemplate();
   const lang = (language === "en" || language === "es" ? language : "fr") as "fr" | "en" | "es";
 
-  const [templateFeatures, setTemplateFeatures] = useState<TemplateFeatures>(() => {
-    const initial: TemplateFeatures = {} as TemplateFeatures;
-    Object.entries(TEMPLATE_CONFIGS).forEach(([key, config]) => {
-      initial[key as TemplateType] = [...config.features];
-    });
-    return initial;
-  });
+  const [templateFeatures, setTemplateFeatures] = useState<TemplateFeatures>(() => loadStoredFeatures());
 
   const translations = {
     fr: {
@@ -84,7 +99,7 @@ export default function AdminSuper() {
   };
 
   const handleSave = () => {
-    localStorage.setItem("qbx_template_features", JSON.stringify(templateFeatures));
+    updateTemplateFeatures(templateFeatures);
     toast({
       title: t.saved,
       description: t.savedDescription,
@@ -92,11 +107,9 @@ export default function AdminSuper() {
   };
 
   const handleReset = () => {
-    const initial: TemplateFeatures = {} as TemplateFeatures;
-    Object.entries(TEMPLATE_CONFIGS).forEach(([key, config]) => {
-      initial[key as TemplateType] = [...config.features];
-    });
-    setTemplateFeatures(initial);
+    const defaults = getDefaultFeatures();
+    setTemplateFeatures(defaults);
+    updateTemplateFeatures(defaults);
   };
 
   return (

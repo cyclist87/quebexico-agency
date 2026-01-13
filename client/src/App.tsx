@@ -39,6 +39,10 @@ import Properties from "@/pages/Properties";
 import AdminProperties from "@/pages/AdminProperties";
 import AdminCoupons from "@/pages/AdminCoupons";
 import AdminReservations from "@/pages/AdminReservations";
+import AdminIntegrations from "@/pages/AdminIntegrations";
+import AdminTools from "@/pages/AdminTools";
+import AdminSettingsPage from "@/pages/AdminSettingsPage";
+import AdminSuper from "@/pages/AdminSuper";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -77,6 +81,10 @@ function ProtectedAdminRouter() {
           <Route path="/admin/properties" component={AdminProperties} />
           <Route path="/admin/reservations" component={AdminReservations} />
           <Route path="/admin/coupons" component={AdminCoupons} />
+          <Route path="/admin/integrations" component={AdminIntegrations} />
+          <Route path="/admin/tools" component={AdminTools} />
+          <Route path="/admin/settings" component={AdminSettingsPage} />
+          <Route path="/admin/super" component={AdminSuper} />
           <Route component={NotFound} />
         </Switch>
       </AdminShell>

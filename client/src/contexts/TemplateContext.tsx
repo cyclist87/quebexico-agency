@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 
 export type TemplateType = "str" | "freelancer" | "sports_club" | "cleaning" | "agency";
+type TemplateFeatures = Record<TemplateType, string[]>;
 
 export interface TemplateConfig {
   id: TemplateType;
@@ -66,8 +67,10 @@ interface TemplateContextValue {
   currentTemplate: TemplateType;
   setCurrentTemplate: (template: TemplateType) => void;
   templateConfig: TemplateConfig;
+  templateFeatures: string[];
   hasFeature: (feature: string) => boolean;
   availableTemplates: TemplateConfig[];
+  updateTemplateFeatures: (features: TemplateFeatures) => void;
 }
 
 const TemplateContext = createContext<TemplateContextValue | undefined>(undefined);
@@ -75,6 +78,26 @@ const TemplateContext = createContext<TemplateContextValue | undefined>(undefine
 interface TemplateProviderProps {
   children: ReactNode;
   defaultTemplate?: TemplateType;
+}
+
+function loadFeatureOverrides(): TemplateFeatures | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem("qbx_template_features");
+    if (stored) {
+      return JSON.parse(stored) as TemplateFeatures;
+    }
+  } catch (e) {
+    console.error("Failed to parse template features from localStorage", e);
+  }
+  return null;
+}
+
+function getEffectiveFeatures(template: TemplateType, overrides: TemplateFeatures | null): string[] {
+  if (overrides && overrides[template]) {
+    return overrides[template];
+  }
+  return TEMPLATE_CONFIGS[template].features;
 }
 
 export function TemplateProvider({ children, defaultTemplate = "str" }: TemplateProviderProps) {
@@ -88,6 +111,18 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
     return defaultTemplate;
   });
 
+  const [featureOverrides, setFeatureOverrides] = useState<TemplateFeatures | null>(() => loadFeatureOverrides());
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "qbx_template_features") {
+        setFeatureOverrides(loadFeatureOverrides());
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const handleSetTemplate = useCallback((template: TemplateType) => {
     setCurrentTemplate(template);
     if (typeof window !== "undefined") {
@@ -95,11 +130,17 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
     }
   }, []);
 
+  const updateTemplateFeatures = useCallback((features: TemplateFeatures) => {
+    setFeatureOverrides(features);
+    localStorage.setItem("qbx_template_features", JSON.stringify(features));
+  }, []);
+
   const templateConfig = TEMPLATE_CONFIGS[currentTemplate];
+  const templateFeatures = getEffectiveFeatures(currentTemplate, featureOverrides);
 
   const hasFeature = useCallback(
-    (feature: string) => templateConfig.features.includes(feature),
-    [templateConfig.features]
+    (feature: string) => templateFeatures.includes(feature),
+    [templateFeatures]
   );
 
   const availableTemplates = Object.values(TEMPLATE_CONFIGS);
@@ -110,8 +151,10 @@ export function TemplateProvider({ children, defaultTemplate = "str" }: Template
         currentTemplate,
         setCurrentTemplate: handleSetTemplate,
         templateConfig,
+        templateFeatures,
         hasFeature,
         availableTemplates,
+        updateTemplateFeatures,
       }}
     >
       {children}

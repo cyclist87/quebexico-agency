@@ -39,7 +39,8 @@ export function AdminShell({ children }: AdminShellProps) {
   const [location] = useLocation();
 
   const lang = (language === "en" || language === "es" ? language : "fr") as "fr" | "en" | "es";
-  const activeModules = getModulesForTemplate(currentTemplate, templateConfig.features);
+  const { templateFeatures } = useTemplate();
+  const activeModules = getModulesForTemplate(currentTemplate, templateFeatures);
   
   const mainModules = activeModules.filter((m) => m.category === "main");
   const settingsModules = activeModules.filter((m) => m.category === "settings" || m.category === "analytics");
