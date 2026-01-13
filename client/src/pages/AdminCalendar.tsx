@@ -594,20 +594,20 @@ export default function AdminCalendar() {
                   currentMonth={currentMonth}
                 />
               ) : selectedPropertyId === "all" ? (
-                <div className="space-y-4">
+                <div className="flex flex-wrap gap-4">
                   {properties.map((property) => (
-                    <div key={property.id} className="border rounded-lg p-4">
-                      <h3 className="font-medium mb-3">
+                    <div key={property.id} className="border rounded-lg p-3 w-fit">
+                      <h3 className="font-medium mb-2 text-sm truncate max-w-[220px]" title={lang === "en" ? property.nameEn || '' : lang === "es" ? property.nameEs || '' : property.nameFr || ''}>
                         {lang === "en" ? property.nameEn : lang === "es" ? property.nameEs : property.nameFr}
                       </h3>
-                      <div className="grid grid-cols-7 gap-1">
+                      <div className="grid grid-cols-7 gap-0.5" style={{ width: '224px' }}>
                         {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
-                          <div key={i} className="text-center text-xs font-medium text-muted-foreground py-1">
+                          <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-0.5 w-8">
                             {day}
                           </div>
                         ))}
                         {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
-                          <div key={`empty-${i}`} />
+                          <div key={`empty-${i}`} className="w-8 h-8" />
                         ))}
                         {days.map((day) => {
                           const { status, reservation } = getDayStatus(day, property.id);
@@ -615,7 +615,7 @@ export default function AdminCalendar() {
                             <div
                               key={day.toISOString()}
                               className={`
-                                p-1 text-center text-sm rounded cursor-default
+                                w-8 h-8 flex items-center justify-center text-xs rounded cursor-default
                                 ${status === 'available' ? 'bg-green-50 text-green-700 hover:bg-green-100' : ''}
                                 ${status === 'reserved' ? 'bg-blue-100 text-blue-700' : ''}
                                 ${status === 'blocked' ? 'bg-gray-200 text-gray-500' : ''}
