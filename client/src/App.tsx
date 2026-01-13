@@ -46,6 +46,7 @@ import AdminSettingsPage from "@/pages/AdminSettingsPage";
 import AdminSuper from "@/pages/AdminSuper";
 import AdminAppearance from "@/pages/AdminAppearance";
 import AdminContent from "@/pages/AdminContent";
+import AdminCalendar from "@/pages/AdminCalendar";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -92,6 +93,7 @@ function ProtectedAdminRouter() {
           <Route path="/admin/properties" component={AdminProperties} />
           <Route path="/admin/properties/:id/edit" component={AdminPropertyEditor} />
           <Route path="/admin/reservations" component={AdminReservations} />
+          <Route path="/admin/calendar" component={AdminCalendar} />
           <Route path="/admin/coupons" component={AdminCoupons} />
           <Route path="/admin/integrations" component={AdminIntegrations} />
           <Route path="/admin/tools" component={AdminTools} />

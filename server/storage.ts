@@ -18,6 +18,7 @@ import {
   siteConfig,
   contentSections,
   templateFeatures,
+  pricingRules,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -34,6 +35,7 @@ import {
   type InsertCouponRedemption,
   type InsertSiteConfig,
   type InsertContentSection,
+  type InsertPricingRule,
   type Message,
   type Subscriber,
   type Project,
@@ -51,7 +53,8 @@ import {
   type CouponRedemption,
   type SiteConfigType,
   type ContentSection,
-  type TemplateFeature
+  type TemplateFeature,
+  type PricingRule
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
@@ -129,6 +132,13 @@ export interface IStorage {
   createBlockedDate(blockedDate: InsertBlockedDate): Promise<BlockedDate>;
   deleteBlockedDate(id: number): Promise<boolean>;
   clearBlockedDatesBySource(propertyId: number, source: string): Promise<void>;
+  
+  // Pricing Rules
+  getPricingRules(propertyId?: number): Promise<PricingRule[]>;
+  getPricingRuleById(id: number): Promise<PricingRule | undefined>;
+  createPricingRule(rule: InsertPricingRule): Promise<PricingRule>;
+  updatePricingRule(id: number, rule: Partial<InsertPricingRule>): Promise<PricingRule | undefined>;
+  deletePricingRule(id: number): Promise<boolean>;
   
   // Reservations
   getReservations(propertyId?: number): Promise<Reservation[]>;
@@ -502,6 +512,40 @@ export class DatabaseStorage implements IStorage {
         eq(blockedDates.source, source)
       )
     );
+  }
+
+  // Pricing Rules
+  async getPricingRules(propertyId?: number): Promise<PricingRule[]> {
+    if (propertyId !== undefined) {
+      return await db.select().from(pricingRules)
+        .where(eq(pricingRules.propertyId, propertyId))
+        .orderBy(desc(pricingRules.priority), asc(pricingRules.id));
+    }
+    return await db.select().from(pricingRules)
+      .orderBy(desc(pricingRules.priority), asc(pricingRules.id));
+  }
+
+  async getPricingRuleById(id: number): Promise<PricingRule | undefined> {
+    const [rule] = await db.select().from(pricingRules).where(eq(pricingRules.id, id));
+    return rule;
+  }
+
+  async createPricingRule(rule: InsertPricingRule): Promise<PricingRule> {
+    const [newRule] = await db.insert(pricingRules).values(rule).returning();
+    return newRule;
+  }
+
+  async updatePricingRule(id: number, rule: Partial<InsertPricingRule>): Promise<PricingRule | undefined> {
+    const [updated] = await db.update(pricingRules)
+      .set({ ...rule, updatedAt: new Date() })
+      .where(eq(pricingRules.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePricingRule(id: number): Promise<boolean> {
+    await db.delete(pricingRules).where(eq(pricingRules.id, id));
+    return true;
   }
 
   // Reservations

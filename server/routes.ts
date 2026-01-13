@@ -1479,6 +1479,48 @@ Important:
     res.json({ success: true });
   });
 
+  // === PRICING RULES ROUTES ===
+
+  // Admin: Get pricing rules
+  app.get("/api/admin/pricing-rules", requireAdminAuth, async (req, res) => {
+    const propertyId = req.query.propertyId ? parseInt(req.query.propertyId as string, 10) : undefined;
+    const rules = await storage.getPricingRules(propertyId);
+    res.json(rules);
+  });
+
+  // Admin: Create pricing rule
+  app.post("/api/admin/pricing-rules", requireAdminAuth, async (req, res) => {
+    try {
+      const rule = await storage.createPricingRule(req.body);
+      res.status(201).json(rule);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Admin: Update pricing rule
+  app.put("/api/admin/pricing-rules/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const rule = await storage.updatePricingRule(id, req.body);
+    if (!rule) {
+      return res.status(404).json({ message: "Pricing rule not found" });
+    }
+    res.json(rule);
+  });
+
+  // Admin: Delete pricing rule
+  app.delete("/api/admin/pricing-rules/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    await storage.deletePricingRule(id);
+    res.json({ success: true });
+  });
+
   // Admin: Get all reservations
   app.get("/api/admin/reservations", requireAdminAuth, async (req, res) => {
     const propertyId = req.query.propertyId ? parseInt(req.query.propertyId as string, 10) : undefined;

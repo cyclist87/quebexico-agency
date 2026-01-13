@@ -277,6 +277,28 @@ export const inquiries = pgTable("inquiries", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === DYNAMIC PRICING RULES ===
+
+export const pricingRules = pgTable("pricing_rules", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  nameFr: text("name_fr").notNull(),
+  nameEn: text("name_en"),
+  nameEs: text("name_es"),
+  ruleType: text("rule_type").notNull(), // 'seasonal', 'day_of_week', 'special_date', 'last_minute', 'long_stay'
+  adjustmentType: text("adjustment_type").notNull().default("percentage"), // 'percentage', 'fixed'
+  adjustmentValue: integer("adjustment_value").notNull(), // positive = increase, negative = decrease
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  daysOfWeek: integer("days_of_week").array(), // 0=Sunday, 1=Monday, ..., 6=Saturday
+  minNights: integer("min_nights"),
+  maxNights: integer("max_nights"),
+  priority: integer("priority").default(0), // Higher priority rules apply first
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === COUPONS / PROMOTIONS (Reusable for any template) ===
 
 export const coupons = pgTable("coupons", {
@@ -427,6 +449,8 @@ export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true
 export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, currentRedemptions: true, createdAt: true, updatedAt: true });
 export const insertCouponRedemptionSchema = createInsertSchema(couponRedemptions).omit({ id: true, createdAt: true });
 
+export const insertPricingRuleSchema = createInsertSchema(pricingRules).omit({ id: true, createdAt: true, updatedAt: true });
+
 export const insertSiteConfigSchema = createInsertSchema(siteConfig).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContentSectionSchema = createInsertSchema(contentSections).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTemplateFeatureSchema = createInsertSchema(templateFeatures).omit({ id: true, createdAt: true, updatedAt: true });
@@ -489,6 +513,9 @@ export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 
 export type CouponRedemption = typeof couponRedemptions.$inferSelect;
 export type InsertCouponRedemption = z.infer<typeof insertCouponRedemptionSchema>;
+
+export type PricingRule = typeof pricingRules.$inferSelect;
+export type InsertPricingRule = z.infer<typeof insertPricingRuleSchema>;
 
 export type SiteConfigType = typeof siteConfig.$inferSelect;
 export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
