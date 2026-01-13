@@ -89,9 +89,6 @@ export default function AdminSettingsPage() {
       smsNotifications: "Notifications SMS",
       twoFactor: "Authentification à deux facteurs",
       sessionTimeout: "Expiration de session (minutes)",
-      tinymceTitle: "Éditeur de contenu (TinyMCE)",
-      tinymceDesc: "Configurez votre clé API TinyMCE pour l'éditeur de texte enrichi.",
-      tinymceKey: "Clé API TinyMCE",
       openaiTitle: "Assistant IA (OpenAI)",
       openaiDesc: "Configurez votre propre clé pour un usage illimité.",
       openaiKey: "Clé API OpenAI",
@@ -132,9 +129,6 @@ export default function AdminSettingsPage() {
       smsNotifications: "SMS notifications",
       twoFactor: "Two-factor authentication",
       sessionTimeout: "Session timeout (minutes)",
-      tinymceTitle: "Content Editor (TinyMCE)",
-      tinymceDesc: "Configure your TinyMCE API key for the rich text editor.",
-      tinymceKey: "TinyMCE API Key",
       openaiTitle: "AI Assistant (OpenAI)",
       openaiDesc: "Configure your own key for unlimited usage.",
       openaiKey: "OpenAI API Key",
@@ -175,9 +169,6 @@ export default function AdminSettingsPage() {
       smsNotifications: "Notificaciones SMS",
       twoFactor: "Autenticación de dos factores",
       sessionTimeout: "Expiración de sesión (minutos)",
-      tinymceTitle: "Editor de contenido (TinyMCE)",
-      tinymceDesc: "Configura tu clave API de TinyMCE para el editor de texto enriquecido.",
-      tinymceKey: "Clave API TinyMCE",
       openaiTitle: "Asistente IA (OpenAI)",
       openaiDesc: "Configura tu propia clave para uso ilimitado.",
       openaiKey: "Clave API OpenAI",
@@ -361,7 +352,6 @@ function SecurityCard({ t }: { t: Record<string, string> }) {
 
 function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "en" | "es" }) {
   const { toast } = useToast();
-  const [tinymceApiKey, setTinymceApiKey] = useState("");
   const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -383,10 +373,6 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
 
   useEffect(() => {
     if (settings) {
-      const tinymceSetting = settings.find(s => s.key === "tinymce_api_key");
-      if (tinymceSetting?.value) {
-        setTinymceApiKey(tinymceSetting.value);
-      }
       const openaiSetting = settings.find(s => s.key === "openai_api_key");
       if (openaiSetting?.value) {
         setOpenaiKeyStatus("configured");
@@ -465,41 +451,6 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.tinymceTitle}</CardTitle>
-          <CardDescription>
-            {t.tinymceDesc}{" "}
-            <a href="https://www.tiny.cloud/" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-              tiny.cloud
-            </a>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="tinymce-api-key">{t.tinymceKey}</Label>
-              <Input
-                id="tinymce-api-key"
-                type="password"
-                placeholder="Enter your TinyMCE API key"
-                value={tinymceApiKey}
-                onChange={(e) => setTinymceApiKey(e.target.value)}
-                data-testid="input-tinymce-api-key"
-              />
-            </div>
-            <Button
-              onClick={() => saveSetting("tinymce_api_key", tinymceApiKey || null)}
-              disabled={isSaving}
-              data-testid="button-save-tinymce-key"
-            >
-              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              {t.save}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

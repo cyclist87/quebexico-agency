@@ -1,11 +1,39 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, Calendar } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import { Mail, Calendar, Save, Loader2, FileText } from "lucide-react";
 import { SiStripe, SiGoogle, SiMailchimp, SiTwilio } from "react-icons/si";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
+
+async function adminRequest<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-key": getAdminKey(),
+    },
+    credentials: "include",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error("Request failed");
+  if (res.status === 204) return {} as T;
+  const text = await res.text();
+  return text ? JSON.parse(text) : ({} as T);
+}
+
+interface SiteSetting {
+  id: number;
+  key: string;
+  value: string | null;
+}
 
 interface Integration {
   id: string;
@@ -16,7 +44,7 @@ interface Integration {
   category: "payment" | "email" | "calendar" | "maps" | "messaging";
 }
 
-function getIntegrations(stripeConfigured: boolean): Integration[] {
+function getIntegrations(stripeConfigured: boolean, tinymceConfigured: boolean): Integration[] {
   return [
     {
       id: "stripe",
@@ -29,6 +57,18 @@ function getIntegrations(stripeConfigured: boolean): Integration[] {
       icon: <SiStripe className="w-6 h-6" />,
       status: stripeConfigured ? "connected" : "available",
       category: "payment",
+    },
+    {
+      id: "tinymce",
+      name: "TinyMCE",
+      description: {
+        fr: "Éditeur de texte enrichi",
+        en: "Rich text editor",
+        es: "Editor de texto enriquecido",
+      },
+      icon: <FileText className="w-6 h-6" />,
+      status: tinymceConfigured ? "connected" : "available",
+      category: "email",
     },
     {
       id: "google_maps",
@@ -96,40 +136,87 @@ function getIntegrations(stripeConfigured: boolean): Integration[] {
 export default function AdminIntegrations() {
   const { language } = useLanguage();
   const lang = (language === "en" || language === "es" ? language : "fr") as "fr" | "en" | "es";
+  const { toast } = useToast();
 
-  const { data: stripeStatus, isLoading } = useQuery<{ configured: boolean }>({
+  const [tinymceApiKey, setTinymceApiKey] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  const { data: stripeStatus, isLoading: stripeLoading } = useQuery<{ configured: boolean }>({
     queryKey: ["/api/integrations/stripe/status"],
   });
 
-  const integrations = getIntegrations(stripeStatus?.configured ?? false);
+  const { data: settings, isLoading: settingsLoading } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/admin/settings"],
+    queryFn: async () => adminRequest<SiteSetting[]>("GET", "/api/admin/settings"),
+  });
+
+  const isLoading = stripeLoading || settingsLoading;
+
+  const tinymceSetting = settings?.find(s => s.key === "tinymce_api_key");
+  const tinymceConfigured = !!tinymceSetting?.value;
+
+  useEffect(() => {
+    if (tinymceSetting?.value) {
+      setTinymceApiKey(tinymceSetting.value);
+    }
+  }, [tinymceSetting]);
+
+  const saveTinymceKey = async () => {
+    setIsSaving(true);
+    try {
+      await adminRequest("PUT", `/api/admin/settings/tinymce_api_key`, { value: tinymceApiKey || null });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      toast({ title: lang === "en" ? "Setting saved" : lang === "es" ? "Configuración guardada" : "Paramètre sauvegardé" });
+      setExpandedCard(null);
+    } catch {
+      toast({ title: lang === "en" ? "Error" : "Erreur", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const integrations = getIntegrations(stripeStatus?.configured ?? false, tinymceConfigured);
 
   const translations = {
     fr: {
       title: "Intégrations",
-      subtitle: "Connectez vos services externes",
+      subtitle: "Connectez vos services externes et configurez vos clés API",
       connected: "Connecté",
       available: "Disponible",
       comingSoon: "Bientôt",
       configure: "Configurer",
       connect: "Connecter",
+      apiKey: "Clé API",
+      save: "Enregistrer",
+      cancel: "Annuler",
+      tinymceDesc: "Obtenez votre clé sur tiny.cloud",
     },
     en: {
       title: "Integrations",
-      subtitle: "Connect your external services",
+      subtitle: "Connect your external services and configure API keys",
       connected: "Connected",
       available: "Available",
       comingSoon: "Coming soon",
       configure: "Configure",
       connect: "Connect",
+      apiKey: "API Key",
+      save: "Save",
+      cancel: "Cancel",
+      tinymceDesc: "Get your key at tiny.cloud",
     },
     es: {
       title: "Integraciones",
-      subtitle: "Conecta tus servicios externos",
+      subtitle: "Conecta tus servicios externos y configura tus claves API",
       connected: "Conectado",
       available: "Disponible",
       comingSoon: "Próximamente",
       configure: "Configurar",
       connect: "Conectar",
+      apiKey: "Clave API",
+      save: "Guardar",
+      cancel: "Cancelar",
+      tinymceDesc: "Obtén tu clave en tiny.cloud",
     },
   };
 
@@ -172,14 +259,58 @@ export default function AdminIntegrations() {
                 {getStatusBadge(integration.status)}
               </CardHeader>
               <CardContent>
-                <Button
-                  variant={integration.status === "connected" ? "outline" : "default"}
-                  className="w-full"
-                  disabled={integration.status === "coming_soon"}
-                  data-testid={`button-integration-${integration.id}`}
-                >
-                  {integration.status === "connected" ? t.configure : t.connect}
-                </Button>
+                {integration.id === "tinymce" && expandedCard === "tinymce" ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tinymce-api-key">{t.apiKey}</Label>
+                      <Input
+                        id="tinymce-api-key"
+                        type="password"
+                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                        value={tinymceApiKey}
+                        onChange={(e) => setTinymceApiKey(e.target.value)}
+                        data-testid="input-tinymce-api-key"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {t.tinymceDesc}:{" "}
+                        <a href="https://www.tiny.cloud/" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          tiny.cloud
+                        </a>
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={saveTinymceKey}
+                        disabled={isSaving}
+                        data-testid="button-save-tinymce-key"
+                      >
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        {t.save}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setExpandedCard(null)}
+                        data-testid="button-cancel-tinymce"
+                      >
+                        {t.cancel}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant={integration.status === "connected" ? "outline" : "default"}
+                    className="w-full"
+                    disabled={integration.status === "coming_soon"}
+                    onClick={() => {
+                      if (integration.id === "tinymce") {
+                        setExpandedCard("tinymce");
+                      }
+                    }}
+                    data-testid={`button-integration-${integration.id}`}
+                  >
+                    {integration.status === "connected" ? t.configure : t.connect}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
