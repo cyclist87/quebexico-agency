@@ -90,17 +90,51 @@ The template system includes standalone tools that can be offered to clients:
 - QR code downloads as PNG for printing
 - File: `client/src/pages/tools/DigitalCard.tsx`
 
-### HostPro Integration (Short-Term Rental Booking)
-- **Purpose**: Enables direct booking functionality for property rental sites
-- **API Proxy**: Server-side proxy at `/api/hostpro/*` to centralized HostPro API
-- **Secrets Required**: HOSTPRO_API_KEY, HOSTPRO_API_URL (optional, defaults to production URL)
-- **Types**: Shared Zod schemas in `shared/hostpro.ts` for config, properties, availability, pricing
-- **Client**: `server/hostpro/client.ts` handles API communication with error handling
-- **Routes**: `server/hostpro/routes.ts` validates queries (400 for bad params) and responses (502 for upstream failures)
-- **Hooks**: `client/src/hooks/use-hostpro.ts` provides React Query hooks for all endpoints
-- **Components**: PropertyCard, AvailabilityCalendar, PricingBreakdown in `client/src/components/booking/`
-- **Feature Flags**: `enableInstantBooking` (controls booking vs inquiry flow), `enablePayments` (controls pricing display)
-- **Phase 2 TODO**: POST /reservations and /inquiries endpoints for submitting bookings
+### Autonomous STR (Short-Term Rental) System
+The application includes a complete autonomous property management and booking system that operates 100% independently without external dependencies.
+
+**Database Tables (shared/schema.ts):**
+- `properties`: Property listings with multilingual fields (nameFr/En/Es, descriptionFr/En/Es, amenitiesFr/En/Es, etc.)
+- `blocked_dates`: Calendar blocking for unavailable dates
+- `reservations`: Guest reservations with confirmation codes (QBX-{timestamp}-{random})
+- `inquiries`: Pre-booking inquiries
+
+**API Routes (server/routes.ts):**
+- Public: GET /api/properties, GET /api/properties/:slug, GET /api/properties/:slug/availability, GET /api/properties/:slug/pricing, POST /api/reservations, POST /api/inquiries
+- Admin: CRUD /api/admin/properties/*, GET/POST/DELETE /api/admin/blocked-dates, GET/PUT /api/admin/reservations
+
+**Frontend Pages:**
+- `/properties` - Public listing of all active properties
+- `/properties/:slug` - Property detail with booking calendar and instant reservation
+- `/admin/properties` - Admin property management with CRUD and blocked dates
+
+**Key Components:**
+- `BookingFlowLocal.tsx`: Complete booking workflow with multilingual support (FR/EN/ES)
+- `PricingBreakdown.tsx`: Dynamic pricing calculator with service fees and taxes
+- `AvailabilityCalendar.tsx`: Visual calendar showing blocked dates
+
+**Hooks (client/src/hooks/use-properties.ts):**
+- useProperties, useProperty, usePropertyAvailability, usePropertyPricing
+- useCreateReservation, useCreateInquiry
+- useAdminProperties, useCreateProperty, useUpdateProperty, useDeleteProperty
+- useAdminBlockedDates, useCreateBlockedDate, useDeleteBlockedDate
+- useAdminReservations, useAdminInquiries
+
+**Pricing Logic:**
+- Service fee: Configurable (default 10%)
+- Taxes: Configurable (default 15%)
+- Cleaning fee: Per-property setting
+- Min/max nights validation per property
+
+**Multilingual Property Fields:**
+- Names, descriptions, addresses: Separate columns for FR/EN/ES
+- Amenities, house rules: Array fields per language
+- Access codes: Separate columns for localized instructions
+
+### HostPro Integration (Legacy/Optional)
+- **Purpose**: Optional sync for properties/availability from external HostPro API
+- **Status**: Reduced scope - local database is primary, HostPro sync is P3 priority
+- **Components**: PropertyCard, AvailabilityCalendar in `client/src/components/booking/`
 
 ## External Dependencies
 
