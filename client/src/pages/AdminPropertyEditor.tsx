@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +50,7 @@ import {
   Plus,
   Sparkles,
   Eye,
+  Upload,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -485,11 +486,63 @@ function PhotosManager({
 }) {
   const [newUrl, setNewUrl] = useState("");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addImage = () => {
+  const addImageByUrl = () => {
     if (newUrl.trim()) {
       onChange([...images, newUrl.trim()]);
       setNewUrl("");
+    }
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    setIsUploading(true);
+    const newImages: string[] = [];
+    
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadProgress(`Téléversement ${i + 1}/${files.length}: ${file.name}`);
+        
+        // Request presigned URL
+        const response = await fetch("/api/uploads/request-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: file.name,
+            size: file.size,
+            contentType: file.type,
+          }),
+        });
+        
+        if (!response.ok) throw new Error("Failed to get upload URL");
+        
+        const { uploadURL, objectPath } = await response.json();
+        
+        // Upload directly to presigned URL
+        const uploadResponse = await fetch(uploadURL, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
+        
+        if (!uploadResponse.ok) throw new Error("Upload failed");
+        
+        newImages.push(objectPath);
+      }
+      
+      onChange([...images, ...newImages]);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Erreur lors du téléversement. Veuillez réessayer.");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -518,16 +571,51 @@ function PhotosManager({
     setDraggedIndex(null);
   };
 
+  const handleDropZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    handleFileUpload(e.dataTransfer.files);
+  };
+
   return (
     <div className="space-y-4">
+      {/* File upload zone */}
+      <div 
+        className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover-elevate transition-colors"
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDropZone}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFileUpload(e.target.files)}
+        />
+        {isUploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">{uploadProgress}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <Upload className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm font-medium">Cliquez ou glissez des images ici</p>
+            <p className="text-xs text-muted-foreground">PNG, JPG, WEBP jusqu'à 10 Mo</p>
+          </div>
+        )}
+      </div>
+
+      {/* URL input as alternative */}
       <div className="flex gap-2">
         <Input
-          placeholder="URL de l'image..."
+          placeholder="Ou collez une URL d'image..."
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addImageByUrl())}
         />
-        <Button type="button" onClick={addImage} variant="outline">
+        <Button type="button" onClick={addImageByUrl} variant="outline" disabled={!newUrl.trim()}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
