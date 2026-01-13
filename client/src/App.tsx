@@ -33,6 +33,7 @@ import PublicCard from "@/pages/PublicCard";
 import PropertyDetail from "@/pages/PropertyDetail";
 import Properties from "@/pages/Properties";
 import AdminProperties from "@/pages/AdminProperties";
+import AdminCoupons from "@/pages/AdminCoupons";
 import NotFound from "@/pages/not-found";
 
 function MainRouter() {
@@ -50,6 +51,7 @@ function MainRouter() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/properties" component={AdminProperties} />
+      <Route path="/admin/coupons" component={AdminCoupons} />
       <Route path="/booking" component={Booking} />
       <Route path="/properties" component={Properties} />
       <Route path="/properties/:slug" component={PropertyDetail} />

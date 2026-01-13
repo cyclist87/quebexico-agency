@@ -45,6 +45,8 @@ export interface CreateReservationRequest {
   guestPhone?: string;
   guestMessage?: string;
   language?: string;
+  couponCode?: string;
+  discountAmount?: number;
 }
 
 export interface CreateReservationResponse {

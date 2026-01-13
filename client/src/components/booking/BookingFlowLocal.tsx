@@ -4,9 +4,9 @@ import { fr, enUS, es } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Calendar, ArrowLeft, Home } from "lucide-react";
+import { CheckCircle, Calendar, ArrowLeft, Home, Tag } from "lucide-react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
-import { PricingBreakdown } from "./PricingBreakdown";
+import { PricingBreakdown, type AppliedCoupon } from "./PricingBreakdown";
 import { BookingForm } from "./BookingForm";
 import { 
   usePropertyAvailability, 
@@ -22,6 +22,7 @@ import type { DateRange } from "react-day-picker";
 interface BookingFlowLocalProps {
   propertySlug: string;
   propertyName: string;
+  propertyId?: number;
   maxGuests?: number;
   enableInstantBooking?: boolean;
   pricePerNight?: number;
@@ -36,6 +37,7 @@ const dateLocales = { fr, en: enUS, es };
 export function BookingFlowLocal({
   propertySlug,
   propertyName,
+  propertyId,
   maxGuests = 6,
   enableInstantBooking = true,
   pricePerNight = 250,
@@ -50,6 +52,8 @@ export function BookingFlowLocal({
   const [checkIn, setCheckIn] = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
   const [guests, setGuests] = useState(2);
+  const [guestEmail, setGuestEmail] = useState<string>("");
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [confirmationData, setConfirmationData] = useState<CreateReservationResponse | CreateInquiryResponse | null>(null);
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -96,6 +100,7 @@ export function BookingFlowLocal({
     message?: string 
   }) => {
     setGuests(guestInfo.guests);
+    setGuestEmail(guestInfo.email);
 
     try {
       let result: CreateReservationResponse | CreateInquiryResponse;
@@ -112,6 +117,8 @@ export function BookingFlowLocal({
           guestPhone: guestInfo.phone,
           guestMessage: guestInfo.message,
           language,
+          couponCode: appliedCoupon?.code,
+          discountAmount: appliedCoupon?.discountAmount,
         });
       } else {
         result = await inquiryMutation.mutateAsync({
@@ -276,7 +283,15 @@ export function BookingFlowLocal({
             maxGuests={maxGuests}
           />
 
-          {pricing && <PricingBreakdown pricing={pricing} />}
+          {pricing && (
+            <PricingBreakdown 
+              pricing={pricing} 
+              propertyId={propertyId}
+              guestEmail={guestEmail}
+              appliedCoupon={appliedCoupon}
+              onCouponApplied={setAppliedCoupon}
+            />
+          )}
         </div>
 
         {(reservationMutation.isError || inquiryMutation.isError) && (
@@ -307,7 +322,13 @@ export function BookingFlowLocal({
       />
 
       {pricing ? (
-        <PricingBreakdown pricing={pricing} isLoading={pricingLoading} />
+        <PricingBreakdown 
+          pricing={pricing} 
+          isLoading={pricingLoading}
+          propertyId={propertyId}
+          appliedCoupon={appliedCoupon}
+          onCouponApplied={setAppliedCoupon}
+        />
       ) : (
         <div className="py-4 text-center text-muted-foreground text-sm">
           <Calendar className="h-6 w-6 mx-auto mb-2 opacity-50" />

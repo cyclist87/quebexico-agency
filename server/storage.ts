@@ -13,6 +13,8 @@ import {
   blockedDates,
   reservations,
   inquiries,
+  coupons,
+  couponRedemptions,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -25,6 +27,8 @@ import {
   type InsertBlockedDate,
   type InsertReservation,
   type InsertInquiry,
+  type InsertCoupon,
+  type InsertCouponRedemption,
   type Message,
   type Subscriber,
   type Project,
@@ -37,7 +41,9 @@ import {
   type Property,
   type BlockedDate,
   type Reservation,
-  type Inquiry
+  type Inquiry,
+  type Coupon,
+  type CouponRedemption
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
@@ -127,6 +133,20 @@ export interface IStorage {
   getInquiryById(id: number): Promise<Inquiry | undefined>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
   updateInquiry(id: number, inquiry: Partial<InsertInquiry>): Promise<Inquiry | undefined>;
+  
+  // Coupons
+  getCoupons(activeOnly?: boolean): Promise<Coupon[]>;
+  getCouponById(id: number): Promise<Coupon | undefined>;
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  updateCoupon(id: number, coupon: Partial<InsertCoupon>): Promise<Coupon | undefined>;
+  deleteCoupon(id: number): Promise<boolean>;
+  incrementCouponRedemption(id: number): Promise<Coupon | undefined>;
+  
+  // Coupon Redemptions
+  getCouponRedemptions(couponId?: number): Promise<CouponRedemption[]>;
+  createCouponRedemption(redemption: InsertCouponRedemption): Promise<CouponRedemption>;
+  getRedemptionsByEmail(email: string, couponId: number): Promise<CouponRedemption[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -508,6 +528,86 @@ export class DatabaseStorage implements IStorage {
       .where(eq(inquiries.id, id))
       .returning();
     return updated;
+  }
+
+  // Coupons
+  async getCoupons(activeOnly?: boolean): Promise<Coupon[]> {
+    if (activeOnly) {
+      return await db.select().from(coupons)
+        .where(eq(coupons.isActive, true))
+        .orderBy(desc(coupons.createdAt));
+    }
+    return await db.select().from(coupons).orderBy(desc(coupons.createdAt));
+  }
+
+  async getCouponById(id: number): Promise<Coupon | undefined> {
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.id, id));
+    return coupon;
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    const [coupon] = await db.select().from(coupons)
+      .where(sql`UPPER(${coupons.code}) = UPPER(${code})`);
+    return coupon;
+  }
+
+  async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
+    const [newCoupon] = await db.insert(coupons).values({
+      ...coupon,
+      code: coupon.code.toUpperCase()
+    }).returning();
+    return newCoupon;
+  }
+
+  async updateCoupon(id: number, coupon: Partial<InsertCoupon>): Promise<Coupon | undefined> {
+    const updateData = coupon.code 
+      ? { ...coupon, code: coupon.code.toUpperCase(), updatedAt: new Date() }
+      : { ...coupon, updatedAt: new Date() };
+    const [updated] = await db.update(coupons)
+      .set(updateData)
+      .where(eq(coupons.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCoupon(id: number): Promise<boolean> {
+    await db.delete(coupons).where(eq(coupons.id, id));
+    return true;
+  }
+
+  async incrementCouponRedemption(id: number): Promise<Coupon | undefined> {
+    const [updated] = await db.update(coupons)
+      .set({ 
+        currentRedemptions: sql`${coupons.currentRedemptions} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(coupons.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Coupon Redemptions
+  async getCouponRedemptions(couponId?: number): Promise<CouponRedemption[]> {
+    if (couponId) {
+      return await db.select().from(couponRedemptions)
+        .where(eq(couponRedemptions.couponId, couponId))
+        .orderBy(desc(couponRedemptions.createdAt));
+    }
+    return await db.select().from(couponRedemptions).orderBy(desc(couponRedemptions.createdAt));
+  }
+
+  async createCouponRedemption(redemption: InsertCouponRedemption): Promise<CouponRedemption> {
+    const [newRedemption] = await db.insert(couponRedemptions).values(redemption).returning();
+    return newRedemption;
+  }
+
+  async getRedemptionsByEmail(email: string, couponId: number): Promise<CouponRedemption[]> {
+    return await db.select().from(couponRedemptions)
+      .where(and(
+        sql`LOWER(${couponRedemptions.guestEmail}) = LOWER(${email})`,
+        eq(couponRedemptions.couponId, couponId)
+      ))
+      .orderBy(desc(couponRedemptions.createdAt));
   }
 }
 

@@ -674,7 +674,9 @@ Important:
         guestEmail: z.string().email(),
         guestPhone: z.string().optional(),
         guestMessage: z.string().optional(),
-        language: z.string().optional()
+        language: z.string().optional(),
+        couponCode: z.string().optional(),
+        discountAmount: z.number().optional(),
       });
       
       const input = schema.parse(req.body);
@@ -696,7 +698,26 @@ Important:
       const cleaningFee = property.cleaningFee || 0;
       const serviceFee = Math.round(subtotal * 0.10);
       const taxes = Math.round((subtotal + cleaningFee + serviceFee) * 0.15);
-      const total = subtotal + cleaningFee + serviceFee + taxes;
+      
+      let discountAmount = 0;
+      let validatedCouponCode: string | undefined;
+      
+      if (input.couponCode) {
+        const coupon = await storage.getCouponByCode(input.couponCode);
+        if (coupon && coupon.isActive) {
+          if (coupon.discountType === "percentage") {
+            discountAmount = Math.round(subtotal * coupon.discountValue / 100);
+          } else {
+            discountAmount = coupon.discountValue;
+          }
+          if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+            discountAmount = coupon.maxDiscount;
+          }
+          validatedCouponCode = coupon.code;
+        }
+      }
+      
+      const total = subtotal + cleaningFee + serviceFee + taxes - discountAmount;
       
       const confirmationCode = `QBX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       
@@ -718,10 +739,28 @@ Important:
         cleaningFee,
         serviceFee,
         taxes,
+        discountAmount,
+        couponCode: validatedCouponCode,
         total,
         currency: property.currency || "CAD",
         language: input.language || "fr"
       });
+      
+      if (validatedCouponCode && discountAmount > 0) {
+        const coupon = await storage.getCouponByCode(validatedCouponCode);
+        if (coupon) {
+          await storage.createCouponRedemption({
+            couponId: coupon.id,
+            reservationId: reservation.id,
+            guestEmail: input.guestEmail,
+            discountApplied: discountAmount,
+            currency: property.currency || "CAD",
+          });
+          await storage.updateCoupon(coupon.id, {
+            currentRedemptions: (coupon.currentRedemptions || 0) + 1,
+          });
+        }
+      }
       
       res.status(201).json({
         id: reservation.id,
@@ -956,6 +995,146 @@ Important:
       return res.status(404).json({ message: "Inquiry not found" });
     }
     res.json(inquiry);
+  });
+
+  // === COUPON ROUTES ===
+
+  // Public: Validate coupon code
+  app.post("/api/coupons/validate", async (req, res) => {
+    const { code, subtotal, nights, propertyId, guestEmail } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ valid: false, message: "Code requis" });
+    }
+
+    const coupon = await storage.getCouponByCode(code);
+    
+    if (!coupon) {
+      return res.status(404).json({ valid: false, message: "Code invalide" });
+    }
+
+    if (!coupon.isActive) {
+      return res.status(400).json({ valid: false, message: "Code inactif" });
+    }
+
+    const now = new Date();
+    if (coupon.validFrom && new Date(coupon.validFrom) > now) {
+      return res.status(400).json({ valid: false, message: "Code pas encore valide" });
+    }
+    if (coupon.validUntil && new Date(coupon.validUntil) < now) {
+      return res.status(400).json({ valid: false, message: "Code expiré" });
+    }
+
+    if (coupon.maxRedemptions && coupon.currentRedemptions && coupon.currentRedemptions >= coupon.maxRedemptions) {
+      return res.status(400).json({ valid: false, message: "Limite d'utilisation atteinte" });
+    }
+
+    if (coupon.minSubtotal && subtotal && subtotal < coupon.minSubtotal) {
+      return res.status(400).json({ valid: false, message: `Minimum ${coupon.minSubtotal}$ requis` });
+    }
+
+    if (coupon.minNights && nights && nights < coupon.minNights) {
+      return res.status(400).json({ valid: false, message: `Minimum ${coupon.minNights} nuits requis` });
+    }
+
+    if (coupon.maxNights && nights && nights > coupon.maxNights) {
+      return res.status(400).json({ valid: false, message: `Maximum ${coupon.maxNights} nuits` });
+    }
+
+    if (coupon.applicablePropertyIds && coupon.applicablePropertyIds.length > 0 && propertyId) {
+      if (!coupon.applicablePropertyIds.includes(propertyId)) {
+        return res.status(400).json({ valid: false, message: "Code non applicable à cette propriété" });
+      }
+    }
+
+    if (guestEmail && coupon.maxPerGuest) {
+      const redemptions = await storage.getRedemptionsByEmail(guestEmail, coupon.id);
+      if (redemptions.length >= coupon.maxPerGuest) {
+        return res.status(400).json({ valid: false, message: "Limite par client atteinte" });
+      }
+    }
+
+    let discountAmount = 0;
+    if (subtotal) {
+      if (coupon.discountType === "percentage") {
+        discountAmount = Math.round(subtotal * coupon.discountValue / 100);
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+        discountAmount = coupon.maxDiscount;
+      }
+    }
+
+    res.json({
+      valid: true,
+      coupon: {
+        id: coupon.id,
+        code: coupon.code,
+        nameFr: coupon.nameFr,
+        nameEn: coupon.nameEn,
+        nameEs: coupon.nameEs,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        maxDiscount: coupon.maxDiscount,
+      },
+      discountAmount,
+    });
+  });
+
+  // Admin: Get all coupons
+  app.get("/api/admin/coupons", requireAdminAuth, async (req, res) => {
+    const activeOnly = req.query.active === "true";
+    const coupons = await storage.getCoupons(activeOnly);
+    res.json(coupons);
+  });
+
+  // Admin: Get coupon by ID
+  app.get("/api/admin/coupons/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const coupon = await storage.getCouponById(id);
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.json(coupon);
+  });
+
+  // Admin: Create coupon
+  app.post("/api/admin/coupons", requireAdminAuth, async (req, res) => {
+    try {
+      const existingCoupon = await storage.getCouponByCode(req.body.code);
+      if (existingCoupon) {
+        return res.status(400).json({ message: "Code already exists" });
+      }
+      const coupon = await storage.createCoupon(req.body);
+      res.status(201).json(coupon);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid coupon data" });
+    }
+  });
+
+  // Admin: Update coupon
+  app.put("/api/admin/coupons/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const coupon = await storage.updateCoupon(id, req.body);
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.json(coupon);
+  });
+
+  // Admin: Delete coupon
+  app.delete("/api/admin/coupons/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    await storage.deleteCoupon(id);
+    res.json({ success: true });
+  });
+
+  // Admin: Get coupon redemptions
+  app.get("/api/admin/coupons/:id/redemptions", requireAdminAuth, async (req, res) => {
+    const couponId = parseInt(req.params.id, 10);
+    const redemptions = await storage.getCouponRedemptions(couponId);
+    res.json(redemptions);
   });
 
   // Initialize seed data

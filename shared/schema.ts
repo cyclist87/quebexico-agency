@@ -250,6 +250,8 @@ export const reservations = pgTable("reservations", {
   cleaningFee: integer("cleaning_fee").default(0),
   serviceFee: integer("service_fee").default(0),
   taxes: integer("taxes").default(0),
+  discountAmount: integer("discount_amount").default(0),
+  couponCode: text("coupon_code"),
   total: integer("total").notNull(),
   currency: text("currency").default("CAD"),
   language: text("language").default("fr"),
@@ -272,6 +274,45 @@ export const inquiries = pgTable("inquiries", {
   guests: integer("guests"),
   language: text("language").default("fr"),
   repliedAt: timestamp("replied_at"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// === COUPONS / PROMOTIONS (Reusable for any template) ===
+
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  nameFr: text("name_fr").notNull(),
+  nameEn: text("name_en").notNull(),
+  nameEs: text("name_es"),
+  descriptionFr: text("description_fr"),
+  descriptionEn: text("description_en"),
+  descriptionEs: text("description_es"),
+  discountType: text("discount_type").notNull().default("percentage"),
+  discountValue: integer("discount_value").notNull(),
+  currency: text("currency").default("CAD"),
+  minSubtotal: integer("min_subtotal"),
+  maxDiscount: integer("max_discount"),
+  minNights: integer("min_nights"),
+  maxNights: integer("max_nights"),
+  validFrom: timestamp("valid_from"),
+  validUntil: timestamp("valid_until"),
+  maxRedemptions: integer("max_redemptions"),
+  currentRedemptions: integer("current_redemptions").default(0),
+  maxPerGuest: integer("max_per_guest"),
+  applicablePropertyIds: integer("applicable_property_ids").array(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const couponRedemptions = pgTable("coupon_redemptions", {
+  id: serial("id").primaryKey(),
+  couponId: integer("coupon_id").notNull().references(() => coupons.id, { onDelete: "cascade" }),
+  reservationId: integer("reservation_id").references(() => reservations.id, { onDelete: "set null" }),
+  guestEmail: text("guest_email").notNull(),
+  discountApplied: integer("discount_applied").notNull(),
+  currency: text("currency").default("CAD"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -311,6 +352,9 @@ export const insertPropertySchema = createInsertSchema(properties).omit({ id: tr
 export const insertBlockedDateSchema = createInsertSchema(blockedDates).omit({ id: true, createdAt: true });
 export const insertReservationSchema = createInsertSchema(reservations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true, createdAt: true });
+
+export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, currentRedemptions: true, createdAt: true, updatedAt: true });
+export const insertCouponRedemptionSchema = createInsertSchema(couponRedemptions).omit({ id: true, createdAt: true });
 
 // === EXPLICIT TYPES ===
 
@@ -364,6 +408,12 @@ export type InsertReservation = z.infer<typeof insertReservationSchema>;
 
 export type Inquiry = typeof inquiries.$inferSelect;
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+
+export type CouponRedemption = typeof couponRedemptions.$inferSelect;
+export type InsertCouponRedemption = z.infer<typeof insertCouponRedemptionSchema>;
 
 // API Request/Response Types
 export type CreateMessageRequest = InsertMessage;

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap, Copy, Check, Bed } from "lucide-react";
+import { MessageCircle, BookOpen, Plus, Trash2, Edit, ChevronRight, ChevronDown, ArrowLeft, Lock, LogOut, FileText, Star, GripVertical, Eye, EyeOff, Languages, Loader2, Settings, AlertTriangle, Zap, Copy, Check, Bed, Ticket } from "lucide-react";
 import { generateSignatureHtml, copySignatureToClipboard, type SignatureData as SignatureGenData } from "@/lib/signature-generator";
 import { Progress } from "@/components/ui/progress";
 import { RichTextEditor } from "@/components/RichTextEditor";
@@ -1708,6 +1708,12 @@ export default function Admin() {
               <Button variant="outline" className="h-auto p-2 gap-2" data-testid="link-admin-properties">
                 <Bed className="h-4 w-4" />
                 Propriétés
+              </Button>
+            </Link>
+            <Link href="/admin/coupons">
+              <Button variant="outline" className="h-auto p-2 gap-2" data-testid="link-admin-coupons">
+                <Ticket className="h-4 w-4" />
+                Coupons
               </Button>
             </Link>
             <TabsList className="h-auto p-1">
