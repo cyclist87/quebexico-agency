@@ -108,6 +108,21 @@ async function fetchTemplateFeatures(): Promise<TemplateFeatureRecord[]> {
   }
 }
 
+interface SiteConfigResponse {
+  templateType?: string;
+}
+
+async function fetchSiteConfig(): Promise<SiteConfigResponse | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const res = await fetch("/api/site-config");
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 async function saveTemplateFeatures(features: TemplateFeatures): Promise<void> {
   if (typeof window === "undefined") return;
   await fetch("/api/admin/template-features", {
@@ -135,27 +150,30 @@ function getEffectiveFeatures(
 export function TemplateProvider({ children, defaultTemplate = "str" }: TemplateProviderProps) {
   const queryClient = useQueryClient();
   
-  const [currentTemplate, setCurrentTemplate] = useState<TemplateType>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("quebexico_template");
-      if (stored && stored in TEMPLATE_CONFIGS) {
-        return stored as TemplateType;
-      }
-    }
-    return defaultTemplate;
-  });
+  const [currentTemplate, setCurrentTemplate] = useState<TemplateType>(defaultTemplate);
 
-  const { data: serverFeatures = [], isLoading, refetch } = useQuery<TemplateFeatureRecord[]>({
+  const { data: serverFeatures = [], isLoading: isFeaturesLoading, refetch } = useQuery<TemplateFeatureRecord[]>({
     queryKey: ["/api/admin/template-features"],
     queryFn: fetchTemplateFeatures,
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: siteConfig, isLoading: isConfigLoading } = useQuery<SiteConfigResponse | null>({
+    queryKey: ["/api/site-config"],
+    queryFn: fetchSiteConfig,
+    staleTime: 1000 * 60,
+  });
+
+  useEffect(() => {
+    if (siteConfig?.templateType && siteConfig.templateType in TEMPLATE_CONFIGS) {
+      setCurrentTemplate(siteConfig.templateType as TemplateType);
+    }
+  }, [siteConfig]);
+
+  const isLoading = isFeaturesLoading || isConfigLoading;
+
   const handleSetTemplate = useCallback((template: TemplateType) => {
     setCurrentTemplate(template);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("quebexico_template", template);
-    }
   }, []);
 
   const updateTemplateFeatures = useCallback(async (features: TemplateFeatures) => {
