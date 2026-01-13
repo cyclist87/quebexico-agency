@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 
@@ -29,77 +28,64 @@ function formatCurrency(amount: number, currency: string): string {
 export function PricingBreakdown({ pricing, isLoading, error }: PricingBreakdownProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-6">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-6">
-          <p className="text-sm text-destructive" data-testid="text-pricing-error">{error}</p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-destructive py-4" data-testid="text-pricing-error">{error}</p>
     );
   }
 
   if (!pricing) {
     return (
-      <Card>
-        <CardContent className="py-6">
-          <p className="text-sm text-muted-foreground" data-testid="text-pricing-empty">
-            Sélectionnez des dates pour voir les tarifs
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground py-4" data-testid="text-pricing-empty">
+        Sélectionnez des dates pour voir les tarifs
+      </p>
     );
   }
 
   return (
-    <Card data-testid="card-pricing-breakdown">
-      <CardHeader>
-        <CardTitle className="text-lg">Détail du prix</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex justify-between text-sm">
-          <span>
-            {formatCurrency(pricing.pricePerNight, pricing.currency)} x {pricing.nights} nuit{pricing.nights > 1 ? "s" : ""}
-          </span>
-          <span data-testid="text-subtotal">{formatCurrency(pricing.subtotal, pricing.currency)}</span>
+    <div data-testid="card-pricing-breakdown" className="space-y-2 bg-muted/50 rounded-lg p-4">
+      <h4 className="font-semibold text-sm mb-3">Détail du prix</h4>
+      
+      <div className="flex justify-between text-sm gap-2">
+        <span className="text-muted-foreground">
+          {formatCurrency(pricing.pricePerNight, pricing.currency)} × {pricing.nights} nuit{pricing.nights > 1 ? "s" : ""}
+        </span>
+        <span className="font-medium" data-testid="text-subtotal">{formatCurrency(pricing.subtotal, pricing.currency)}</span>
+      </div>
+
+      {pricing.cleaningFee > 0 && (
+        <div className="flex justify-between text-sm gap-2">
+          <span className="text-muted-foreground">Frais de ménage</span>
+          <span className="font-medium" data-testid="text-cleaning-fee">{formatCurrency(pricing.cleaningFee, pricing.currency)}</span>
         </div>
+      )}
 
-        {pricing.cleaningFee > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>Frais de ménage</span>
-            <span data-testid="text-cleaning-fee">{formatCurrency(pricing.cleaningFee, pricing.currency)}</span>
-          </div>
-        )}
-
-        {pricing.serviceFee && pricing.serviceFee > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>Frais de service</span>
-            <span data-testid="text-service-fee">{formatCurrency(pricing.serviceFee, pricing.currency)}</span>
-          </div>
-        )}
-
-        {pricing.taxes > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>Taxes</span>
-            <span data-testid="text-taxes">{formatCurrency(pricing.taxes, pricing.currency)}</span>
-          </div>
-        )}
-
-        <Separator />
-
-        <div className="flex justify-between font-semibold">
-          <span>Total</span>
-          <span data-testid="text-total">{formatCurrency(pricing.total, pricing.currency)}</span>
+      {pricing.serviceFee && pricing.serviceFee > 0 && (
+        <div className="flex justify-between text-sm gap-2">
+          <span className="text-muted-foreground">Frais de service</span>
+          <span className="font-medium" data-testid="text-service-fee">{formatCurrency(pricing.serviceFee, pricing.currency)}</span>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {pricing.taxes > 0 && (
+        <div className="flex justify-between text-sm gap-2">
+          <span className="text-muted-foreground">Taxes</span>
+          <span className="font-medium" data-testid="text-taxes">{formatCurrency(pricing.taxes, pricing.currency)}</span>
+        </div>
+      )}
+
+      <Separator className="my-2" />
+
+      <div className="flex justify-between font-semibold gap-2">
+        <span>Total</span>
+        <span data-testid="text-total">{formatCurrency(pricing.total, pricing.currency)}</span>
+      </div>
+    </div>
   );
 }

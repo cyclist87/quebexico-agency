@@ -1,10 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Loader2, User, Mail, Phone, Users, MessageSquare } from "lucide-react";
 import { GuestInfoSchema, type GuestInfo } from "@shared/hostpro";
 import {
@@ -42,17 +40,14 @@ export function BookingForm({
   });
 
   return (
-    <Card data-testid="card-booking-form">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <User className="h-5 w-5" />
-          Vos informations
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+    <div data-testid="card-booking-form" className="space-y-4">
+      <h3 className="font-semibold flex items-center gap-2">
+        <User className="h-4 w-4" />
+        Vos informations
+      </h3>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -180,27 +175,26 @@ export function BookingForm({
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={isLoading}
-              data-testid="button-submit-booking"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Envoi en cours...
-                </>
-              ) : isInstantBooking ? (
-                "Réserver maintenant"
-              ) : (
-                "Envoyer la demande"
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isLoading}
+            data-testid="button-submit-booking"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Envoi en cours...
+              </>
+            ) : isInstantBooking ? (
+              "Réserver maintenant"
+            ) : (
+              "Envoyer la demande"
+            )}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }

@@ -268,7 +268,7 @@ export function BookingFlowLocal({
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
           <BookingForm
             onSubmit={handleSubmit}
             isLoading={reservationMutation.isPending || inquiryMutation.isPending}
