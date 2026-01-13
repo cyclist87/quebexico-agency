@@ -15,6 +15,8 @@ import {
   inquiries,
   coupons,
   couponRedemptions,
+  siteConfig,
+  contentSections,
   type InsertMessage,
   type InsertSubscriber,
   type InsertProject,
@@ -29,6 +31,8 @@ import {
   type InsertInquiry,
   type InsertCoupon,
   type InsertCouponRedemption,
+  type InsertSiteConfig,
+  type InsertContentSection,
   type Message,
   type Subscriber,
   type Project,
@@ -43,7 +47,9 @@ import {
   type Reservation,
   type Inquiry,
   type Coupon,
-  type CouponRedemption
+  type CouponRedemption,
+  type SiteConfigType,
+  type ContentSection
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
@@ -147,6 +153,18 @@ export interface IStorage {
   getCouponRedemptions(couponId?: number): Promise<CouponRedemption[]>;
   createCouponRedemption(redemption: InsertCouponRedemption): Promise<CouponRedemption>;
   getRedemptionsByEmail(email: string, couponId: number): Promise<CouponRedemption[]>;
+  
+  // Site Configuration (CMS)
+  getSiteConfig(): Promise<SiteConfigType | undefined>;
+  upsertSiteConfig(config: InsertSiteConfig): Promise<SiteConfigType>;
+  
+  // Content Sections
+  getContentSections(): Promise<ContentSection[]>;
+  getContentSectionById(id: number): Promise<ContentSection | undefined>;
+  getContentSectionByType(sectionType: string): Promise<ContentSection | undefined>;
+  createContentSection(section: InsertContentSection): Promise<ContentSection>;
+  updateContentSection(id: number, section: Partial<InsertContentSection>): Promise<ContentSection | undefined>;
+  deleteContentSection(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -608,6 +626,59 @@ export class DatabaseStorage implements IStorage {
         eq(couponRedemptions.couponId, couponId)
       ))
       .orderBy(desc(couponRedemptions.createdAt));
+  }
+
+  // Site Configuration (CMS)
+  async getSiteConfig(): Promise<SiteConfigType | undefined> {
+    const [config] = await db.select().from(siteConfig).limit(1);
+    return config;
+  }
+
+  async upsertSiteConfig(config: InsertSiteConfig): Promise<SiteConfigType> {
+    const existing = await this.getSiteConfig();
+    if (existing) {
+      const [updated] = await db.update(siteConfig)
+        .set({ ...config, updatedAt: new Date() })
+        .where(eq(siteConfig.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(siteConfig).values(config).returning();
+      return created;
+    }
+  }
+
+  // Content Sections
+  async getContentSections(): Promise<ContentSection[]> {
+    return await db.select().from(contentSections).orderBy(asc(contentSections.orderIndex));
+  }
+
+  async getContentSectionById(id: number): Promise<ContentSection | undefined> {
+    const [section] = await db.select().from(contentSections).where(eq(contentSections.id, id));
+    return section;
+  }
+
+  async getContentSectionByType(sectionType: string): Promise<ContentSection | undefined> {
+    const [section] = await db.select().from(contentSections).where(eq(contentSections.sectionType, sectionType));
+    return section;
+  }
+
+  async createContentSection(section: InsertContentSection): Promise<ContentSection> {
+    const [created] = await db.insert(contentSections).values(section).returning();
+    return created;
+  }
+
+  async updateContentSection(id: number, section: Partial<InsertContentSection>): Promise<ContentSection | undefined> {
+    const [updated] = await db.update(contentSections)
+      .set({ ...section, updatedAt: new Date() })
+      .where(eq(contentSections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteContentSection(id: number): Promise<boolean> {
+    await db.delete(contentSections).where(eq(contentSections.id, id));
+    return true;
   }
 }
 

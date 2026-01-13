@@ -1250,6 +1250,77 @@ Important:
     res.json(redemptions);
   });
 
+  // === SITE CONFIGURATION (CMS) ===
+
+  // Public: Get site config
+  app.get("/api/site-config", async (req, res) => {
+    const config = await storage.getSiteConfig();
+    res.json(config || null);
+  });
+
+  // Admin: Update site config
+  app.put("/api/admin/site-config", requireAdminAuth, async (req, res) => {
+    try {
+      const config = await storage.upsertSiteConfig(req.body);
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating site config:", error);
+      res.status(500).json({ message: "Failed to update site configuration" });
+    }
+  });
+
+  // === CONTENT SECTIONS ===
+
+  // Public: Get all enabled content sections
+  app.get("/api/content-sections", async (req, res) => {
+    const sections = await storage.getContentSections();
+    const enabledSections = sections.filter(s => s.isEnabled);
+    res.json(enabledSections);
+  });
+
+  // Public: Get content section by type
+  app.get("/api/content-sections/:sectionType", async (req, res) => {
+    const section = await storage.getContentSectionByType(req.params.sectionType);
+    if (!section) {
+      return res.status(404).json({ message: "Section not found" });
+    }
+    res.json(section);
+  });
+
+  // Admin: Get all content sections (including disabled)
+  app.get("/api/admin/content-sections", requireAdminAuth, async (req, res) => {
+    const sections = await storage.getContentSections();
+    res.json(sections);
+  });
+
+  // Admin: Create content section
+  app.post("/api/admin/content-sections", requireAdminAuth, async (req, res) => {
+    try {
+      const section = await storage.createContentSection(req.body);
+      res.json(section);
+    } catch (error) {
+      console.error("Error creating content section:", error);
+      res.status(500).json({ message: "Failed to create content section" });
+    }
+  });
+
+  // Admin: Update content section
+  app.put("/api/admin/content-sections/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const section = await storage.updateContentSection(id, req.body);
+    if (!section) {
+      return res.status(404).json({ message: "Section not found" });
+    }
+    res.json(section);
+  });
+
+  // Admin: Delete content section
+  app.delete("/api/admin/content-sections/:id", requireAdminAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    await storage.deleteContentSection(id);
+    res.json({ success: true });
+  });
+
   // Initialize seed data
   await seedDatabase();
 
