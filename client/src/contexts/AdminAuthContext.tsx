@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 
 interface AdminAuthContextValue {
   isAuthenticated: boolean;
+  isLoading: boolean;
   adminKey: string | null;
   login: (key: string) => Promise<boolean>;
   logout: () => void;
@@ -15,6 +16,7 @@ const ADMIN_KEY_STORAGE = "qbx_admin_key";
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [adminKey, setAdminKey] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const isDevMode = import.meta.env.DEV;
 
@@ -28,7 +30,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         } else {
           sessionStorage.removeItem(ADMIN_KEY_STORAGE);
         }
+        setIsLoading(false);
       });
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
@@ -61,7 +66,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, adminKey, login, logout, isDevMode }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, isLoading, adminKey, login, logout, isDevMode }}>
       {children}
     </AdminAuthContext.Provider>
   );
