@@ -253,7 +253,7 @@ export default function PropertyDetail() {
   const images = Array.isArray(photos) ? photos.filter((p): p is string => typeof p === "string") : [];
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-property-detail">
+    <div className="min-h-screen bg-background pt-24" data-testid="page-property-detail">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Link 
           href="/properties" 

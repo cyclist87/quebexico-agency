@@ -150,7 +150,7 @@ export default function Properties() {
   const { data: properties, isLoading, error } = useProperties();
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-properties">
+    <div className="min-h-screen bg-background pt-24" data-testid="page-properties">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold mb-3" data-testid="text-page-title">
