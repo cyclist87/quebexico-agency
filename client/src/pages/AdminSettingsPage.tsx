@@ -4,14 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Save, Globe, Bell, Shield, Cpu, Loader2, AlertTriangle, Zap, Trash2, Palette } from "lucide-react";
+import { Globe, Bell, Loader2, AlertTriangle, Zap, Trash2, Palette } from "lucide-react";
 
 const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const MONTHLY_TOKEN_LIMIT = 3000000;
@@ -208,157 +206,80 @@ export default function AdminSettingsPage() {
         <p className="text-muted-foreground">{t.subtitle}</p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="flex-wrap gap-1">
-          <TabsTrigger value="general" data-testid="tab-general">
-            <Globe className="w-4 h-4 mr-2" />
-            {t.general}
-          </TabsTrigger>
-          <TabsTrigger value="appearance" data-testid="tab-appearance">
-            <Palette className="w-4 h-4 mr-2" />
-            {t.appearance}
-          </TabsTrigger>
-          <TabsTrigger value="ai" data-testid="tab-ai">
-            <Cpu className="w-4 h-4 mr-2" />
-            {t.ai}
-          </TabsTrigger>
-          <TabsTrigger value="notifications" data-testid="tab-notifications">
-            <Bell className="w-4 h-4 mr-2" />
-            {t.notifications}
-          </TabsTrigger>
-          <TabsTrigger value="security" data-testid="tab-security">
-            <Shield className="w-4 h-4 mr-2" />
-            {t.security}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general">
-          <GeneralSettingsCard t={t} />
-        </TabsContent>
-
-        <TabsContent value="appearance">
-          <AppearanceCard t={t} />
-        </TabsContent>
-
-        <TabsContent value="ai">
-          <AiSettingsTab t={t} lang={lang} />
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <NotificationsCard t={t} />
-        </TabsContent>
-
-        <TabsContent value="security">
-          <SecurityCard t={t} />
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-6">
+        <QuickLinksCard lang={lang} />
+        <AiSettingsTab t={t} lang={lang} />
+      </div>
     </div>
   );
 }
 
-function GeneralSettingsCard({ t }: { t: Record<string, string> }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t.general}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="siteName">{t.siteName}</Label>
-          <Input id="siteName" placeholder="Mon Site" data-testid="input-site-name" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="siteDescription">{t.siteDescription}</Label>
-          <Input id="siteDescription" placeholder="Description de mon site" data-testid="input-site-description" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactEmail">{t.contactEmail}</Label>
-          <Input id="contactEmail" type="email" placeholder="contact@example.com" data-testid="input-contact-email" />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="customDomain">{t.customDomain}</Label>
-          </div>
-          <Input id="customDomain" placeholder="monsite.com" data-testid="input-custom-domain" />
-          <p className="text-sm text-muted-foreground">{t.customDomainHelp}</p>
-        </div>
-        <Button data-testid="button-save-general">
-          <Save className="w-4 h-4 mr-2" />
-          {t.save}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
+function QuickLinksCard({ lang }: { lang: "fr" | "en" | "es" }) {
+  const translations = {
+    fr: {
+      title: "Accès rapide",
+      subtitle: "Configurez votre site depuis ces sections",
+      appearance: "Apparence",
+      appearanceDesc: "Logo, couleurs, polices et type de template",
+      content: "Contenu",
+      contentDesc: "Sections de la page d'accueil",
+      integrations: "Intégrations",
+      integrationsDesc: "Services tiers connectés",
+      open: "Ouvrir",
+    },
+    en: {
+      title: "Quick access",
+      subtitle: "Configure your site from these sections",
+      appearance: "Appearance",
+      appearanceDesc: "Logo, colors, fonts and template type",
+      content: "Content",
+      contentDesc: "Homepage sections",
+      integrations: "Integrations",
+      integrationsDesc: "Connected third-party services",
+      open: "Open",
+    },
+    es: {
+      title: "Acceso rápido",
+      subtitle: "Configura tu sitio desde estas secciones",
+      appearance: "Apariencia",
+      appearanceDesc: "Logo, colores, fuentes y tipo de template",
+      content: "Contenido",
+      contentDesc: "Secciones de la página de inicio",
+      integrations: "Integraciones",
+      integrationsDesc: "Servicios de terceros conectados",
+      open: "Abrir",
+    },
+  };
 
-function AppearanceCard({ t }: { t: Record<string, string> }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t.appearance}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="darkMode">{t.darkMode}</Label>
-          <Switch id="darkMode" data-testid="switch-dark-mode" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="primaryColor">{t.primaryColor}</Label>
-          <Input id="primaryColor" type="color" className="w-20 h-10" data-testid="input-primary-color" />
-        </div>
-        <Button data-testid="button-save-appearance">
-          <Save className="w-4 h-4 mr-2" />
-          {t.save}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
+  const t = translations[lang];
 
-function NotificationsCard({ t }: { t: Record<string, string> }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t.notifications}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="emailNotifications">{t.emailNotifications}</Label>
-          <Switch id="emailNotifications" defaultChecked data-testid="switch-email-notifications" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="smsNotifications">{t.smsNotifications}</Label>
-          <Switch id="smsNotifications" data-testid="switch-sms-notifications" />
-        </div>
-        <Button data-testid="button-save-notifications">
-          <Save className="w-4 h-4 mr-2" />
-          {t.save}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
+  const links = [
+    { href: "/admin/appearance", icon: Palette, title: t.appearance, desc: t.appearanceDesc },
+    { href: "/admin/content", icon: Globe, title: t.content, desc: t.contentDesc },
+    { href: "/admin/integrations", icon: Bell, title: t.integrations, desc: t.integrationsDesc },
+  ];
 
-function SecurityCard({ t }: { t: Record<string, string> }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t.security}</CardTitle>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.subtitle}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="twoFactor">{t.twoFactor}</Label>
-          <Switch id="twoFactor" data-testid="switch-two-factor" />
+      <CardContent>
+        <div className="grid gap-4 md:grid-cols-3">
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="flex flex-col p-4 rounded-lg border hover-elevate"
+              data-testid={`link-${link.href.replace("/admin/", "")}`}
+            >
+              <link.icon className="h-6 w-6 mb-2 text-primary" />
+              <span className="font-medium">{link.title}</span>
+              <span className="text-sm text-muted-foreground">{link.desc}</span>
+            </a>
+          ))}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="sessionTimeout">{t.sessionTimeout}</Label>
-          <Input id="sessionTimeout" type="number" defaultValue="30" className="w-24" data-testid="input-session-timeout" />
-        </div>
-        <Button data-testid="button-save-security">
-          <Save className="w-4 h-4 mr-2" />
-          {t.save}
-        </Button>
       </CardContent>
     </Card>
   );
