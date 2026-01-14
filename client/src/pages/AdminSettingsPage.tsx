@@ -8,34 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Globe, Bell, Loader2, AlertTriangle, Zap, Trash2, Palette } from "lucide-react";
 
-const getAdminKey = () => localStorage.getItem("quebexico_admin_key") || "";
 const MONTHLY_TOKEN_LIMIT = 3000000;
 
-async function adminRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "x-admin-key": getAdminKey(),
-  };
-  
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  if (res.status === 401) {
-    throw new Error("Unauthorized");
-  }
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || "Request failed");
-  }
-
+async function adminFetch<T>(method: string, url: string, data?: unknown): Promise<T> {
+  const res = await apiRequest(method, url, data);
   if (res.status === 204) return {} as T;
   return res.json();
 }
@@ -295,14 +274,14 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
   const { data: settings, isLoading } = useQuery<SiteSetting[]>({
     queryKey: ["/api/admin/settings"],
     queryFn: async () => {
-      return adminRequest<SiteSetting[]>("GET", "/api/admin/settings");
+      return adminFetch<SiteSetting[]>("GET", "/api/admin/settings");
     },
   });
 
   const { data: usageStats } = useQuery<AiUsageStats>({
     queryKey: ["/api/admin/ai-usage"],
     queryFn: async () => {
-      return adminRequest<AiUsageStats>("GET", "/api/admin/ai-usage");
+      return adminFetch<AiUsageStats>("GET", "/api/admin/ai-usage");
     },
   });
 
@@ -318,7 +297,7 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
   const saveSetting = async (key: string, value: string | null) => {
     setIsSaving(true);
     try {
-      await adminRequest("PUT", `/api/admin/settings/${key}`, { value });
+      await adminFetch("PUT", `/api/admin/settings/${key}`, { value });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       toast({ title: lang === "en" ? "Setting saved" : lang === "es" ? "Configuración guardada" : "Paramètre sauvegardé" });
     } catch {
@@ -333,7 +312,7 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
 
     setIsValidating(true);
     try {
-      const result = await adminRequest<{ valid: boolean; error?: string }>(
+      const result = await adminFetch<{ valid: boolean; error?: string }>(
         "POST",
         "/api/admin/settings/validate-openai-key",
         { apiKey: openaiApiKey }
@@ -358,7 +337,7 @@ function AiSettingsTab({ t, lang }: { t: Record<string, string>; lang: "fr" | "e
   const removeOpenAIKey = async () => {
     setIsSaving(true);
     try {
-      await adminRequest("PUT", `/api/admin/settings/openai_api_key`, { value: null });
+      await adminFetch("PUT", `/api/admin/settings/openai_api_key`, { value: null });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       setOpenaiKeyStatus("none");
       setOpenaiApiKey("");
@@ -485,7 +464,7 @@ function AiUsageCard({ t, lang }: { t: Record<string, string>; lang: "fr" | "en"
   const { data: stats, isLoading } = useQuery<AiUsageStats>({
     queryKey: ["/api/admin/ai-usage"],
     queryFn: async () => {
-      return adminRequest<AiUsageStats>("GET", "/api/admin/ai-usage");
+      return adminFetch<AiUsageStats>("GET", "/api/admin/ai-usage");
     },
   });
 
