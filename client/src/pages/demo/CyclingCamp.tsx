@@ -26,9 +26,10 @@ import {
   ChefHat,
   Sparkles
 } from "lucide-react";
-import heroImage from "@assets/path-less-paved-svein-tuft_6_1768680597680.jpg";
+import heroImage from "@assets/IMG_2496_1768680687465.JPG";
 import routeImage from "@assets/IMG_5452_1768680687458.jpg";
 import campImage from "@assets/IMG_5547_1768680687466.JPG";
+import sveinImage from "@assets/path-less-paved-svein-tuft_6_1768680597680.jpg";
 
 const translations = {
   fr: {
@@ -629,10 +630,12 @@ export default function CyclingCamp() {
               viewport={{ once: true }}
             >
               <Card className="overflow-hidden h-full">
-                <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Bike className="h-16 w-16 text-primary" />
-                  </div>
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img 
+                    src={sveinImage} 
+                    alt="Svein Tuft" 
+                    className="w-full h-full object-cover object-top"
+                  />
                 </div>
                 <CardContent className="p-6">
                   <h3 className="font-display text-2xl font-bold mb-1">{t.guides.svein.name}</h3>
