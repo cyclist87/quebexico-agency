@@ -781,37 +781,6 @@ export default function CyclingCamp() {
               </div>
 
               <p className="text-sm text-muted-foreground italic">{t.pricing.note}</p>
-
-              <div className="mt-12 grid grid-cols-2 gap-3">
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
-                  <img 
-                    src={campImage1} 
-                    alt="Vélo sur rails avec vue fleuve" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
-                  <img 
-                    src={campImage2} 
-                    alt="Pont couvert historique" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
-                  <img 
-                    src={campImage3} 
-                    alt="Sculpture caribou avec vélo" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
-                  <img 
-                    src={campImage4} 
-                    alt="Route de gravier automnale" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
             </motion.div>
 
             <motion.div
@@ -883,6 +852,42 @@ export default function CyclingCamp() {
               </Card>
             </motion.div>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+              <img 
+                src={campImage1} 
+                alt="Vélo sur rails avec vue fleuve" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+              <img 
+                src={campImage2} 
+                alt="Pont couvert historique" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+              <img 
+                src={campImage3} 
+                alt="Sculpture caribou avec vélo" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+              <img 
+                src={campImage4} 
+                alt="Route de gravier automnale" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </motion.div>
         </div>
       </section>
 
