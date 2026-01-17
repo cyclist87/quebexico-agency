@@ -26,9 +26,9 @@ import {
   ChefHat,
   Sparkles
 } from "lucide-react";
-import heroImage from "@assets/stock_images/scenic_mountain_road_9a0e2034.jpg";
-import routeImage from "@assets/stock_images/scenic_mountain_road_899bd1b1.jpg";
-import campImage from "@assets/stock_images/scenic_mountain_road_b263aa09.jpg";
+import heroImage from "@assets/path-less-paved-svein-tuft_6_1768680597680.jpg";
+import routeImage from "@assets/IMG_5452_1768680687458.jpg";
+import campImage from "@assets/IMG_5547_1768680687466.JPG";
 
 const translations = {
   fr: {
