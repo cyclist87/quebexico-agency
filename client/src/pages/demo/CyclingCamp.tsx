@@ -28,7 +28,8 @@ import {
 } from "lucide-react";
 import heroImage from "@assets/IMG_0209_1768680687467.JPG";
 import routeImage from "@assets/IMG_5452_1768680687458.jpg";
-import campImage from "@assets/IMG_5547_1768680687466.JPG";
+import campImage1 from "@assets/IMG_5547_1768680687466.JPG";
+import campImage2 from "@assets/IMG_6035_1768680687466.JPG";
 import sveinImage from "@assets/path-less-paved-svein-tuft_6_1768680597680.jpg";
 import jmImage from "@assets/IMG_2496_1768680687465.JPG";
 
@@ -779,12 +780,21 @@ export default function CyclingCamp() {
 
               <p className="text-sm text-muted-foreground italic">{t.pricing.note}</p>
 
-              <div className="mt-8">
-                <img 
-                  src={campImage} 
-                  alt="Camp experience" 
-                  className="rounded-xl shadow-lg w-full"
-                />
+              <div className="mt-8 grid grid-cols-2 gap-4">
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+                  <img 
+                    src={campImage1} 
+                    alt="Vélo sur rails avec vue fleuve" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg">
+                  <img 
+                    src={campImage2} 
+                    alt="Pont couvert historique" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </motion.div>
 
