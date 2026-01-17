@@ -34,6 +34,7 @@ import DemoRentalHost from "@/pages/demo/DemoRentalHost";
 import DemoCleaning from "@/pages/demo/DemoCleaning";
 import DemoSportsClub from "@/pages/demo/DemoSportsClub";
 import DemoProfessional from "@/pages/demo/DemoProfessional";
+import CyclingCamp from "@/pages/demo/CyclingCamp";
 import EmailSignature from "@/pages/tools/EmailSignature";
 import DigitalCard from "@/pages/tools/DigitalCard";
 import Offre from "@/pages/Offre";
@@ -155,6 +156,7 @@ function DemoRouter() {
       <Route path="/demo/cleaning/:page?" component={DemoCleaning} />
       <Route path="/demo/sports-club/:page?" component={DemoSportsClub} />
       <Route path="/demo/professional/:page?" component={DemoProfessional} />
+      <Route path="/demo/cycling-camp" component={CyclingCamp} />
     </Switch>
   );
 }

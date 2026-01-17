@@ -54,7 +54,10 @@ import {
   type SiteConfigType,
   type ContentSection,
   type TemplateFeature,
-  type PricingRule
+  type PricingRule,
+  campWaitlist,
+  type CampWaitlist,
+  type InsertCampWaitlist
 } from "@shared/schema";
 import { eq, desc, asc, and, sql, gte, lte, or } from "drizzle-orm";
 
@@ -183,6 +186,9 @@ export interface IStorage {
   getTemplateFeatures(): Promise<TemplateFeature[]>;
   getTemplateFeatureByType(templateType: string): Promise<TemplateFeature | undefined>;
   upsertTemplateFeature(templateType: string, enabledFeatures: string[]): Promise<TemplateFeature>;
+  
+  // Camp Waitlist
+  createCampWaitlist(entry: InsertCampWaitlist): Promise<CampWaitlist>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -766,6 +772,12 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Camp Waitlist
+  async createCampWaitlist(entry: InsertCampWaitlist): Promise<CampWaitlist> {
+    const [created] = await db.insert(campWaitlist).values(entry).returning();
+    return created;
   }
 }
 

@@ -410,6 +410,17 @@ export const templateFeatures = pgTable("template_features", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// === CAMP WAITLIST ===
+
+export const campWaitlist = pgTable("camp_waitlist", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  experienceLevel: text("experience_level").notNull().default("intermediate"),
+  campType: text("camp_type").notNull().default("cycling-charlevoix"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // === AI USAGE TRACKING ===
 
 export const aiUsage = pgTable("ai_usage", {
@@ -451,6 +462,8 @@ export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, c
 export const insertCouponRedemptionSchema = createInsertSchema(couponRedemptions).omit({ id: true, createdAt: true });
 
 export const insertPricingRuleSchema = createInsertSchema(pricingRules).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertCampWaitlistSchema = createInsertSchema(campWaitlist).omit({ id: true, createdAt: true });
 
 export const insertSiteConfigSchema = createInsertSchema(siteConfig).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContentSectionSchema = createInsertSchema(contentSections).omit({ id: true, createdAt: true, updatedAt: true });
@@ -517,6 +530,9 @@ export type InsertCouponRedemption = z.infer<typeof insertCouponRedemptionSchema
 
 export type PricingRule = typeof pricingRules.$inferSelect;
 export type InsertPricingRule = z.infer<typeof insertPricingRuleSchema>;
+
+export type CampWaitlist = typeof campWaitlist.$inferSelect;
+export type InsertCampWaitlist = z.infer<typeof insertCampWaitlistSchema>;
 
 export type SiteConfigType = typeof siteConfig.$inferSelect;
 export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { insertPropertySchema } from "@shared/schema";
+import { insertPropertySchema, insertCampWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerHostProRoutes } from "./hostpro/routes";
@@ -1291,6 +1291,28 @@ Important:
         id: inquiry.id,
         status: inquiry.status,
         createdAt: inquiry.createdAt
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.')
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Public: Join camp waitlist
+  app.post("/api/camp-waitlist", async (req, res) => {
+    try {
+      const input = insertCampWaitlistSchema.parse(req.body);
+      
+      const entry = await storage.createCampWaitlist(input);
+      
+      res.status(201).json({
+        id: entry.id,
+        message: "Successfully added to waitlist"
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
