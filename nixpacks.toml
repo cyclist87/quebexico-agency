@@ -1,0 +1,5 @@
+# Node 20 : utiliser .nvmrc ou engines.node dans package.json
+
+# npm install au lieu de npm ci (évite "Missing: bufferutil@4.1.0 from lock file")
+[phases.install]
+cmds = ["npm install"]
