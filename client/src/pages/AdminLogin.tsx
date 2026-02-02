@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,29 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
-  const { login, isDevMode } = useAdminAuth();
+  const { login, isAuthenticated, isDevMode } = useAdminAuth();
   const { language } = useLanguage();
   
   const [secretKey, setSecretKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Rediriger seulement une fois isAuthenticated à jour (évite la course avec ProtectedAdminRouter)
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/admin");
+    }
+  }, [isAuthenticated, setLocation]);
+
+  // Dès que connecté : ne plus afficher le formulaire (évite que la fenêtre reste visible)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Redirection…</p>
+      </div>
+    );
+  }
 
   const translations = {
     fr: {
@@ -61,11 +77,10 @@ export default function AdminLogin() {
 
     try {
       const success = await login(secretKey);
-      if (success) {
-        setLocation("/admin");
-      } else {
+      if (!success) {
         setError(t.invalidKey);
       }
+      // La redirection est gérée par le useEffect ci-dessus quand isAuthenticated passe à true
     } catch {
       setError(t.invalidKey);
     } finally {
@@ -87,11 +102,10 @@ export default function AdminLogin() {
       const data = await response.json();
       // Use the session token (not the actual secret key)
       const success = await login(data.sessionToken);
-      if (success) {
-        setLocation("/admin");
-      } else {
+      if (!success) {
         setError(t.invalidKey);
       }
+      // La redirection est gérée par le useEffect quand isAuthenticated passe à true
     } catch {
       setError(t.invalidKey);
     } finally {

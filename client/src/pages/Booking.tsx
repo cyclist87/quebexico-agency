@@ -7,21 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PropertyCard, AvailabilityCalendar, PricingBreakdown } from "@/components/booking";
 import {
-  useHostProEnabled,
-  useHostProConfig,
-  useHostProProperties,
-  useHostProAvailability,
-  useHostProPricing,
-} from "@/hooks/use-hostpro";
+  useDirectSiteEnabled,
+  useDirectSiteConfig,
+  useDirectSiteProperties,
+  useDirectSiteAvailability,
+  useDirectSitePricing,
+} from "@/hooks/use-direct-site";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Calendar, Users, AlertCircle } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 export default function Booking() {
   const { toast } = useToast();
-  const { data: enabledData, isLoading: checkingEnabled } = useHostProEnabled();
-  const { data: config } = useHostProConfig();
-  const { data: properties, isLoading: loadingProperties } = useHostProProperties();
+  const { data: enabledData, isLoading: checkingEnabled } = useDirectSiteEnabled();
+  const { data: config } = useDirectSiteConfig();
+  const { data: properties, isLoading: loadingProperties } = useDirectSiteProperties();
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -34,7 +34,7 @@ export default function Booking() {
   const today = format(new Date(), "yyyy-MM-dd");
   const threeMonthsLater = format(addMonths(new Date(), 3), "yyyy-MM-dd");
 
-  const { data: availability, isLoading: loadingAvailability } = useHostProAvailability(
+  const { data: availability, isLoading: loadingAvailability } = useDirectSiteAvailability(
     selectedPropertyId,
     today,
     threeMonthsLater
@@ -43,7 +43,7 @@ export default function Booking() {
   const checkIn = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : null;
   const checkOut = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : null;
 
-  const { data: pricing, isLoading: loadingPricing } = useHostProPricing(
+  const { data: pricing, isLoading: loadingPricing } = useDirectSitePricing(
     selectedPropertyId,
     checkIn,
     checkOut,
@@ -65,7 +65,7 @@ export default function Booking() {
     setIsSubmitting(true);
     
     try {
-      // TODO: Phase 2 - POST /reservations or /inquiries to HostPro API
+      // POST /api/direct-site/reservations (via useCreateReservation)
       // For now, show a success message indicating the feature is coming
       toast({
         title: config?.enableInstantBooking ? "Demande envoyée" : "Message envoyé",

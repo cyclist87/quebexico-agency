@@ -5,15 +5,19 @@ import { api } from "@shared/routes";
 import { insertPropertySchema, insertCampWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
-import { registerHostProRoutes } from "./hostpro/routes";
+import { registerDirectSiteRoutes } from "./direct-sites/routes";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import pexelsRouter from "./pexels";
 import OpenAI from "openai";
 import { encrypt, decrypt, isEncrypted } from "./utils/encryption";
+import { setDirectSiteDecrypt } from "./direct-sites/client";
 import { sendReservationConfirmation } from "./email";
 import { isStripeConfigured } from "./stripeClient";
 
-const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "admin-secret-key";
+// Nettoyer BOM / espaces parasites (souvent cause de "clé invalide")
+const ADMIN_SECRET_KEY = (process.env.ADMIN_SECRET_KEY || "admin-secret-key")
+  .replace(/^\uFEFF/, "")
+  .trim();
 
 interface ICalEvent {
   uid?: string;
@@ -175,31 +179,37 @@ async function validateCouponForReservation(params: CouponValidationParams): Pro
   return { valid: true, discountAmount };
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
-
 export async function getOpenAIClient(): Promise<{ client: OpenAI; usedCustomKey: boolean }> {
   try {
     const setting = await storage.getSetting("openai_api_key");
     if (setting?.value) {
-      const decryptedKey = isEncrypted(setting.value) 
-        ? decrypt(setting.value) 
+      const decryptedKey = isEncrypted(setting.value)
+        ? decrypt(setting.value)
         : setting.value;
       return { client: new OpenAI({ apiKey: decryptedKey }), usedCustomKey: true };
     }
   } catch (error) {
     console.error("Error getting custom OpenAI key, using platform key:", error);
   }
-  return { client: openai, usedCustomKey: false };
+  const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OpenAI non configuré. Définis AI_INTEGRATIONS_OPENAI_API_KEY ou configure une clé dans Admin → Intégrations.");
+  }
+  return {
+    client: new OpenAI({
+      apiKey,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    }),
+    usedCustomKey: false,
+  };
 }
 
 // Track dev session tokens (in-memory, cleared on restart)
 const devSessionTokens = new Set<string>();
 
 function requireAdminAuth(req: any, res: any, next: any) {
-  const adminKey = req.headers["x-admin-key"];
+  const raw = req.headers["x-admin-key"];
+  const adminKey = typeof raw === "string" ? raw.trim() : "";
   // Accept either the real admin key or a valid dev session token
   if (adminKey === ADMIN_SECRET_KEY || devSessionTokens.has(adminKey)) {
     return next();
@@ -215,7 +225,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+  // Log admin key status (length only, for debugging "invalid key")
+  const fromEnv = !!process.env.ADMIN_SECRET_KEY?.trim();
+  console.log(`[auth] Admin key: ${fromEnv ? "from .env" : "default"} (length ${ADMIN_SECRET_KEY.length})`);
+
   // Dev-only admin login route - only available in development
   // Creates a server-side session without exposing the actual secret key
   app.post("/api/auth/dev-login", (req, res) => {
@@ -230,18 +243,30 @@ export async function registerRoutes(
   
   // Verify session token
   app.get("/api/auth/verify-session", (req, res) => {
-    const token = req.headers["x-admin-key"] as string;
+    const raw = req.headers["x-admin-key"];
+    const token = typeof raw === "string" ? raw.trim() : "";
     if (devSessionTokens.has(token) || token === ADMIN_SECRET_KEY) {
       return res.json({ valid: true });
     }
     return res.status(401).json({ valid: false });
   });
+
+  // Debug (dev only): vérifier quelle clé le serveur a chargée (longueur uniquement)
+  if (isDevEnvironment()) {
+    app.get("/api/auth/debug-key", (_req, res) => {
+      res.json({
+        length: ADMIN_SECRET_KEY.length,
+        fromEnv: !!process.env.ADMIN_SECRET_KEY?.trim(),
+      });
+    });
+  }
   
   // Register chatbot routes
   registerChatRoutes(app);
   
-  // Register HostPro integration routes
-  registerHostProRoutes(app);
+  // Register Direct site integration routes (API quebexico.com)
+  setDirectSiteDecrypt(decrypt, isEncrypted);
+  registerDirectSiteRoutes(app, storage);
   
   // Register Object Storage routes for file uploads
   registerObjectStorageRoutes(app);
@@ -466,10 +491,15 @@ export async function registerRoutes(
 
   // === ADMIN SETTINGS ROUTES ===
 
-  // Get all settings
+  // Get all settings (mask sensitive keys so admin never receives raw value)
   app.get(api.admin.settings.get.path, requireAdminAuth, async (req, res) => {
     const settings = await storage.getAllSettings();
-    res.json(settings);
+    const masked = settings.map((s) =>
+      (s.key === "openai_api_key" || s.key === "direct_site_api_key") && s.value
+        ? { ...s, value: "***configured***" }
+        : s
+    );
+    res.json(masked);
   });
 
   // Get single setting by key
@@ -484,15 +514,18 @@ export async function registerRoutes(
       const input = api.admin.settings.upsert.input.parse(req.body);
       let value = input.value;
       
-      // Encrypt OpenAI API key before storing
+      // Encrypt sensitive API keys before storing
       if (req.params.key === "openai_api_key" && value) {
         value = encrypt(value);
       }
-      
+      if (req.params.key === "direct_site_api_key" && value) {
+        value = encrypt(value);
+      }
+
       const setting = await storage.upsertSetting(req.params.key, value);
-      
+
       // For sensitive keys, don't return the actual value
-      if (req.params.key === "openai_api_key" && setting.value) {
+      if ((req.params.key === "openai_api_key" || req.params.key === "direct_site_api_key") && setting.value) {
         res.json({ ...setting, value: "***configured***" });
       } else {
         res.json(setting);
@@ -647,7 +680,8 @@ Important:
 - Maintain the same formatting and structure
 - Return ONLY the JSON object, no markdown code blocks or additional text`;
 
-      const response = await openai.chat.completions.create({
+      const { client: openaiClient } = await getOpenAIClient();
+      const response = await openaiClient.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are a professional translator. Return only valid JSON." },

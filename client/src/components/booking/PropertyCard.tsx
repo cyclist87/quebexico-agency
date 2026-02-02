@@ -2,11 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Home } from "lucide-react";
-import type { HostProProperty } from "@shared/hostpro";
+import type { DirectSiteProperty } from "@shared/direct-sites";
 
 interface PropertyCardProps {
-  property: HostProProperty;
-  onSelect?: (property: HostProProperty) => void;
+  property: DirectSiteProperty;
+  onSelect?: (property: DirectSiteProperty) => void;
   isSelected?: boolean;
 }
 

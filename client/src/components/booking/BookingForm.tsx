@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, User, Mail, Phone, Users, MessageSquare } from "lucide-react";
-import { GuestInfoSchema, type GuestInfo } from "@shared/hostpro";
+import { GuestInfoSchema, type GuestInfo } from "@shared/direct-sites";
 import {
   Form,
   FormControl,

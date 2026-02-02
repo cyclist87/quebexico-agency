@@ -1,15 +1,15 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type {
-  HostProConfig,
-  HostProProperty,
-  HostProAvailability,
-  HostProPricing,
+  DirectSiteConfig,
+  DirectSiteProperty,
+  DirectSiteAvailability,
+  DirectSitePricing,
   ReservationRequest,
   ReservationResponse,
   InquiryRequest,
   InquiryResponse,
-} from "@shared/hostpro";
+} from "@shared/direct-sites";
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: "include" });
@@ -20,47 +20,47 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json();
 }
 
-export function useHostProEnabled() {
+export function useDirectSiteEnabled() {
   return useQuery<{ enabled: boolean }>({
-    queryKey: ["/api/hostpro/enabled"],
+    queryKey: ["/api/direct-site/enabled"],
   });
 }
 
-export function useHostProConfig() {
-  return useQuery<HostProConfig>({
-    queryKey: ["/api/hostpro/config"],
+export function useDirectSiteConfig() {
+  return useQuery<DirectSiteConfig>({
+    queryKey: ["/api/direct-site/config"],
   });
 }
 
-export function useHostProProperties() {
-  return useQuery<HostProProperty[]>({
-    queryKey: ["/api/hostpro/properties"],
+export function useDirectSiteProperties() {
+  return useQuery<DirectSiteProperty[]>({
+    queryKey: ["/api/direct-site/properties"],
   });
 }
 
-export function useHostProAvailability(
+export function useDirectSiteAvailability(
   propertyId: string | null,
   startDate: string,
   endDate: string
 ) {
-  return useQuery<HostProAvailability>({
-    queryKey: ["/api/hostpro/availability", propertyId, startDate, endDate],
+  return useQuery<DirectSiteAvailability>({
+    queryKey: ["/api/direct-site/availability", propertyId, startDate, endDate],
     queryFn: () => {
       const params = new URLSearchParams({ propertyId: propertyId!, startDate, endDate });
-      return fetchJson<HostProAvailability>(`/api/hostpro/availability?${params}`);
+      return fetchJson<DirectSiteAvailability>(`/api/direct-site/availability?${params}`);
     },
     enabled: !!propertyId,
   });
 }
 
-export function useHostProPricing(
+export function useDirectSitePricing(
   propertyId: string | null,
   checkIn: string | null,
   checkOut: string | null,
   guests?: number
 ) {
-  return useQuery<HostProPricing>({
-    queryKey: ["/api/hostpro/pricing", propertyId, checkIn, checkOut, guests],
+  return useQuery<DirectSitePricing>({
+    queryKey: ["/api/direct-site/pricing", propertyId, checkIn, checkOut, guests],
     queryFn: () => {
       const params = new URLSearchParams({
         propertyId: propertyId!,
@@ -68,7 +68,7 @@ export function useHostProPricing(
         checkOut: checkOut!,
         ...(guests ? { guests: guests.toString() } : {}),
       });
-      return fetchJson<HostProPricing>(`/api/hostpro/pricing?${params}`);
+      return fetchJson<DirectSitePricing>(`/api/direct-site/pricing?${params}`);
     },
     enabled: !!propertyId && !!checkIn && !!checkOut,
   });
@@ -77,7 +77,7 @@ export function useHostProPricing(
 export function useCreateReservation() {
   return useMutation<ReservationResponse, Error, ReservationRequest>({
     mutationFn: async (data) => {
-      const res = await fetch("/api/hostpro/reservations", {
+      const res = await fetch("/api/direct-site/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -90,7 +90,7 @@ export function useCreateReservation() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/hostpro/availability"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/direct-site/availability"] });
     },
   });
 }
@@ -98,7 +98,7 @@ export function useCreateReservation() {
 export function useCreateInquiry() {
   return useMutation<InquiryResponse, Error, InquiryRequest>({
     mutationFn: async (data) => {
-      const res = await fetch("/api/hostpro/inquiries", {
+      const res = await fetch("/api/direct-site/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

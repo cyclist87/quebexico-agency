@@ -213,9 +213,9 @@ The application includes a CMS system for managing site appearance and content s
 - Toggle sections on/off without deleting
 - Order sections by index
 
-### HostPro Integration (Legacy/Optional)
-- **Purpose**: Optional sync for properties/availability from external HostPro API
-- **Status**: Reduced scope - local database is primary, HostPro sync is P3 priority
+### Direct Site Integration
+- **Purpose**: Site de réservation directe — connexion à l’API quebexico.com (config, propriétés, disponibilités, tarifs, réservations).
+- **Status**: Variables d’environnement `DIRECT_SITE_API_URL` et `DIRECT_SITE_API_KEY` (clé du site direct créé sur quebexico.com).
 - **Components**: PropertyCard, AvailabilityCalendar in `client/src/components/booking/`
 
 ## External Dependencies

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const HostProConfigSchema = z.object({
+export const DirectSiteConfigSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
@@ -20,7 +20,7 @@ export const HostProConfigSchema = z.object({
   enableInstantBooking: z.boolean(),
 });
 
-export const HostProPropertySchema = z.object({
+export const DirectSitePropertySchema = z.object({
   id: z.string(),
   name: z.string(),
   address: z.string().nullable().optional(),
@@ -34,13 +34,13 @@ export const BlockedDateSchema = z.object({
   source: z.string(),
 });
 
-export const HostProAvailabilitySchema = z.object({
+export const DirectSiteAvailabilitySchema = z.object({
   propertyId: z.string(),
   blockedDates: z.array(BlockedDateSchema),
   availableDates: z.array(z.string()),
 });
 
-export const HostProPricingSchema = z.object({
+export const DirectSitePricingSchema = z.object({
   propertyId: z.string(),
   checkIn: z.string(),
   checkOut: z.string(),
@@ -67,6 +67,10 @@ export const ReservationRequestSchema = z.object({
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guest: GuestInfoSchema,
+  nightlyRate: z.number().optional(),
+  cleaningFee: z.number().optional(),
+  totalPrice: z.number().optional(),
+  currency: z.string().optional(),
 });
 
 export const InquiryRequestSchema = z.object({
@@ -95,10 +99,10 @@ export const InquiryResponseSchema = z.object({
   createdAt: z.string(),
 });
 
-export type HostProConfig = z.infer<typeof HostProConfigSchema>;
-export type HostProProperty = z.infer<typeof HostProPropertySchema>;
-export type HostProAvailability = z.infer<typeof HostProAvailabilitySchema>;
-export type HostProPricing = z.infer<typeof HostProPricingSchema>;
+export type DirectSiteConfig = z.infer<typeof DirectSiteConfigSchema>;
+export type DirectSiteProperty = z.infer<typeof DirectSitePropertySchema>;
+export type DirectSiteAvailability = z.infer<typeof DirectSiteAvailabilitySchema>;
+export type DirectSitePricing = z.infer<typeof DirectSitePricingSchema>;
 export type BlockedDate = z.infer<typeof BlockedDateSchema>;
 export type GuestInfo = z.infer<typeof GuestInfoSchema>;
 export type ReservationRequest = z.infer<typeof ReservationRequestSchema>;

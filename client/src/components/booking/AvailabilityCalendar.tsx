@@ -4,10 +4,10 @@ import { Loader2 } from "lucide-react";
 import { addDays, isWithinInterval, parseISO, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
-import type { HostProAvailability, BlockedDate } from "@shared/hostpro";
+import type { DirectSiteAvailability, BlockedDate } from "@shared/direct-sites";
 
 interface AvailabilityCalendarProps {
-  availability: HostProAvailability | null;
+  availability: DirectSiteAvailability | null;
   isLoading?: boolean;
   onDateRangeChange?: (range: { checkIn: string; checkOut: string } | null) => void;
   selectedRange?: DateRange;

@@ -8,8 +8,8 @@ import { CheckCircle, Calendar, ArrowLeft, TreePine } from "lucide-react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { PricingBreakdown } from "./PricingBreakdown";
 import { BookingForm } from "./BookingForm";
-import { useHostProAvailability, useHostProPricing, useCreateReservation, useCreateInquiry } from "@/hooks/use-hostpro";
-import type { GuestInfo, ReservationResponse, InquiryResponse } from "@shared/hostpro";
+import { useDirectSiteAvailability, useDirectSitePricing, useCreateReservation, useCreateInquiry } from "@/hooks/use-direct-site";
+import type { GuestInfo, ReservationResponse, InquiryResponse } from "@shared/direct-sites";
 import type { DateRange } from "react-day-picker";
 
 interface BookingFlowProps {
@@ -43,13 +43,13 @@ export function BookingFlow({
   const today = format(new Date(), "yyyy-MM-dd");
   const threeMonthsLater = format(addMonths(new Date(), 3), "yyyy-MM-dd");
 
-  const { data: availability, isLoading: availabilityLoading } = useHostProAvailability(
+  const { data: availability, isLoading: availabilityLoading } = useDirectSiteAvailability(
     demoMode ? "" : propertyId,
     today,
     threeMonthsLater
   );
 
-  const { data: hostProPricing, isLoading: pricingLoading } = useHostProPricing(
+  const { data: pricing, isLoading: pricingLoading } = useDirectSitePricing(
     demoMode ? "" : propertyId,
     checkIn,
     checkOut,
@@ -80,7 +80,7 @@ export function BookingFlow({
     };
   };
 
-  const pricing = demoMode ? calculateDemoPricing() : hostProPricing;
+  const pricingData = demoMode ? calculateDemoPricing() : pricing;
 
   const handleDateRangeChange = (range: { checkIn: string; checkOut: string } | null) => {
     if (range) {
@@ -106,7 +106,7 @@ export function BookingFlow({
         id: `DEMO-${Date.now().toString(36).toUpperCase()}`,
         status: "confirmed",
         confirmationCode: `QBX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        total: pricing?.total || 0,
+        total: pricingData?.total || 0,
         currency: "CAD",
       };
       setConfirmationData(demoResult);
@@ -124,6 +124,12 @@ export function BookingFlow({
           checkIn,
           checkOut,
           guest: guestInfo,
+          ...(pricingData && "total" in pricingData && {
+            nightlyRate: (pricingData as any).pricePerNight,
+            cleaningFee: (pricingData as any).cleaningFee,
+            totalPrice: (pricingData as any).total,
+            currency: (pricingData as any).currency ?? "CAD",
+          }),
         });
       } else {
         result = await inquiryMutation.mutateAsync({
@@ -214,9 +220,9 @@ export function BookingFlow({
                 {checkIn && format(new Date(checkIn), "d MMM", { locale: fr })} -{" "}
                 {checkOut && format(new Date(checkOut), "d MMM yyyy", { locale: fr })}
               </span>
-              {pricing && (
+              {pricingData && (
                 <Badge variant="secondary" className="ml-auto">
-                  {pricing.nights} nuits
+                  {pricingData.nights} nuits
                 </Badge>
               )}
             </div>
@@ -231,7 +237,7 @@ export function BookingFlow({
             maxGuests={maxGuests}
           />
 
-          {pricing && <PricingBreakdown pricing={pricing} />}
+          {pricingData && <PricingBreakdown pricing={pricingData} />}
         </div>
 
         {(reservationMutation.isError || inquiryMutation.isError) && (
@@ -259,8 +265,8 @@ export function BookingFlow({
         </div>
 
         <div className="xl:w-80 space-y-4 shrink-0">
-          {pricing ? (
-            <PricingBreakdown pricing={pricing} isLoading={pricingLoading} />
+          {pricingData ? (
+            <PricingBreakdown pricing={pricingData} isLoading={pricingLoading} />
           ) : (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">

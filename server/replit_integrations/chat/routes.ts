@@ -1,5 +1,5 @@
 import type { Express, Request, Response } from "express";
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { chatStorage } from "./storage";
 import { db } from "../../db";
 import { knowledgeBase } from "@shared/schema";
@@ -66,12 +66,6 @@ function requireAdmin(req: Request, res: Response): boolean {
   }
   return true;
 }
-
-// Platform OpenAI client (fallback)
-const platformOpenai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
 
 const SYSTEM_PROMPT = `Tu es l'assistant virtuel de QUEBEXICO, une agence créative stratégique basée au Québec. 
 
@@ -301,7 +295,19 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Connection", "keep-alive");
 
       // Get OpenAI client (custom key if configured, otherwise platform key)
-      const { client: openaiClient, usedCustomKey } = await getOpenAIClient();
+      let openaiClient: OpenAI;
+      let usedCustomKey: boolean;
+      try {
+        const result = await getOpenAIClient();
+        openaiClient = result.client;
+        usedCustomKey = result.usedCustomKey;
+      } catch (err: any) {
+        if (err?.message?.includes("credentials") || err?.message?.includes("configuré") || err?.message?.includes("API key")) {
+          if (!res.headersSent) res.status(503).json({ error: "Chat non configuré. Définis AI_INTEGRATIONS_OPENAI_API_KEY ou Admin → Intégrations." });
+          return;
+        }
+        throw err;
+      }
 
       // Stream response from OpenAI
       const stream = await openaiClient.chat.completions.create({

@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Mail, Calendar, Save, Loader2, FileText } from "lucide-react";
+import { Mail, Calendar, Save, Loader2, FileText, Globe } from "lucide-react";
 import { SiStripe, SiGoogle, SiMailchimp, SiTwilio } from "react-icons/si";
 import { useState, useEffect } from "react";
 
@@ -44,8 +44,24 @@ interface Integration {
   category: "payment" | "email" | "calendar" | "maps" | "messaging";
 }
 
-function getIntegrations(stripeConfigured: boolean, tinymceConfigured: boolean): Integration[] {
+function getIntegrations(
+  stripeConfigured: boolean,
+  tinymceConfigured: boolean,
+  directSiteConfigured: boolean
+): Integration[] {
   return [
+    {
+      id: "direct_site",
+      name: "Site de réservation (quebexico.com)",
+      description: {
+        fr: "Connexion à la plateforme pour propriétés et réservations",
+        en: "Connect to platform for properties and bookings",
+        es: "Conexión a la plataforma para propiedades y reservas",
+      },
+      icon: <Globe className="w-6 h-6" />,
+      status: directSiteConfigured ? "connected" : "available",
+      category: "payment",
+    },
     {
       id: "stripe",
       name: "Stripe",
@@ -139,6 +155,8 @@ export default function AdminIntegrations() {
   const { toast } = useToast();
 
   const [tinymceApiKey, setTinymceApiKey] = useState("");
+  const [directSiteApiUrl, setDirectSiteApiUrl] = useState("");
+  const [directSiteApiKey, setDirectSiteApiKey] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
@@ -153,14 +171,23 @@ export default function AdminIntegrations() {
 
   const isLoading = stripeLoading || settingsLoading;
 
-  const tinymceSetting = settings?.find(s => s.key === "tinymce_api_key");
+  const tinymceSetting = settings?.find((s) => s.key === "tinymce_api_key");
+  const directSiteUrlSetting = settings?.find((s) => s.key === "direct_site_api_url");
+  const directSiteKeySetting = settings?.find((s) => s.key === "direct_site_api_key");
   const tinymceConfigured = !!tinymceSetting?.value;
+  const directSiteConfigured = !!(directSiteUrlSetting?.value && directSiteKeySetting?.value);
 
   useEffect(() => {
-    if (tinymceSetting?.value) {
-      setTinymceApiKey(tinymceSetting.value);
-    }
+    if (tinymceSetting?.value) setTinymceApiKey(tinymceSetting.value);
   }, [tinymceSetting]);
+  useEffect(() => {
+    if (directSiteUrlSetting?.value && directSiteUrlSetting.value !== "***configured***")
+      setDirectSiteApiUrl(directSiteUrlSetting.value);
+  }, [directSiteUrlSetting]);
+  useEffect(() => {
+    if (directSiteKeySetting?.value && directSiteKeySetting.value !== "***configured***")
+      setDirectSiteApiKey(directSiteKeySetting.value);
+  }, [directSiteKeySetting]);
 
   const saveTinymceKey = async () => {
     setIsSaving(true);
@@ -176,7 +203,22 @@ export default function AdminIntegrations() {
     }
   };
 
-  const integrations = getIntegrations(stripeStatus?.configured ?? false, tinymceConfigured);
+  const saveDirectSite = async () => {
+    setIsSaving(true);
+    try {
+      await adminRequest("PUT", `/api/admin/settings/direct_site_api_url`, { value: directSiteApiUrl?.trim() || null });
+      await adminRequest("PUT", `/api/admin/settings/direct_site_api_key`, { value: directSiteApiKey?.trim() || null });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      toast({ title: lang === "en" ? "Setting saved" : lang === "es" ? "Configuración guardada" : "Paramètre sauvegardé" });
+      setExpandedCard(null);
+    } catch {
+      toast({ title: lang === "en" ? "Error" : "Erreur", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const integrations = getIntegrations(stripeStatus?.configured ?? false, tinymceConfigured, directSiteConfigured);
 
   const translations = {
     fr: {
@@ -191,6 +233,9 @@ export default function AdminIntegrations() {
       save: "Enregistrer",
       cancel: "Annuler",
       tinymceDesc: "Obtenez votre clé sur tiny.cloud",
+      directSiteUrl: "URL de l'API",
+      directSiteKey: "Clé API",
+      directSiteHelp: "Sur quebexico.com : Host → Site de réservation → ouvrir le site → onglet API. Sans ces champs (ou sans .env), le module réservation ne charge pas de propriétés.",
     },
     en: {
       title: "Integrations",
@@ -204,6 +249,9 @@ export default function AdminIntegrations() {
       save: "Save",
       cancel: "Cancel",
       tinymceDesc: "Get your key at tiny.cloud",
+      directSiteUrl: "API URL",
+      directSiteKey: "API Key",
+      directSiteHelp: "On quebexico.com: Host → Direct Booking Site → open site → API tab. Without these (or .env), the booking module won't load properties.",
     },
     es: {
       title: "Integraciones",
@@ -217,6 +265,9 @@ export default function AdminIntegrations() {
       save: "Guardar",
       cancel: "Cancelar",
       tinymceDesc: "Obtén tu clave en tiny.cloud",
+      directSiteUrl: "URL de la API",
+      directSiteKey: "Clave API",
+      directSiteHelp: "En quebexico.com: Host → Site de réservation → abrir sitio → pestaña API. Sin esto (o .env), el módulo de reservas no cargará propiedades.",
     },
   };
 
@@ -296,15 +347,57 @@ export default function AdminIntegrations() {
                       </Button>
                     </div>
                   </div>
+                ) : integration.id === "direct_site" && expandedCard === "direct_site" ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="direct-site-url">{t.directSiteUrl}</Label>
+                      <Input
+                        id="direct-site-url"
+                        type="url"
+                        placeholder="https://quebexico.com"
+                        value={directSiteApiUrl}
+                        onChange={(e) => setDirectSiteApiUrl(e.target.value)}
+                        data-testid="input-direct-site-url"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="direct-site-key">{t.directSiteKey}</Label>
+                      <Input
+                        id="direct-site-key"
+                        type="password"
+                        placeholder={directSiteConfigured ? "••••••••••••••••" : ""}
+                        value={directSiteApiKey}
+                        onChange={(e) => setDirectSiteApiKey(e.target.value)}
+                        data-testid="input-direct-site-key"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t.directSiteHelp}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={saveDirectSite}
+                        disabled={isSaving}
+                        data-testid="button-save-direct-site"
+                      >
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        {t.save}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setExpandedCard(null)}
+                        data-testid="button-cancel-direct-site"
+                      >
+                        {t.cancel}
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <Button
                     variant={integration.status === "connected" ? "outline" : "default"}
                     className="w-full"
                     disabled={integration.status === "coming_soon"}
                     onClick={() => {
-                      if (integration.id === "tinymce") {
-                        setExpandedCard("tinymce");
-                      }
+                      if (integration.id === "tinymce") setExpandedCard("tinymce");
+                      if (integration.id === "direct_site") setExpandedCard("direct_site");
                     }}
                     data-testid={`button-integration-${integration.id}`}
                   >

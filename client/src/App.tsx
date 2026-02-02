@@ -129,11 +129,25 @@ function ProtectedAdminRouter() {
 
 function AdminRouter() {
   const [location] = useLocation();
-  
-  if (location === "/admin/login") {
+  const { isAuthenticated, isLoading } = useAdminAuth();
+
+  // Pas connecté : ne jamais monter ProtectedAdminRouter (ni AdminShell). Afficher seulement login ou spinner.
+  if (!isAuthenticated) {
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      );
+    }
     return <AdminLogin />;
   }
-  
+
+  // Connecté mais sur l'URL login → rediriger vers le tableau de bord
+  if (location === "/admin/login") {
+    return <Redirect to="/admin" />;
+  }
+
   return <ProtectedAdminRouter />;
 }
 

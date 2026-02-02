@@ -58,7 +58,7 @@
 |---------|-------|
 | OpenAI (via Replit AI) | Chatbot IA, traduction automatique |
 | Pexels API | Images stock gratuites pour blog |
-| HostPro API | Réservations directes (propriétés STR) |
+| Direct Site API (quebexico.com) | Réservations directes (propriétés STR) |
 | Replit Object Storage | Upload fichiers/images |
 | TinyMCE | Éditeur rich text (blog) |
 
@@ -71,7 +71,7 @@
 │   ├── src/
 │   │   ├── components/         # Composants réutilisables
 │   │   │   ├── ui/             # shadcn/ui components
-│   │   │   ├── booking/        # Composants réservation HostPro
+│   │   │   ├── booking/        # Composants réservation Direct Site
 │   │   │   ├── Navigation.tsx
 │   │   │   ├── Footer.tsx
 │   │   │   ├── ChatWidget.tsx
@@ -88,7 +88,7 @@
 │   │   │   └── LanguageContext.tsx
 │   │   ├── hooks/              # Custom hooks
 │   │   │   ├── use-pexels.ts
-│   │   │   ├── use-hostpro.ts
+│   │   │   ├── use-direct-site.ts
 │   │   │   └── use-profile-localization.ts
 │   │   ├── lib/                # Utilitaires
 │   │   │   ├── translations.ts
@@ -97,8 +97,8 @@
 │   │   └── App.tsx             # Routes principales
 │   └── index.html
 ├── server/                     # Backend Express
-│   ├── hostpro/                # Intégration HostPro
-│   │   ├── client.ts           # Client HTTP HostPro
+│   ├── direct-sites/           # Intégration Direct Site (API quebexico.com)
+│   │   ├── client.ts           # Client HTTP Direct Site
 │   │   └── routes.ts           # Proxy API routes
 │   ├── replit_integrations/    # Intégrations Replit
 │   │   ├── chat/               # Chatbot IA
@@ -118,7 +118,7 @@
 ├── shared/                     # Code partagé client/serveur
 │   ├── schema.ts               # Schéma Drizzle (tables DB)
 │   ├── routes.ts               # Contrats API typés
-│   ├── hostpro.ts              # Types HostPro
+│   ├── direct-sites.ts         # Types Direct Site
 │   ├── localization.ts         # Types multilingues
 │   └── demo-profiles.ts        # Configurations templates démo
 ├── ARCHITECTURE.md             # Ce fichier
@@ -139,7 +139,7 @@
 | `/blog/:slug` | BlogPost | Article de blog individuel |
 | `/book/discovery` | BookDiscovery | Réservation appel découverte (TidyCal) |
 | `/book/expert` | BookExpert | Réservation consultation expert |
-| `/booking` | Booking | Module de réservation HostPro |
+| `/booking` | Booking | Module de réservation Direct Site |
 | `/offre` | Offre | Page offre commerciale |
 | `/legal` | Legal | Mentions légales |
 | `/privacy` | Privacy | Politique de confidentialité |
@@ -274,45 +274,45 @@ Toutes les routes `/api/admin/*` utilisent le header `X-Admin-Key` avec la valeu
 |---------|----------|-------------|
 | `GET` | `/api/pexels/search?query=...&page=1&per_page=15` | Recherche images stock |
 
-### Endpoints HostPro (Proxy)
+### Endpoints Direct Site (Proxy vers quebexico.com)
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| `GET` | `/api/hostpro/enabled` | Vérifie si HostPro est configuré |
-| `GET` | `/api/hostpro/config` | Configuration du site |
-| `GET` | `/api/hostpro/properties` | Liste des propriétés |
-| `GET` | `/api/hostpro/availability?propertyId=X&startDate=...&endDate=...` | Disponibilités |
-| `GET` | `/api/hostpro/pricing?propertyId=X&checkIn=...&checkOut=...` | Calcul tarif |
-| `POST` | `/api/hostpro/reservations` | Créer réservation |
-| `POST` | `/api/hostpro/inquiries` | Envoyer demande d'info |
+| `GET` | `/api/direct-site/enabled` | Vérifie si la connexion quebexico.com est configurée |
+| `GET` | `/api/direct-site/config` | Configuration du site direct |
+| `GET` | `/api/direct-site/properties` | Liste des propriétés (cet hôte) |
+| `GET` | `/api/direct-site/availability?propertyId=X&startDate=...&endDate=...` | Disponibilités |
+| `GET` | `/api/direct-site/pricing?propertyId=X&checkIn=...&checkOut=...` | Calcul tarif |
+| `POST` | `/api/direct-site/reservations` | Créer réservation |
+| `POST` | `/api/direct-site/inquiries` | Envoyer demande d'info |
 
 ---
 
 ## APIs Consommées
 
-### HostPro API (Plateforme Mère)
+### API Site direct (quebexico.com)
 
-Connexion à HostPro pour les fonctionnalités de réservation directe.
+Connexion à quebexico.com pour la réservation directe. **Un déploiement quebexico_co = un hôte** : une clé API par déploiement. Sans config, le template reste utilisable mais le module réservation ne charge pas de propriétés. Voir `docs/CONNEXION_QUEBEXICO_COM.md`.
 
 **Configuration requise :**
 ```env
-HOSTPRO_API_KEY=votre-cle-api
-HOSTPRO_API_URL=https://hostpro.replit.app  # Optionnel, défaut production
+DIRECT_SITE_API_URL=https://quebexico.com
+DIRECT_SITE_API_KEY=clé du site direct (Host → Site de réservation → onglet API)
 ```
 
 **Exemple d'utilisation (côté client via hooks) :**
 ```typescript
-import { useHostProConfig, useHostProProperties } from "@/hooks/use-hostpro";
+import { useDirectSiteConfig, useDirectSiteProperties } from "@/hooks/use-direct-site";
 
 function BookingPage() {
-  const { data: config } = useHostProConfig();
-  const { data: properties } = useHostProProperties();
-  
+  const { data: config } = useDirectSiteConfig();
+  const { data: properties } = useDirectSiteProperties();
+
   // Utiliser les données...
 }
 ```
 
-**Schémas partagés :** `shared/hostpro.ts`
+**Schémas partagés :** `shared/direct-sites.ts`
 
 ### Pexels API
 
@@ -443,10 +443,12 @@ AI_INTEGRATIONS_OPENAI_BASE_URL  # URL base API Replit AI
 ### Services Externes
 ```env
 PEXELS_API_KEY    # API Pexels pour images stock
-HOSTPRO_API_KEY   # Clé API HostPro (optionnel)
-HOSTPRO_API_URL   # URL API HostPro (optionnel)
+DIRECT_SITE_API_KEY   # Clé API Direct Site (quebexico.com)
+DIRECT_SITE_API_URL   # URL API (ex. https://quebexico.com)
 VITE_TINYMCE_API_KEY  # Clé TinyMCE (optionnel)
 ```
+
+**Obtenir la clé Direct Site :** sur **quebexico.com**, aller dans **Host → Site de réservation** (Direct Booking Site), créer ou ouvrir un site direct, puis copier la clé API affichée. Définir `DIRECT_SITE_API_URL` (ex. `https://quebexico.com`) et `DIRECT_SITE_API_KEY` dans `.env` (voir `.env.example`).
 
 ### Object Storage (Replit)
 ```env
@@ -517,7 +519,7 @@ import image from "@assets/image.png"                  // attached_assets/
 - Carte de visite numérique avec QR code
 - URLs persistantes `/c/:slug`
 
-### Intégration HostPro
+### Intégration Direct Site
 - Proxy sécurisé (clé API côté serveur)
 - Hooks React Query prêts à l'emploi
 - Composants réservation réutilisables
