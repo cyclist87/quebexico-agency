@@ -8,10 +8,20 @@ const __dirname =
   typeof __filename !== "undefined"
     ? path.dirname(__filename)
     : path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "..", ".env");
+const rootDir = path.resolve(__dirname, "..");
+const envPath = path.join(rootDir, ".env");
 const result = config({ path: envPath, override: true });
 if (result.parsed?.DATABASE_URL) {
   process.env.DATABASE_URL = result.parsed.DATABASE_URL;
+}
+// Bascule rapide vers la base de prod en local : USE_PROD_DB=1 ou npm run dev:prod
+if (process.env.USE_PROD_DB === "1") {
+  const prodPath = path.join(rootDir, ".env.prod");
+  const prodResult = config({ path: prodPath, override: true });
+  if (prodResult.parsed?.DATABASE_URL) {
+    process.env.DATABASE_URL = prodResult.parsed.DATABASE_URL;
+    console.warn("[db] USE_PROD_DB=1 : DATABASE_URL chargée depuis .env.prod (données de production)");
+  }
 }
 if (!process.env.DATABASE_URL) {
   console.error("[db] DATABASE_URL absent. Fichier .env trouvé:", !!result.parsed, "Clés lues:", result.parsed ? Object.keys(result.parsed) : "aucune");

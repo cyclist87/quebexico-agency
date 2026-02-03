@@ -25,6 +25,7 @@ export default function Home() {
   const heroSection = sections.find(s => s.sectionType === "hero" && s.isEnabled);
   const aboutSection = sections.find(s => s.sectionType === "about" && s.isEnabled);
   const servicesSection = sections.find(s => s.sectionType === "services" && s.isEnabled);
+  const videoSection = sections.find((s) => (s.sectionType === "video" && s.isEnabled));
   const quoteSection = sections.find(s => s.sectionType === "cta" && s.isEnabled);
 
   const getLocalizedText = (fr: string | null, en: string | null, es: string | null, fallback: string) => {
@@ -43,14 +44,13 @@ export default function Home() {
   useEffect(() => {
     document.title = pageTitles[language as keyof typeof pageTitles] || pageTitles.fr;
   }, [language, siteName]);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
-  const handlePlayClick = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-      setIsVideoPlaying(true);
-    }
+  const handleVideoPlay = () => {
+    if (!videoRef.current) return;
+    videoRef.current.play().catch(() => {});
+    setIsVideoPlaying(true);
   };
 
   return (
@@ -200,46 +200,66 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Demo Reel Section */}
-      <section id="demoreel" className="bg-foreground">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="relative w-full aspect-video shadow-2xl group cursor-pointer"
-          onClick={!isVideoPlaying ? handlePlayClick : undefined}
-        >
-          <video
-            ref={videoRef}
-            controls={isVideoPlaying}
-            preload="metadata"
-            poster="https://media.quebexico.co/quebexico-video.jpg"
-            className="absolute inset-0 w-full h-full bg-black"
-            data-testid="video-demoreel"
-            onPlay={() => setIsVideoPlaying(true)}
-            onPause={() => setIsVideoPlaying(false)}
-            onEnded={() => setIsVideoPlaying(false)}
-          >
-            <source src="https://media.quebexico.co/quebexico-demo-reel-2025.mp4" type="video/mp4" />
-            Votre navigateur ne supporte pas la lecture vidéo.
-          </video>
-          
-          {/* Dark Overlay + Elegant Play Button */}
-          <div 
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
-              isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
-            }`}
-          >
-            {/* Vignette effect */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(0,0,0,0.5)_100%)]" />
-            
-            {/* Subtle play button */}
-            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-[2px] border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-white/15">
-              <Play className="w-6 h-6 md:w-7 md:h-7 text-white/80 fill-white/80 ml-0.5" />
-            </div>
-          </div>
-        </motion.div>
-      </section>
+      {/* Section vidéo (module de page type "video") */}
+      {videoSection?.videoUrl && (
+        <section id="video" className="bg-foreground">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="relative w-full aspect-video shadow-2xl bg-black overflow-hidden"
+            >
+              {/* Image de couverture (poster) — z-0 pour être sous l’overlay */}
+              {videoSection.imageUrl && (
+                <img
+                  src={videoSection.imageUrl}
+                  alt=""
+                  className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ${
+                    isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
+                  }`}
+                  loading="eager"
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              <video
+                ref={videoRef}
+                src={videoSection.videoUrl}
+                controls
+                preload="metadata"
+                poster={videoSection.imageUrl ?? undefined}
+                playsInline
+                className="absolute inset-0 w-full h-full object-contain bg-black z-0"
+                data-testid="video-section"
+                onLoadedData={() => setIsVideoPlaying(false)}
+                onPlaying={() => setIsVideoPlaying(true)}
+                onPause={() => setIsVideoPlaying(false)}
+                onEnded={() => setIsVideoPlaying(false)}
+                onWaiting={() => setIsVideoPlaying(false)}
+              >
+                Votre navigateur ne supporte pas la lecture vidéo.
+              </video>
+              <div
+                role="button"
+                tabIndex={0}
+                className={`absolute inset-0 z-20 flex items-center justify-center cursor-pointer transition-opacity duration-300 ${
+                  isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
+                }`}
+                onClick={handleVideoPlay}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleVideoPlay();
+                  }
+                }}
+                aria-label="Lancer la vidéo"
+              >
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center hover:bg-white/30 hover:scale-110 transition-all">
+                  <Play className="w-10 h-10 md:w-12 md:h-12 text-white fill-white ml-1" />
+                </div>
+              </div>
+            </motion.div>
+          </section>
+      )}
 
       {/* Philosophy Quote */}
       <section className="py-32 bg-primary/5">

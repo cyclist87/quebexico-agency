@@ -1776,12 +1776,31 @@ Important:
 
   // Admin: Update content section
   app.put("/api/admin/content-sections/:id", requireAdminAuth, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const section = await storage.updateContentSection(id, req.body);
-    if (!section) {
-      return res.status(404).json({ message: "Section not found" });
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ message: "Invalid section id" });
+      }
+      const allowed = [
+        "sectionType", "isEnabled", "orderIndex",
+        "titleFr", "titleEn", "titleEs", "subtitleFr", "subtitleEn", "subtitleEs",
+        "contentFr", "contentEn", "contentEs", "imageUrl", "videoUrl",
+        "buttonTextFr", "buttonTextEn", "buttonTextEs", "buttonUrl", "customData",
+      ];
+      const raw = Object.fromEntries(
+        allowed.filter((k) => req.body[k] !== undefined).map((k) => [k, req.body[k]])
+      );
+      if (raw.orderIndex !== undefined) raw.orderIndex = parseInt(String(raw.orderIndex), 10) || 0;
+      if (raw.isEnabled !== undefined) raw.isEnabled = Boolean(raw.isEnabled);
+      const section = await storage.updateContentSection(id, raw);
+      if (!section) {
+        return res.status(404).json({ message: "Section not found" });
+      }
+      res.json(section);
+    } catch (err) {
+      console.error("Update content section error:", err);
+      res.status(500).json({ message: "Impossible de mettre à jour la section." });
     }
-    res.json(section);
   });
 
   // Admin: Delete content section

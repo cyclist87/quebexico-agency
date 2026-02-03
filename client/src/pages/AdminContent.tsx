@@ -24,8 +24,23 @@ const SECTION_TYPES = [
   { value: "contact", labelFr: "Contact", labelEn: "Contact", labelEs: "Contacto" },
   { value: "cta", labelFr: "Appel à l'action", labelEn: "Call to Action", labelEs: "Llamada a la acción" },
   { value: "features", labelFr: "Fonctionnalités", labelEn: "Features", labelEs: "Características" },
+  { value: "video", labelFr: "Vidéo", labelEn: "Video", labelEs: "Vídeo" },
   { value: "custom", labelFr: "Section personnalisée", labelEn: "Custom Section", labelEs: "Sección personalizada" },
 ];
+
+/** Court texte explicatif pour chaque type (affiché sous le menu). */
+const SECTION_TYPE_HINT: Record<string, string> = {
+  hero: "Bandeau principal en haut de page (titre, sous-titre, image ou vidéo de fond).",
+  about: "Bloc « À propos » : texte et image pour présenter l’agence.",
+  services: "Liste ou grille des services offerts.",
+  portfolio: "Galerie ou grille de réalisations / projets.",
+  testimonials: "Témoignages clients (citations, noms, photos).",
+  contact: "Coordonnées, formulaire de contact ou lien vers la page contact.",
+  cta: "Bandeau d’appel à l’action (bouton, lien, message incitatif).",
+  features: "Liste de fonctionnalités ou points forts (icônes + texte).",
+  video: "Section dédiée à une vidéo (bande-annonce, démo) : indiquez l’URL de la vidéo et l’image de couverture (poster).",
+  custom: "Bloc libre : titre, texte, image et bouton au besoin.",
+};
 
 export default function AdminContent() {
   const { toast } = useToast();
@@ -45,6 +60,7 @@ export default function AdminContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/content-sections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/content-sections"] });
       toast({ title: "Section créée", description: "La section a été ajoutée avec succès." });
       setIsDialogOpen(false);
       setFormData({});
@@ -61,6 +77,7 @@ export default function AdminContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/content-sections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/content-sections"] });
       toast({ title: "Section mise à jour", description: "Les modifications ont été sauvegardées." });
       setIsDialogOpen(false);
       setEditingSection(null);
@@ -78,6 +95,7 @@ export default function AdminContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/content-sections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/content-sections"] });
       toast({ title: "Section supprimée", description: "La section a été supprimée." });
     },
     onError: () => {
@@ -92,6 +110,7 @@ export default function AdminContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/content-sections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/content-sections"] });
     },
   });
 
@@ -111,6 +130,7 @@ export default function AdminContent() {
       contentEn: section.contentEn || "",
       contentEs: section.contentEs || "",
       imageUrl: section.imageUrl || "",
+      videoUrl: section.videoUrl || "",
       buttonTextFr: section.buttonTextFr || "",
       buttonTextEn: section.buttonTextEn || "",
       buttonTextEs: section.buttonTextEs || "",
@@ -149,6 +169,7 @@ export default function AdminContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/content-sections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/content-sections"] });
     },
   });
 
@@ -319,7 +340,7 @@ export default function AdminContent() {
                     <SelectTrigger data-testid="select-section-type">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[100] max-h-60 bg-white dark:bg-zinc-900 shadow-lg border border-border">
                       {SECTION_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.labelFr}
@@ -327,6 +348,9 @@ export default function AdminContent() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {SECTION_TYPE_HINT[formData.sectionType || "custom"] ?? SECTION_TYPE_HINT.custom}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Ordre d'affichage</Label>
@@ -468,17 +492,49 @@ export default function AdminContent() {
               </Tabs>
 
               <div className="space-y-4 border-t pt-4">
+                {(formData.sectionType === "video" || formData.sectionType === "hero") && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>URL de la vidéo</Label>
+                      <Input
+                        value={formData.videoUrl || ""}
+                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                        placeholder="https://example.com/video.mp4"
+                        data-testid="input-video-url"
+                      />
+                      {formData.sectionType === "video" && (
+                        <p className="text-xs text-muted-foreground">
+                          Pour le type « Vidéo », cette URL est utilisée pour la lecture sur la page d’accueil.
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Image de couverture (poster)</Label>
+                      <Input
+                        value={formData.imageUrl || ""}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        placeholder="https://example.com/poster.jpg"
+                        data-testid="input-image-url"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Image affichée avant le démarrage de la vidéo ou en arrière-plan (hero).
+                      </p>
+                    </div>
+                  </>
+                )}
+                {formData.sectionType !== "video" && formData.sectionType !== "hero" && (
+                  <div className="space-y-2">
+                    <Label>URL de l'image (optionnel)</Label>
+                    <Input
+                      value={formData.imageUrl || ""}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
+                      data-testid="input-image-url"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <Label>URL de l'image</Label>
-                  <Input
-                    value={formData.imageUrl || ""}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
-                    data-testid="input-image-url"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>URL du bouton</Label>
+                  <Label>URL du bouton (optionnel)</Label>
                   <Input
                     value={formData.buttonUrl || ""}
                     onChange={(e) => setFormData({ ...formData, buttonUrl: e.target.value })}

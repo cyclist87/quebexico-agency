@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development npx tsx server/index.ts",
+    "dev:prod": "USE_PROD_DB=1 NODE_ENV=development npx tsx server/index.ts",
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
